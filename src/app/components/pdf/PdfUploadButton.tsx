@@ -31,6 +31,8 @@ export default function PdfUploadButton({ submissionId, onUploaded }: Props) {
       const url = await uploadPdf(file, submissionId)
       await gqlFetch(ATTACH_PDF_MUTATION, { id: submissionId, pdfStorageKey: url })
       onUploaded(url)
+    } catch {
+      // upload failed; loading resets via finally
     } finally {
       setLoading(false)
       if (inputRef.current) inputRef.current.value = ''
