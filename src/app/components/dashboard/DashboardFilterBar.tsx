@@ -1,6 +1,7 @@
 'use client'
 
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
 import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
@@ -8,7 +9,9 @@ import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import Typography from '@mui/material/Typography'
 import HistoryIcon from '@mui/icons-material/History'
+import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import HistorySidebar, { type HistoryItem } from '../HistorySidebar'
 import Tooltip from '@mui/material/Tooltip'
 
@@ -54,6 +57,7 @@ export default function DashboardFilterBar({
   history, onItemTeamsChanged,
 }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const router = useRouter()
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', mb: 1.5 }}>
@@ -76,20 +80,33 @@ export default function DashboardFilterBar({
       </ToggleButtonGroup>
 
       {timeRange === 'single' ? (
-        <Select
-          value={selectedSubmissionId}
-          onChange={e => onSubmissionChange(e.target.value)}
-          size="small"
-          displayEmpty
-          sx={{ fontSize: '0.75rem', minWidth: 200, maxWidth: 300, '& .MuiSelect-select': { py: '3px' } }}
-        >
-          {submissionOptions.length === 0
-            ? <MenuItem value="" disabled>No submissions</MenuItem>
-            : submissionOptions.map(s => (
-                <MenuItem key={s.id} value={s.id}>{s.label}</MenuItem>
-              ))
-          }
-        </Select>
+        <>
+          <Select
+            value={selectedSubmissionId}
+            onChange={e => onSubmissionChange(e.target.value)}
+            size="small"
+            displayEmpty
+            sx={{ fontSize: '0.75rem', minWidth: 200, maxWidth: 300, '& .MuiSelect-select': { py: '3px' } }}
+          >
+            {submissionOptions.length === 0
+              ? <MenuItem value="" disabled>No submissions</MenuItem>
+              : submissionOptions.map(s => (
+                  <MenuItem key={s.id} value={s.id}>{s.label}</MenuItem>
+                ))
+            }
+          </Select>
+          {selectedSubmissionId && (
+            <Button
+              size="small"
+              variant="outlined"
+              endIcon={<OpenInNewIcon fontSize="inherit" />}
+              onClick={() => router.push(`/forms/${selectedSubmissionId}`)}
+              sx={{ fontSize: '0.72rem', py: 0.25, px: 1.25, textTransform: 'none', whiteSpace: 'nowrap' }}
+            >
+              See all details
+            </Button>
+          )}
+        </>
       ) : (
         teams.length > 0 && (
           <Select
