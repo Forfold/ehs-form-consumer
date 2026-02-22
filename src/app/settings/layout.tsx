@@ -24,11 +24,14 @@ const ADMIN_TAB = { label: 'Users', href: '/settings/users' }
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
-    try { return localStorage.getItem('settings_isAdmin') === 'true' } catch { return false }
-  })
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
+    try {
+      const cached = localStorage.getItem('settings_isAdmin')
+      if (cached === 'true') setIsAdmin(true)
+    } catch {}
+
     gqlFetch<{ me: { isAdmin: boolean } | null }>('query { me { isAdmin } }')
       .then(({ me }) => {
         const admin = !!me?.isAdmin
