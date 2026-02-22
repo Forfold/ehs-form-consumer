@@ -48,23 +48,21 @@ export default function Providers({
 }) {
   // initialMode comes from the server-read cookie, so server and client agree from the start.
   const [mode, setModeState] = useState<ThemeMode>(initialMode)
-  // Resolved 'system' → 'light'|'dark' based on OS preference
-  const [resolvedMode, setResolvedMode] = useState<'light' | 'dark'>(
-    initialMode === 'system' ? 'light' : initialMode
-  )
+  // Tracks the OS dark/light preference; only used when mode === 'system'
+  const [systemPreference, setSystemPreference] = useState<'light' | 'dark'>('light')
 
-  // Keep resolvedMode in sync with OS preference when mode === 'system'
+  // Listen for OS preference changes only while mode is 'system'
   useEffect(() => {
-    if (mode !== 'system') {
-      setResolvedMode(mode)
-      return
-    }
+    if (mode !== 'system') return
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    const update = () => setResolvedMode(mq.matches ? 'dark' : 'light')
+    const update = () => setSystemPreference(mq.matches ? 'dark' : 'light')
     update()
     mq.addEventListener('change', update)
     return () => mq.removeEventListener('change', update)
   }, [mode])
+
+  // Derive resolved mode — no extra state, no cascading renders
+  const resolvedMode: 'light' | 'dark' = mode === 'system' ? systemPreference : mode
 
   // After mount: sync with DB preference (and keep cookie up to date)
   useEffect(() => {

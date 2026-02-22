@@ -2,17 +2,20 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Avatar from '@mui/material/Avatar'
+import Box from '@mui/material/Box'
 import Divider from '@mui/material/Divider'
 import IconButton from '@mui/material/IconButton'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
+import ToggleButton from '@mui/material/ToggleButton'
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import Typography from '@mui/material/Typography'
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import LogoutIcon from '@mui/icons-material/Logout'
-import Link from 'next/link'
 import { signOut } from 'next-auth/react'
 import { gqlFetch } from '@/lib/graphql/client'
+import { useThemeMode } from '@/app/Providers'
+import type { ThemeMode } from '@/app/theme'
 
 interface GqlUser {
   id: string
@@ -27,6 +30,7 @@ export default function UserMenu() {
   const [user, setUser] = useState<GqlUser | null>(null)
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const fetchedRef = useRef(false)
+  const { mode, setMode } = useThemeMode()
 
   useEffect(() => {
     if (fetchedRef.current) return
@@ -57,8 +61,7 @@ export default function UserMenu() {
         anchorEl={anchorEl}
         open={!!anchorEl}
         onClose={() => setAnchorEl(null)}
-        onClick={() => setAnchorEl(null)}
-        slotProps={{ paper: { sx: { minWidth: 180, mt: 0.5 } } }}
+        slotProps={{ paper: { sx: { minWidth: 200, mt: 0.5 } } }}
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
@@ -76,11 +79,27 @@ export default function UserMenu() {
         )}
 
         {user && <Divider />}
-        
-        <MenuItem component={Link} href="/settings">
-          <ListItemIcon><SettingsOutlinedIcon fontSize="small" /></ListItemIcon>
-          Settings
+
+        <MenuItem disableRipple sx={{ justifyContent: 'space-between', gap: 1, cursor: 'default', '&:hover': { bgcolor: 'transparent' } }}>
+          <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            Theme
+          </Typography>
+          <Box onClick={(e) => e.stopPropagation()}>
+            <ToggleButtonGroup
+              value={mode}
+              exclusive
+              size="small"
+              onChange={(_, v: ThemeMode | null) => { if (v) setMode(v) }}
+              aria-label="theme mode"
+              sx={{ '& .MuiToggleButton-root': { px: 1.25, py: 0.25, fontSize: '0.7rem', fontWeight: 600, textTransform: 'none', lineHeight: 1.6 } }}
+            >
+              <ToggleButton value="light" aria-label="light">Light</ToggleButton>
+              <ToggleButton value="system" aria-label="system">System</ToggleButton>
+              <ToggleButton value="dark" aria-label="dark">Dark</ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
         </MenuItem>
+
         <Divider />
         <MenuItem onClick={() => signOut()}>
           <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>

@@ -8,6 +8,8 @@ import Container from '@mui/material/Container'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import AddIcon from '@mui/icons-material/Add'
+import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline'
+import Link from 'next/link'
 import { gqlFetch } from '@/lib/graphql/client'
 import { GqlTeam, GqlTeamMember, TeamCard } from './TeamCard'
 
@@ -43,17 +45,19 @@ export default function TeamManager() {
   const [teams, setTeams] = useState<GqlTeam[]>([])
   const [loading, setLoading] = useState(true)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [createName, setCreateName] = useState('')
   const [creating, setCreating] = useState(false)
 
   useEffect(() => {
     Promise.all([
       gqlFetch<{ teams: GqlTeam[] }>(TEAMS_QUERY),
-      gqlFetch<{ me: { id: string } | null }>('query { me { id } }'),
+      gqlFetch<{ me: { id: string; isAdmin: boolean } | null }>('query { me { id isAdmin } }'),
     ])
       .then(([{ teams }, { me }]) => {
         setTeams(teams)
         setCurrentUserId(me?.id ?? null)
+        setIsAdmin(!!me?.isAdmin)
       })
       .catch(() => {/* db not configured */})
       .finally(() => setLoading(false))
@@ -104,7 +108,20 @@ export default function TeamManager() {
 
   return (
     <Container maxWidth="md" sx={{ py: 4, flex: 1 }}>
-        <Typography variant="h6" gutterBottom>Teams</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+          <Typography variant="h6">Teams</Typography>
+          {isAdmin && (
+            <Button
+              component={Link}
+              href="/settings/teams/users"
+              size="small"
+              startIcon={<PeopleOutlineIcon fontSize="small" />}
+              sx={{ fontWeight: 600 }}
+            >
+              All Users
+            </Button>
+          )}
+        </Box>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           Create teams to share form submissions with colleagues. Any team member can share
           their own submissions; owners and admins manage membership.

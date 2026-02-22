@@ -6,9 +6,9 @@ import Typography from '@mui/material/Typography'
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined'
 import Link from 'next/link'
 import UserMenu from '@/app/components/UserMenu'
-import TeamManager from '@/app/settings/components/TeamManager'
+import UserManagementList from '@/app/settings/users/components/UserManagementList'
 
-export default function TeamsPage() {
+export default function TeamsUsersPage() {
   return (
     <>
       <AppBar position="static">
@@ -24,15 +24,24 @@ export default function TeamsPage() {
                 FormVis
               </Typography>
             </Box>
+            <Box
+              component={Link}
+              href="/settings/teams"
+              sx={{ textDecoration: 'none', '&:hover': { opacity: 0.8 } }}
+            >
+              <Typography variant="subtitle1" sx={{ fontWeight: 500, letterSpacing: '-0.01em', color: 'text.primary' }}>
+                Teams
+              </Typography>
+            </Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 500, letterSpacing: '-0.01em', color: 'text.primary' }}>
-              Teams
+              Users
             </Typography>
           </Breadcrumbs>
           <UserMenu />
         </Toolbar>
       </AppBar>
 
-      <TeamManager />
+      <UserManagementList />
     </>
   )
 }
