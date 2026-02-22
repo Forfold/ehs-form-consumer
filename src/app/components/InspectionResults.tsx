@@ -77,7 +77,13 @@ export default function InspectionResults({ data, onReset }: Props) {
   const status = overallStatusMap[data.overallStatus] ?? { label: data.overallStatus, severity: 'info' as const }
   const bmpItems = data.bmpItems ?? []
   const correctiveActions = data.correctiveActions ?? []
-  const isBlankForm = !data.facilityName && !data.permitNumber && !data.inspectionDate && bmpItems.length === 0
+  // A form is considered blank when all header identifiers are null AND every
+  // BMP item is "na" (or the array is empty) — meaning nothing was filled in.
+  const isBlankForm =
+    !data.facilityName &&
+    !data.permitNumber &&
+    !data.inspectionDate &&
+    (bmpItems.length === 0 || bmpItems.every(i => i.status === 'na'))
   const pendingCount = correctiveActions.filter(a => !a.completed).length
   const passCount = bmpItems.filter(i => i.status === 'pass').length
   const failCount = bmpItems.filter(i => i.status === 'fail').length
