@@ -6,7 +6,7 @@ import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile'
+import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined'
 
 interface Props {
   onFile: (file: File) => void
@@ -32,27 +32,30 @@ export default function PdfUploader({ onFile, loading }: Props) {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+      {/* Drop zone */}
       <Box
-        onClick={() => inputRef.current?.click()}
+        onClick={() => !loading && inputRef.current?.click()}
         onDrop={handleDrop}
-        onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+        onDragOver={(e) => { e.preventDefault(); if (!loading) setDragging(true) }}
         onDragLeave={() => setDragging(false)}
         sx={{
-          border: '2px dashed',
+          border: '1.5px dashed',
           borderColor: selectedFile ? 'success.main' : dragging ? 'primary.main' : 'grey.300',
           borderRadius: 2,
-          py: 7,
-          px: 4,
+          py: 5,
+          px: 3,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: 1,
-          cursor: 'pointer',
-          bgcolor: selectedFile ? 'success.50' : dragging ? 'primary.50' : 'background.paper',
-          transition: 'border-color 0.2s, background-color 0.2s',
+          gap: 0.75,
+          cursor: loading ? 'default' : 'pointer',
+          bgcolor: selectedFile ? 'success.50' : dragging ? 'primary.50' : 'grey.50',
+          transition: 'border-color 0.15s, background-color 0.15s',
+          pointerEvents: loading ? 'none' : undefined,
+          opacity: loading ? 0.6 : 1,
           '&:hover': {
-            borderColor: selectedFile ? 'success.dark' : 'primary.main',
+            borderColor: selectedFile ? 'success.main' : 'primary.main',
             bgcolor: 'action.hover',
           },
         }}
@@ -66,32 +69,40 @@ export default function PdfUploader({ onFile, loading }: Props) {
         />
 
         {selectedFile ? (
-          <InsertDriveFileIcon sx={{ fontSize: 48, color: 'success.main' }} />
+          <InsertDriveFileOutlinedIcon sx={{ fontSize: 36, color: 'success.main' }} />
         ) : (
-          <CloudUploadIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
+          <CloudUploadIcon sx={{ fontSize: 36, color: 'text.disabled' }} />
         )}
 
         {selectedFile ? (
           <>
-            <Typography variant="body1" fontWeight={600}>{selectedFile.name}</Typography>
-            <Typography variant="body2" color="text.secondary">Click to choose a different file</Typography>
+            <Typography variant="body2" fontWeight={600} color="text.primary">
+              {selectedFile.name}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Click to swap file
+            </Typography>
           </>
         ) : (
           <>
-            <Typography variant="body1" fontWeight={500}>Drop your PDF here</Typography>
-            <Typography variant="body2" color="text.secondary">or click to browse</Typography>
+            <Typography variant="body2" fontWeight={500} color="text.primary">
+              Drop PDF here or click to browse
+            </Typography>
+            <Typography variant="caption" color="text.disabled">
+              .pdf only
+            </Typography>
           </>
         )}
       </Box>
 
+      {/* Submit */}
       <Button
         variant="contained"
         size="large"
         fullWidth
         disabled={!selectedFile || loading}
         onClick={() => selectedFile && onFile(selectedFile)}
-        startIcon={loading ? <CircularProgress size={18} color="inherit" /> : undefined}
-        sx={{ py: 1.5 }}
+        startIcon={loading ? <CircularProgress size={16} color="inherit" /> : undefined}
       >
         {loading ? 'Extracting…' : 'Extract Form Data'}
       </Button>
