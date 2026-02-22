@@ -13,7 +13,9 @@ import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
+import LogoutIcon from '@mui/icons-material/Logout'
 import MenuIcon from '@mui/icons-material/Menu'
+import { signOut } from 'next-auth/react'
 import { extractInspection } from '@/lib/extractInspection'
 import PdfUploader from './components/PdfUploader'
 import InspectionResults from './components/InspectionResults'
@@ -120,6 +122,15 @@ export default function Home() {
             color="primary"
             sx={{ borderRadius: 1, fontSize: '0.7rem', height: 22 }}
           />
+
+          <IconButton
+            size="small"
+            onClick={() => signOut()}
+            sx={{ color: 'text.secondary', ml: 0.5 }}
+            aria-label="sign out"
+          >
+            <LogoutIcon fontSize="small" />
+          </IconButton>
         </Toolbar>
       </AppBar>
 
