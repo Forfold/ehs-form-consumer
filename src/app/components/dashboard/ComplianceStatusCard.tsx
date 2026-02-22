@@ -8,11 +8,12 @@ import DashboardCard from './DashboardCard'
 interface Props {
   percent: number
   formCount: number
+  windowLabel: string
   threshold: number
   onThresholdChange: (value: number) => void
 }
 
-export default function ComplianceStatusCard({ percent, formCount, threshold, onThresholdChange }: Props) {
+export default function ComplianceStatusCard({ percent, formCount, windowLabel, threshold, onThresholdChange }: Props) {
   const theme = useTheme()
   const passing = percent >= threshold
   const color = passing ? theme.palette.success.main : theme.palette.error.main
@@ -20,7 +21,7 @@ export default function ComplianceStatusCard({ percent, formCount, threshold, on
   return (
     <DashboardCard
       title="Compliance Status"
-      subtitle={`This month · ${formCount} form${formCount !== 1 ? 's' : ''}`}
+      subtitle={`${windowLabel} · ${formCount} form${formCount !== 1 ? 's' : ''}`}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 0.5 }}>
         <Typography variant="h2" fontWeight={700} sx={{ color, lineHeight: 1 }}>

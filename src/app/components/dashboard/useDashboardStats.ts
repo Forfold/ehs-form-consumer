@@ -13,15 +13,13 @@ function monthLabel(d: Date) {
 export function useDashboardStats(history: HistoryItem[]): DashboardStats {
   return useMemo(() => {
     const now = new Date()
-    const thisKey = monthKey(now)
 
-    // Compliance this month
-    const thisMonthForms = history.filter(item => monthKey(new Date(item.processedAt)) === thisKey)
-    const compliant = thisMonthForms.filter(
+    // Compliance across the (already-filtered) history
+    const compliant = history.filter(
       item => (item.data as Partial<InspectionDataSummary>).overallStatus === 'compliant'
     ).length
     const compliancePercent =
-      thisMonthForms.length === 0 ? 100 : Math.round((compliant / thisMonthForms.length) * 100)
+      history.length === 0 ? 100 : Math.round((compliant / history.length) * 100)
 
     // BMP totals across all history
     const bmpTotals = { pass: 0, fail: 0, na: 0 }
@@ -63,6 +61,6 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
         }))
     })
 
-    return { compliancePercent, thisMonthCount: thisMonthForms.length, bmpTotals, monthlyBuckets, openActions }
+    return { compliancePercent, formCount: history.length, bmpTotals, monthlyBuckets, openActions }
   }, [history])
 }

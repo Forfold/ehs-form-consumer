@@ -28,7 +28,7 @@ export interface OpenCorrectiveAction {
 
 export interface DashboardStats {
   compliancePercent: number
-  thisMonthCount: number
+  formCount: number
   bmpTotals: BmpTotals
   monthlyBuckets: MonthBucket[]
   openActions: OpenCorrectiveAction[]
