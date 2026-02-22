@@ -707,6 +707,40 @@ builder.mutationType({
       },
     }),
 
+    // Change a team member's role (owner or admin; owners only can assign owner role; can't demote last owner)
+    changeTeamMemberRole: t.field({
+      type: TeamMemberRef,
+      args: {
+        teamId: t.arg.id({ required: true }),
+        userId: t.arg.id({ required: true }),
+        role:   t.arg.string({ required: true }),
+      },
+      resolve: async (_, { teamId, userId, role }, ctx) => {
+        if (!ctx.userId) throw new Error('Not authenticated')
+        const callerMember = await assertTeamRole(ctx.db, String(teamId), ctx.userId, 'admin')
+        // Only owners can assign the owner role
+        if (String(role) === 'owner' && callerMember.role !== 'owner') {
+          throw new Error('Only owners can assign the owner role')
+        }
+        // Prevent demoting the last owner
+        const owners = await ctx.db
+          .select()
+          .from(teamMembers)
+          .where(and(eq(teamMembers.teamId, String(teamId)), eq(teamMembers.role, 'owner')))
+        if (owners.length === 1 && owners[0].userId === String(userId) && String(role) !== 'owner') {
+          throw new Error('Cannot demote the last owner of a team')
+        }
+        const [row] = await ctx.db
+          .update(teamMembers)
+          .set({ role: String(role) })
+          .where(and(eq(teamMembers.teamId, String(teamId)), eq(teamMembers.userId, String(userId))))
+          .returning()
+        if (!row) throw new Error('Member not found')
+        const userRows = await ctx.db.select().from(users).where(eq(users.id, String(userId))).limit(1)
+        return { ...row, user: userRows[0] }
+      },
+    }),
+
     // Remove any user from any team — site admins only
     adminRemoveUserFromTeam: t.field({
       type: 'Boolean',

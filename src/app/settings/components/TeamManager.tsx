@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Avatar from '@mui/material/Avatar'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -21,6 +21,7 @@ import ListItem from '@mui/material/ListItem'
 import ListItemAvatar from '@mui/material/ListItemAvatar'
 import ListItemButton from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
+import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import Paper from '@mui/material/Paper'
 import Select from '@mui/material/Select'
@@ -30,6 +31,7 @@ import Typography from '@mui/material/Typography'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import GroupAddIcon from '@mui/icons-material/GroupAdd'
+import MoreVertIcon from '@mui/icons-material/MoreVert'
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove'
 import SearchIcon from '@mui/icons-material/Search'
 import { gqlFetch } from '@/lib/graphql/client'
@@ -85,6 +87,14 @@ const ADD_MEMBER_MUTATION = `
 const REMOVE_MEMBER_MUTATION = `
   mutation RemoveTeamMember($teamId: ID!, $userId: ID!) {
     removeTeamMember(teamId: $teamId, userId: $userId)
+  }
+`
+
+const CHANGE_ROLE_MUTATION = `
+  mutation ChangeTeamMemberRole($teamId: ID!, $userId: ID!, $role: String!) {
+    changeTeamMemberRole(teamId: $teamId, userId: $userId, role: $role) {
+      userId role joinedAt user { id name email image }
+    }
   }
 `
 
@@ -286,13 +296,16 @@ interface TeamCardProps {
   onDeleted: (id: string) => void
   onMemberAdded: (teamId: string, member: GqlTeamMember) => void
   onMemberRemoved: (teamId: string, userId: string) => void
+  onMemberRoleChanged: (teamId: string, member: GqlTeamMember) => void
 }
 
-function TeamCard({ team, currentUserId, onDeleted, onMemberAdded, onMemberRemoved }: TeamCardProps) {
+function TeamCard({ team, currentUserId, onDeleted, onMemberAdded, onMemberRemoved, onMemberRoleChanged }: TeamCardProps) {
   const [addOpen, setAddOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [removingId, setRemovingId] = useState<string | null>(null)
+  const [changingRoleId, setChangingRoleId] = useState<string | null>(null)
+  const [menuAnchor, setMenuAnchor] = useState<{ el: HTMLElement; userId: string } | null>(null)
 
   const myMember = team.members.find((m) => m.userId === currentUserId)
   const myRole = myMember?.role ?? 'member'
@@ -311,6 +324,7 @@ function TeamCard({ team, currentUserId, onDeleted, onMemberAdded, onMemberRemov
   }
 
   async function handleRemoveMember(userId: string) {
+    setMenuAnchor(null)
     setRemovingId(userId)
     try {
       await gqlFetch(REMOVE_MEMBER_MUTATION, { teamId: team.id, userId })
@@ -319,6 +333,28 @@ function TeamCard({ team, currentUserId, onDeleted, onMemberAdded, onMemberRemov
       setRemovingId(null)
     }
   }
+
+  async function handleChangeRole(userId: string, role: string) {
+    setMenuAnchor(null)
+    setChangingRoleId(userId)
+    try {
+      const { changeTeamMemberRole } = await gqlFetch<{ changeTeamMemberRole: GqlTeamMember }>(
+        CHANGE_ROLE_MUTATION,
+        { teamId: team.id, userId, role },
+      )
+      onMemberRoleChanged(team.id, changeTeamMemberRole)
+    } finally {
+      setChangingRoleId(null)
+    }
+  }
+
+  // Keep last userId stable so menu content doesn't flicker during close animation
+  const menuUserIdRef = useRef<string | null>(null)
+  if (menuAnchor) menuUserIdRef.current = menuAnchor.userId
+
+  const menuTargetMember = team.members.find((m) => m.userId === menuUserIdRef.current) ?? null
+  const roleOptions = (['member', 'admin', ...(isOwner ? ['owner'] : [])] as string[])
+    .filter((r) => r !== menuTargetMember?.role)
 
   return (
     <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
@@ -353,20 +389,18 @@ function TeamCard({ team, currentUserId, onDeleted, onMemberAdded, onMemberRemov
             key={member.userId}
             secondaryAction={
               canManageMembers && member.userId !== currentUserId ? (
-                <Tooltip title="Remove member">
-                  <span>
-                    <IconButton
-                      size="small"
-                      edge="end"
-                      onClick={() => handleRemoveMember(member.userId)}
-                      disabled={removingId === member.userId}
-                    >
-                      {removingId === member.userId
-                        ? <CircularProgress size={16} />
-                        : <PersonRemoveIcon fontSize="small" />}
-                    </IconButton>
-                  </span>
-                </Tooltip>
+                <span>
+                  <IconButton
+                    size="small"
+                    edge="end"
+                    onClick={(e) => setMenuAnchor({ el: e.currentTarget, userId: member.userId })}
+                    disabled={removingId === member.userId || changingRoleId === member.userId}
+                  >
+                    {removingId === member.userId || changingRoleId === member.userId
+                      ? <CircularProgress size={16} />
+                      : <MoreVertIcon fontSize="small" />}
+                  </IconButton>
+                </span>
               ) : undefined
             }
           >
@@ -387,6 +421,29 @@ function TeamCard({ team, currentUserId, onDeleted, onMemberAdded, onMemberRemov
           </ListItem>
         ))}
       </List>
+
+      {/* Member actions menu */}
+      <Menu
+        open={Boolean(menuAnchor)}
+        anchorEl={menuAnchor?.el}
+        onClose={() => setMenuAnchor(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        {roleOptions.map((r) => (
+          <MenuItem key={r} onClick={() => handleChangeRole(menuAnchor!.userId, r)}>
+            Set as {r}
+          </MenuItem>
+        ))}
+        <Divider />
+        <MenuItem
+          onClick={() => handleRemoveMember(menuAnchor!.userId)}
+          sx={{ color: 'error.main' }}
+        >
+          <PersonRemoveIcon fontSize="small" sx={{ mr: 1 }} />
+          Remove
+        </MenuItem>
+      </Menu>
 
       <AddMemberDialog
         teamId={team.id}
@@ -472,6 +529,14 @@ export default function TeamManager() {
     ))
   }
 
+  function handleMemberRoleChanged(teamId: string, member: GqlTeamMember) {
+    setTeams((prev) => prev.map((t) =>
+      t.id === teamId
+        ? { ...t, members: t.members.map((m) => m.userId === member.userId ? member : m) }
+        : t
+    ))
+  }
+
   return (
     <Container maxWidth="sm" sx={{ py: 4, flex: 1 }}>
         <Typography variant="h6" gutterBottom>Teams</Typography>
@@ -522,6 +587,7 @@ export default function TeamManager() {
                 onDeleted={handleTeamDeleted}
                 onMemberAdded={handleMemberAdded}
                 onMemberRemoved={handleMemberRemoved}
+                onMemberRoleChanged={handleMemberRoleChanged}
               />
             ))}
           </Box>
