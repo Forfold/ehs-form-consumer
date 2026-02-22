@@ -11,7 +11,9 @@ import MenuItem from '@mui/material/MenuItem'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import Typography from '@mui/material/Typography'
+import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined'
 import LogoutIcon from '@mui/icons-material/Logout'
+import Link from 'next/link'
 import { signOut } from 'next-auth/react'
 import { gqlFetch } from '@/lib/graphql/client'
 import { useThemeMode } from '@/app/Providers'
@@ -79,6 +81,13 @@ export default function UserMenu() {
         )}
 
         {user && <Divider />}
+
+        <MenuItem component={Link} href="/settings/teams">
+          <ListItemIcon><GroupsOutlinedIcon fontSize="small" /></ListItemIcon>
+          Teams
+        </MenuItem>
+
+        <Divider />
 
         <MenuItem disableRipple sx={{ justifyContent: 'space-between', gap: 1, cursor: 'default', '&:hover': { bgcolor: 'transparent' } }}>
           <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: '0.06em' }}>
