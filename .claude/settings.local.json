@@ -3,7 +3,10 @@
     "allow": [
       "WebFetch(domain:www.mdeq.ms.gov)",
       "Bash(npm install:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm run build:*)"
     ]
   }
 }

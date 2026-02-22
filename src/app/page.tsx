@@ -1,20 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Alert from '@mui/material/Alert'
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
 import Container from '@mui/material/Container'
 import Divider from '@mui/material/Divider'
+import IconButton from '@mui/material/IconButton'
 import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
+import MenuIcon from '@mui/icons-material/Menu'
 import { extractInspection } from '@/lib/extractInspection'
 import PdfUploader from './components/PdfUploader'
 import InspectionResults from './components/InspectionResults'
+import HistorySidebar, { type HistoryItem } from './components/HistorySidebar'
 
 type OverallStatus = 'compliant' | 'non-compliant' | 'needs-attention'
 
@@ -40,6 +43,15 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<InspectionData | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [history, setHistory] = useState<HistoryItem[]>([])
+
+  useEffect(() => {
+    fetch('/api/history')
+      .then(r => r.json())
+      .then(setHistory)
+      .catch(() => {/* DB not configured yet */})
+  }, [])
 
   async function handleFile(file: File) {
     setLoading(true)
@@ -48,6 +60,16 @@ export default function Home() {
     try {
       const data = await extractInspection(file)
       setResult(data)
+
+      const res = await fetch('/api/history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ facilityName: data.facilityName ?? null, fileName: file.name }),
+      })
+      if (res.ok) {
+        const item: HistoryItem = await res.json()
+        setHistory(prev => [item, ...prev])
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Extraction failed')
     } finally {
@@ -60,14 +82,37 @@ export default function Home() {
 
       {/* App bar */}
       <AppBar position="static">
-        <Toolbar sx={{ gap: 1.5 }}>
-          <AssignmentOutlinedIcon sx={{ color: 'primary.main', fontSize: 22 }} />
-          <Typography
-            variant="subtitle1"
-            sx={{ flexGrow: 1, fontWeight: 700, letterSpacing: '-0.01em', color: 'text.primary' }}
+        <Toolbar sx={{ gap: 1 }}>
+          <IconButton
+            size="small"
+            edge="start"
+            onClick={() => setSidebarOpen(true)}
+            sx={{ color: 'text.secondary', mr: 0.5 }}
+            aria-label="open history"
           >
-            EHS Inspector
-          </Typography>
+            <MenuIcon fontSize="small" />
+          </IconButton>
+
+          <Box
+            onClick={() => setResult(null)}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              flexGrow: 1,
+              cursor: 'pointer',
+              '&:hover': { opacity: 0.8 },
+            }}
+          >
+            <AssignmentOutlinedIcon sx={{ color: 'primary.main', fontSize: 22 }} />
+            <Typography
+              variant="subtitle1"
+              sx={{ fontWeight: 700, letterSpacing: '-0.01em', color: 'text.primary' }}
+            >
+              EHS Inspector
+            </Typography>
+          </Box>
+
           <Chip
             label="Beta"
             size="small"
@@ -77,6 +122,12 @@ export default function Home() {
           />
         </Toolbar>
       </AppBar>
+
+      <HistorySidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        items={history}
+      />
 
       {/* Content */}
       {result ? (
