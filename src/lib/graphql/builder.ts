@@ -1,6 +1,8 @@
 import SchemaBuilder from '@pothos/core'
+import { eq } from 'drizzle-orm'
 import { auth } from '@/auth'
 import { db, type Db } from '@/lib/db'
+import { users } from '../../../db/schema'
 
 // ── Context ──────────────────────────────────────────────────────────────────
 // Built once per request in the Yoga context factory.
@@ -9,14 +11,20 @@ import { db, type Db } from '@/lib/db'
 export interface Context {
   db: Db
   userId: string | null
+  isAdmin: boolean
 }
 
 export async function buildContext(_request: Request): Promise<Context> {
   const session = await auth()
-  return {
-    db,
-    userId: session?.user?.id ?? null,
+  const userId = session?.user?.id ?? null
+
+  let isAdmin = false
+  if (userId) {
+    const rows = await db.select({ isAdmin: users.isAdmin }).from(users).where(eq(users.id, userId)).limit(1)
+    isAdmin = rows[0]?.isAdmin ?? false
   }
+
+  return { db, userId, isAdmin }
 }
 
 // ── Builder ───────────────────────────────────────────────────────────────────

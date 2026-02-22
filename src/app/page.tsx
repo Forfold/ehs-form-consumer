@@ -13,14 +13,13 @@ import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
-import LogoutIcon from '@mui/icons-material/Logout'
 import MenuIcon from '@mui/icons-material/Menu'
-import { signOut } from 'next-auth/react'
 import { extractInspection } from '@/lib/extractInspection'
 import { gqlFetch } from '@/lib/graphql/client'
 import PdfUploader from './components/PdfUploader'
 import InspectionResults from './components/InspectionResults'
 import HistorySidebar, { type HistoryItem } from './components/HistorySidebar'
+import UserMenu from './components/UserMenu'
 
 type OverallStatus = 'compliant' | 'non-compliant' | 'needs-attention'
 
@@ -50,6 +49,10 @@ const SUBMISSIONS_QUERY = `
       processedAt
       displayName
       data
+      teams {
+        id
+        name
+      }
     }
   }
 `
@@ -69,6 +72,7 @@ interface GqlSubmission {
   processedAt: string
   displayName: string | null
   data: Record<string, unknown>
+  teams: Array<{ id: string; name: string }>
 }
 
 function submissionToHistoryItem(s: GqlSubmission): HistoryItem {
@@ -78,6 +82,7 @@ function submissionToHistoryItem(s: GqlSubmission): HistoryItem {
     processedAt: s.processedAt,
     facilityName: (s.data?.facilityName as string | undefined) ?? s.displayName ?? null,
     data: s.data,
+    teams: s.teams,
   }
 }
 
@@ -133,6 +138,10 @@ export default function Home() {
     setResult(item.data as unknown as InspectionData)
   }
 
+  function handleItemTeamsChanged(itemId: string, teams: Array<{ id: string; name: string }>) {
+    setHistory((prev) => prev.map((h) => h.id === itemId ? { ...h, teams } : h))
+  }
+
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
 
@@ -177,14 +186,7 @@ export default function Home() {
             sx={{ borderRadius: 1, fontSize: '0.7rem', height: 22 }}
           />
 
-          <IconButton
-            size="small"
-            onClick={() => signOut()}
-            sx={{ color: 'text.secondary', ml: 0.5 }}
-            aria-label="sign out"
-          >
-            <LogoutIcon fontSize="small" />
-          </IconButton>
+          <UserMenu />
         </Toolbar>
       </AppBar>
 
@@ -193,6 +195,7 @@ export default function Home() {
         onClose={() => setSidebarOpen(false)}
         items={history}
         onSelect={handleSelectHistory}
+        onItemTeamsChanged={handleItemTeamsChanged}
       />
 
       {/* Content */}
