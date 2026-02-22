@@ -9,7 +9,7 @@ import IconButton from '@mui/material/IconButton'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined'
-import MenuIcon from '@mui/icons-material/Menu'
+import HistoryIcon from '@mui/icons-material/History'
 import { extractInspection } from '@/lib/extractInspection'
 import { gqlFetch } from '@/lib/graphql/client'
 import HistorySidebar, { type HistoryItem } from './components/HistorySidebar'
@@ -82,7 +82,6 @@ export default function Home() {
 
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
-
       <AppBar position="static">
         <Toolbar sx={{ gap: 1 }}>
           <IconButton
@@ -91,7 +90,7 @@ export default function Home() {
             sx={{ color: 'text.secondary', mr: 0.5 }}
             aria-label="open history"
           >
-            <MenuIcon fontSize="small" />
+            <HistoryIcon fontSize="small" />
           </IconButton>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexGrow: 1 }}>

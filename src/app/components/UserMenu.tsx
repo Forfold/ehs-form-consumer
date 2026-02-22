@@ -41,15 +41,13 @@ export default function UserMenu() {
   return (
     <>
       <IconButton
-        size="small"
         onClick={(e) => setAnchorEl(e.currentTarget)}
         aria-label="account menu"
-        sx={{ p: 0.25 }}
       >
         <Avatar
           src={user?.image ?? undefined}
           alt={user?.name ?? user?.email ?? '?'}
-          sx={{ width: 28, height: 28, fontSize: '0.75rem' }}
+          sx={{ width: 36, height: 36, fontSize: '1rem' }}
         >
           {initial}
         </Avatar>
@@ -76,7 +74,9 @@ export default function UserMenu() {
             )}
           </MenuItem>
         )}
+
         {user && <Divider />}
+        
         <MenuItem component={Link} href="/settings">
           <ListItemIcon><SettingsOutlinedIcon fontSize="small" /></ListItemIcon>
           Settings
@@ -84,7 +84,7 @@ export default function UserMenu() {
         <Divider />
         <MenuItem onClick={() => signOut()}>
           <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>
-          Sign out
+          Sign Out
         </MenuItem>
       </Menu>
     </>
