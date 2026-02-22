@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -35,7 +36,6 @@ interface Props {
   open: boolean
   onClose: () => void
   items: HistoryItem[]
-  onSelect?: (item: HistoryItem) => void
   onItemTeamsChanged?: (itemId: string, teams: Array<{ id: string; name: string }>) => void
 }
 
@@ -146,9 +146,11 @@ function ShareMenu({
   )
 }
 
-export default function HistorySidebar({ open, onClose, items, onSelect, onItemTeamsChanged }: Props) {
+export default function HistorySidebar({ open, onClose, items, onItemTeamsChanged }: Props) {
+  const router = useRouter()
+
   function handleSelect(item: HistoryItem) {
-    onSelect?.(item)
+    router.push(`/forms/${item.id}`)
     onClose()
   }
 

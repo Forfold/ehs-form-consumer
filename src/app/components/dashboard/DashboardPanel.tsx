@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Box from '@mui/material/Box'
 import type { HistoryItem } from '../HistorySidebar'
 import { useDashboardStats } from './useDashboardStats'
@@ -12,7 +13,6 @@ import DashboardFilterBar, { type TimeRange } from './DashboardFilterBar'
 
 interface Props {
   history: HistoryItem[]
-  onSelectHistory: (item: HistoryItem) => void
 }
 
 const WINDOW_LABELS: Record<Exclude<TimeRange, 'single'>, string> = {
@@ -40,7 +40,8 @@ function submissionLabel(item: HistoryItem): string {
   return `${name} · ${date}`
 }
 
-export default function DashboardPanel({ history, onSelectHistory }: Props) {
+export default function DashboardPanel({ history }: Props) {
+  const router = useRouter()
   const [timeRange, setTimeRange] = useState<TimeRange>('6mo')
   const [teamId, setTeamId] = useState('all')
   const [selectedSubmissionId, setSelectedSubmissionId] = useState(() => history[0]?.id ?? '')
@@ -91,8 +92,7 @@ export default function DashboardPanel({ history, onSelectHistory }: Props) {
   const stats = useDashboardStats(filteredHistory)
 
   function handleSelectSubmission(id: string) {
-    const item = history.find(h => h.id === id)
-    if (item) onSelectHistory(item)
+    router.push(`/forms/${id}`)
   }
 
   return (
@@ -123,7 +123,7 @@ export default function DashboardPanel({ history, onSelectHistory }: Props) {
             formCount={stats.formCount}
             windowLabel={windowLabel}
             flaggedForms={stats.flaggedForms}
-            onSelectForm={id => { onSelectHistory(history.find(h => h.id === id)!) }}
+            onSelectForm={id => router.push(`/forms/${id}`)}
           />
         </Box>
 

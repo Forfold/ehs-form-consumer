@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
-import Container from '@mui/material/Container'
 import IconButton from '@mui/material/IconButton'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
@@ -12,25 +12,10 @@ import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined'
 import MenuIcon from '@mui/icons-material/Menu'
 import { extractInspection } from '@/lib/extractInspection'
 import { gqlFetch } from '@/lib/graphql/client'
-import InspectionResults from './components/InspectionResults'
 import HistorySidebar, { type HistoryItem } from './components/HistorySidebar'
 import UserMenu from './components/UserMenu'
 import UploaderCard from './components/dashboard/UploaderCard'
 import DashboardPanel from './components/dashboard/DashboardPanel'
-
-type OverallStatus = 'compliant' | 'non-compliant' | 'needs-attention'
-
-interface InspectionData {
-  facilityName: string
-  permitNumber: string
-  inspectionDate: string
-  inspectorName: string
-  overallStatus: OverallStatus
-  bmpItems: Array<{ description: string; status: 'pass' | 'fail' | 'na'; notes: string }>
-  correctiveActions: Array<{ description: string; dueDate: string; completed: boolean }>
-  summary: string
-  deadletter?: Record<string, unknown>
-}
 
 const SUBMISSIONS_QUERY = `
   query {
@@ -61,8 +46,8 @@ function submissionToHistoryItem(s: GqlSubmission): HistoryItem {
 }
 
 export default function Home() {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<InspectionData | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [history, setHistory] = useState<HistoryItem[]>([])
@@ -76,30 +61,17 @@ export default function Home() {
   async function handleFile(file: File) {
     setLoading(true)
     setError(null)
-    setResult(null)
     try {
       const data = await extractInspection(file)
-      setResult(data)
       const { createSubmission } = await gqlFetch<{ createSubmission: { id: string; processedAt: string } }>(
         CREATE_SUBMISSION_MUTATION,
         { input: { fileName: file.name, displayName: data.facilityName ?? null, formType: 'iswgp', data } },
       )
-      const newItem: HistoryItem = {
-        id: createSubmission.id, fileName: file.name,
-        processedAt: createSubmission.processedAt,
-        facilityName: data.facilityName ?? null,
-        data: data as Record<string, unknown>,
-      }
-      setHistory(prev => [newItem, ...prev])
+      router.push(`/forms/${createSubmission.id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Extraction failed')
-    } finally {
       setLoading(false)
     }
-  }
-
-  function handleSelectHistory(item: HistoryItem) {
-    setResult(item.data as unknown as InspectionData)
   }
 
   function handleItemTeamsChanged(itemId: string, teams: Array<{ id: string; name: string }>) {
@@ -120,10 +92,7 @@ export default function Home() {
             <MenuIcon fontSize="small" />
           </IconButton>
 
-          <Box
-            onClick={() => setResult(null)}
-            sx={{ display: 'flex', alignItems: 'center', gap: 1, flexGrow: 1, cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
-          >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexGrow: 1 }}>
             <AssignmentOutlinedIcon sx={{ color: 'primary.main', fontSize: 22 }} />
             <Typography variant="subtitle1" sx={{ fontWeight: 700, letterSpacing: '-0.01em', color: 'text.primary' }}>
               FormVis
@@ -139,23 +108,13 @@ export default function Home() {
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         items={history}
-        onSelect={handleSelectHistory}
         onItemTeamsChanged={handleItemTeamsChanged}
       />
 
-      {result ? (
-        <Container maxWidth="md" sx={{ py: 4, flex: 1 }}>
-          <InspectionResults data={result} onReset={() => setResult(null)} />
-        </Container>
-      ) : (
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 3, p: 3, overflow: 'auto' }}>
-          <UploaderCard onFile={handleFile} loading={loading} error={error} />
-          <DashboardPanel
-            history={history}
-            onSelectHistory={handleSelectHistory}
-          />
-        </Box>
-      )}
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 3, p: 3, overflow: 'auto' }}>
+        <UploaderCard onFile={handleFile} loading={loading} error={error} />
+        <DashboardPanel history={history} />
+      </Box>
     </Box>
   )
 }
