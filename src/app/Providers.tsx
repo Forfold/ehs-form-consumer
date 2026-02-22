@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { SessionProvider } from 'next-auth/react'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
@@ -36,14 +36,11 @@ const SETTINGS_QUERY = `
 // ── Providers ─────────────────────────────────────────────────────────────────
 
 export default function Providers({ children }: { children: React.ReactNode }) {
-  // Start with 'light' to match SSR — real theme applied after hydration
-  const [mode, setModeState] = useState<ThemeMode>('light')
-
-  // Runs before first paint — no flash
-  useLayoutEffect(() => {
-    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    setModeState(systemDark ? 'dark' : 'light')
-  }, [])
+  // Initialise from system preference; SSR returns 'light' (no window)
+  const [mode, setModeState] = useState<ThemeMode>(() => {
+    if (typeof window === 'undefined') return 'light'
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  })
 
   // Fetch from DB and override if a preference is saved
   useEffect(() => {

@@ -160,7 +160,7 @@ export default function FormDetailPage() {
       ) : (
         <Container maxWidth="md" sx={{ py: 4, flex: 1 }}>
           <InspectionResults
-            data={submission.data as InspectionData}
+            data={submission.data as unknown as InspectionData}
             onReset={() => router.push('/')}
           />
         </Container>

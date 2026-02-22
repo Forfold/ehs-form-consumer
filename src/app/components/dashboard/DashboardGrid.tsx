@@ -7,7 +7,7 @@ import ComplianceStatusCard from './ComplianceStatusCard'
 import BmpCheckSummaryCard from './BmpCheckSummaryCard'
 import MonthlyActivityCard from './MonthlyActivityCard'
 import CorrectiveActionsCard from './CorrectiveActionsCard'
-import { DashboardStats } from './useDashboardStats'
+import { DashboardStats } from './types'
 
 interface DashboardGridProps {
   stats: DashboardStats,

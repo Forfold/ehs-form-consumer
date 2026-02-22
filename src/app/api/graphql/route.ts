@@ -10,7 +10,7 @@ const { handleRequest } = createYoga({
   // GraphiQL IDE available in dev at http://localhost:3000/api/graphql
   graphiql: process.env.NODE_ENV === 'development',
 
-  context: ({ request }) => buildContext(request),
+  context: () => buildContext(),
 })
 
 // NextRequest extends Request, so the cast is safe at runtime.
