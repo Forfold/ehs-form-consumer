@@ -139,7 +139,7 @@ function RoleChip({ role }: { role: string }) {
     role === 'owner' ? 'error' :
     role === 'admin' ? 'warning' :
     'default'
-  return <Chip label={role} size="small" color={color as 'error' | 'warning' | 'default'} variant="outlined" />
+  return <Chip component="span" label={role} size="small" color={color as 'error' | 'warning' | 'default'} variant="outlined" />
 }
 
 // ── Add member dialog ─────────────────────────────────────────────────────────

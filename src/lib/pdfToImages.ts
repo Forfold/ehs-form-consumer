@@ -1,16 +1,6 @@
 'use client'
 
-import * as pdfjs from 'pdfjs-dist'
-
 let workerReady = false
-function ensureWorker() {
-  if (workerReady) return
-  pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-    'pdfjs-dist/build/pdf.worker.min.mjs',
-    import.meta.url,
-  ).href
-  workerReady = true
-}
 
 /**
  * Renders every page of a PDF to JPEG base64 strings, compositing ALL layers:
@@ -29,7 +19,17 @@ function ensureWorker() {
  * overlay instead of the canvas — so they would appear blank in our export.
  */
 export async function pdfToImages(file: File, scale = 2.0): Promise<string[]> {
-  ensureWorker()
+  // Dynamic import ensures pdfjs-dist (which references DOMMatrix at module
+  // evaluation time) only loads in the browser, not during SSR.
+  const pdfjs = await import('pdfjs-dist')
+
+  if (!workerReady) {
+    pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+      'pdfjs-dist/build/pdf.worker.min.mjs',
+      import.meta.url,
+    ).href
+    workerReady = true
+  }
 
   const arrayBuffer = await file.arrayBuffer()
   const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise
