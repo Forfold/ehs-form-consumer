@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { SessionProvider } from 'next-auth/react'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
@@ -36,20 +36,22 @@ const SETTINGS_QUERY = `
 // ── Providers ─────────────────────────────────────────────────────────────────
 
 export default function Providers({ children }: { children: React.ReactNode }) {
-  const [mode, setModeState] = useState<ThemeMode>(() => {
-    if (typeof window === 'undefined') return 'light'
-    const stored = localStorage.getItem('theme') as ThemeMode | null
-    return stored === 'light' || stored === 'dark' ? stored : 'light'
-  })
+  // Start with 'light' to match SSR — real theme applied after hydration
+  const [mode, setModeState] = useState<ThemeMode>('light')
 
-  // After hydration: confirm stored theme with DB
+  // Runs before first paint — no flash
+  useLayoutEffect(() => {
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    setModeState(systemDark ? 'dark' : 'light')
+  }, [])
+
+  // Fetch from DB and override if a preference is saved
   useEffect(() => {
     gqlFetch<{ settings: { preferences: Record<string, unknown> } | null }>(SETTINGS_QUERY)
       .then(({ settings }) => {
         const dbMode = settings?.preferences?.theme as ThemeMode | undefined
         if (dbMode === 'light' || dbMode === 'dark') {
           setModeState(dbMode)
-          localStorage.setItem('theme', dbMode)
         }
       })
       .catch(() => {/* db not configured */})
@@ -57,7 +59,6 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   function setMode(m: ThemeMode) {
     setModeState(m)
-    localStorage.setItem('theme', m)
     gqlFetch(UPDATE_SETTINGS_MUTATION, { input: { preferences: { theme: m } } })
       .catch(() => {/* db not configured */})
   }
