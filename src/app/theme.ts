@@ -16,7 +16,7 @@ export function makeTheme(mode: ThemeMode) {
     palette: {
       mode,
       primary: {
-        main: '#1B4FD8',
+        main: dark ? '#6B9FFF' : '#1B4FD8',
       },
       background: dark
         ? { default: '#0F1117', paper: '#1A1F2E' }
