@@ -10,11 +10,12 @@ import CorrectiveActionsCard from './CorrectiveActionsCard'
 import { DashboardStats } from './types'
 
 interface DashboardGridProps {
-  stats: DashboardStats,
-  windowLabel: string,
+  stats: DashboardStats
+  windowLabel: string
+  historyLoading?: boolean
 }
 
-export function DashboardGrid({ stats, windowLabel }: DashboardGridProps) {
+export function DashboardGrid({ stats, windowLabel, historyLoading }: DashboardGridProps) {
   const router = useRouter()
 
   function handleSelectSubmission(id: string) {
@@ -38,6 +39,7 @@ export function DashboardGrid({ stats, windowLabel }: DashboardGridProps) {
           windowLabel={windowLabel}
           flaggedForms={stats.flaggedForms}
           onSelectForm={id => router.push(`/forms/${id}`)}
+          loading={historyLoading}
         />
       </Box>
 
@@ -48,6 +50,7 @@ export function DashboardGrid({ stats, windowLabel }: DashboardGridProps) {
         <CorrectiveActionsCard
           actions={stats.openActions}
           onSelectSubmission={handleSelectSubmission}
+          loading={historyLoading}
         />
       </Box>
     </Box>
