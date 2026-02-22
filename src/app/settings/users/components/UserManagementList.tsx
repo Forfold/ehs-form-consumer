@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Avatar from '@mui/material/Avatar'
 import Box from '@mui/material/Box'
+import Container from '@mui/material/Container'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -277,17 +278,17 @@ export default function UserManagementList() {
 
   if (loading || authorized === null) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', pt: 8 }}>
+      <Container maxWidth="md" sx={{ py: 4, display: 'flex', justifyContent: 'center' }}>
         <CircularProgress />
-      </Box>
+      </Container>
     )
   }
 
   if (!authorized) {
     return (
-      <Box sx={{ p: 3 }}>
+      <Container maxWidth="md" sx={{ py: 4 }}>
         <Typography color="text.secondary">You don&apos;t have permission to view this page.</Typography>
-      </Box>
+      </Container>
     )
   }
 
@@ -304,7 +305,7 @@ export default function UserManagementList() {
   // ── Main UI ───────────────────────────────────────────────────────────────
 
   return (
-    <Box sx={{ p: 3, maxWidth: 900 }}>
+    <Container maxWidth="md" sx={{ py: 4 }}>
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', mb: 2.5 }}>
         <Typography variant="h6" fontWeight={600}>Users</Typography>
@@ -527,6 +528,6 @@ export default function UserManagementList() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </Container>
   )
 }
