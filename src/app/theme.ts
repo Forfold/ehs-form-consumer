@@ -1,9 +1,11 @@
 import { createTheme } from '@mui/material/styles'
 
-export type ThemeMode = 'light' | 'dark'
+export type ThemeMode = 'light' | 'dark' | 'system'
 
 export function makeTheme(mode: ThemeMode) {
-  const dark = mode === 'dark'
+  // 'system' is resolved to 'light'/'dark' by Providers before calling makeTheme
+  const resolved: 'light' | 'dark' = mode === 'system' ? 'light' : mode
+  const dark = resolved === 'dark'
   return createTheme({
     typography: {
       fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
@@ -14,7 +16,7 @@ export function makeTheme(mode: ThemeMode) {
       borderRadius: 8,
     },
     palette: {
-      mode,
+      mode: resolved,
       primary: {
         main: dark ? '#6B9FFF' : '#1B4FD8',
       },

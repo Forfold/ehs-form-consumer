@@ -48,13 +48,30 @@ export default function Providers({
 }) {
   // initialMode comes from the server-read cookie, so server and client agree from the start.
   const [mode, setModeState] = useState<ThemeMode>(initialMode)
+  // Resolved 'system' → 'light'|'dark' based on OS preference
+  const [resolvedMode, setResolvedMode] = useState<'light' | 'dark'>(
+    initialMode === 'system' ? 'light' : initialMode
+  )
+
+  // Keep resolvedMode in sync with OS preference when mode === 'system'
+  useEffect(() => {
+    if (mode !== 'system') {
+      setResolvedMode(mode)
+      return
+    }
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const update = () => setResolvedMode(mq.matches ? 'dark' : 'light')
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [mode])
 
   // After mount: sync with DB preference (and keep cookie up to date)
   useEffect(() => {
     gqlFetch<{ settings: { preferences: Record<string, unknown> } | null }>(SETTINGS_QUERY)
       .then(({ settings }) => {
         const dbMode = settings?.preferences?.theme as ThemeMode | undefined
-        if (dbMode === 'light' || dbMode === 'dark') {
+        if (dbMode === 'light' || dbMode === 'dark' || dbMode === 'system') {
           setModeState(dbMode)
           setCookie(dbMode)
         }
@@ -69,7 +86,7 @@ export default function Providers({
       .catch(() => {/* db not configured */})
   }
 
-  const theme = useMemo(() => makeTheme(mode), [mode])
+  const theme = useMemo(() => makeTheme(resolvedMode), [resolvedMode])
 
   return (
     <ThemeContext.Provider value={{ mode, setMode }}>
