@@ -36,22 +36,19 @@ const SETTINGS_QUERY = `
 // ── Providers ─────────────────────────────────────────────────────────────────
 
 export default function Providers({ children }: { children: React.ReactNode }) {
-  // Initialise from system preference; SSR returns 'light' (no window)
-  const [mode, setModeState] = useState<ThemeMode>(() => {
-    if (typeof window === 'undefined') return 'light'
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-  })
+  // Always start with 'light' on both server and client to avoid hydration mismatch.
+  // The real preference (system or DB) is applied after mount in the effect below.
+  const [mode, setModeState] = useState<ThemeMode>('light')
 
-  // Fetch from DB and override if a preference is saved
+  // After mount: apply DB preference, falling back to system preference
   useEffect(() => {
+    const systemMode: ThemeMode = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
     gqlFetch<{ settings: { preferences: Record<string, unknown> } | null }>(SETTINGS_QUERY)
       .then(({ settings }) => {
         const dbMode = settings?.preferences?.theme as ThemeMode | undefined
-        if (dbMode === 'light' || dbMode === 'dark') {
-          setModeState(dbMode)
-        }
+        setModeState(dbMode === 'light' || dbMode === 'dark' ? dbMode : systemMode)
       })
-      .catch(() => {/* db not configured */})
+      .catch(() => { setModeState(systemMode) })
   }, [])
 
   function setMode(m: ThemeMode) {
