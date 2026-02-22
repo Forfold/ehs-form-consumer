@@ -77,12 +77,20 @@ export default function InspectionResults({ data, onReset }: Props) {
   const status = overallStatusMap[data.overallStatus] ?? { label: data.overallStatus, severity: 'info' as const }
   const bmpItems = data.bmpItems ?? []
   const correctiveActions = data.correctiveActions ?? []
+  const isBlankForm = !data.facilityName && !data.permitNumber && !data.inspectionDate && bmpItems.length === 0
   const pendingCount = correctiveActions.filter(a => !a.completed).length
   const passCount = bmpItems.filter(i => i.status === 'pass').length
   const failCount = bmpItems.filter(i => i.status === 'fail').length
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+
+      {/* Blank form warning */}
+      {isBlankForm && (
+        <Alert severity="info">
+          This appears to be an unfilled form template. Upload a completed inspection form to see extracted results.
+        </Alert>
+      )}
 
       {/* Overall status */}
       <Alert
