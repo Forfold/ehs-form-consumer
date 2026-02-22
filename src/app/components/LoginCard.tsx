@@ -31,7 +31,7 @@ export default function LoginCard() {
       >
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
           <AssignmentOutlinedIcon sx={{ color: 'primary.main', fontSize: 28 }} />
-          <Typography variant="h6" fontWeight={600}>EHS Inspector</Typography>
+          <Typography variant="h6" fontWeight={600}>FormVis</Typography>
         </Box>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           Sign in to access your inspection history and settings.
