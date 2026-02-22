@@ -5,35 +5,24 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY // never reaches the client
 })
 
-export async function POST(request: NextRequest) {
-  try {
-    const { base64, mediaType } = await request.json()
+const PROMPT = `This is an ISWGP (Industrial Stormwater General Permit) Monthly Inspection / Visual Evaluation Report. The pages are fully-rendered PDF images with ALL layers composited: base content, AcroForm field values, ink/e-drawing annotations, shape annotations, stamps, and free-text overlays. Every visible mark is present.
 
-    const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 4096,
-      messages: [{
-        role: 'user',
-        content: [
-          {
-            type: 'document',
-            source: { type: 'base64', media_type: mediaType, data: base64 }
-          },
-          {
-            type: 'text',
-            text: `This is an ISWGP (Industrial Stormwater General Permit) Monthly Inspection / Visual Evaluation Report.
+CHECKBOX READING INSTRUCTIONS — forms may be filled in any of these ways:
 
-CHECKBOX READING INSTRUCTIONS:
-- Each checklist item has three circle columns: Yes, No, N/A
-- A circle counts as SELECTED if it contains ANY of the following: a filled/solid circle (●), an X mark, a checkmark (✓ or √), a pen/pencil scribble, a dot, any handwritten mark, any darkening or ink inside the boundary, or any digital fill
-- An EMPTY, HOLLOW, or OUTLINE-ONLY circle (○) with nothing inside = not selected
-- When the form is handwritten or scanned, look for ink strokes, pen marks, or pencil marks inside each circle — even faint or imprecise marks count as selected
-- Examine all three columns for each row before deciding; the marked column is the answer
-- If no circle appears marked for a row, use "na"
+1. AcroForm / digital form fill: a checkbox widget rendered as ✓, ✗, ●, or a filled square inside the column cell
+2. Handwritten ink (pen, pencil, stylus/e-drawing): strokes, X marks, checkmarks, or scribbles drawn inside or directly over a circle
+3. Ink annotation overlay: a digitally-drawn mark (e.g. from Apple Pencil or a PDF annotation app) placed on top of the circle
+4. Shape annotation: a rectangle, circle, or oval drawn around or enclosing the correct column cell — treat the enclosed column as selected
+5. Arrow annotation: an arrow pointing at a specific column cell — treat the pointed-to column as selected
+6. Stamp annotation: any stamp, sticker, or imported image placed in a column cell
+
+A circle/cell counts as SELECTED if ANY mark appears inside it or is clearly associated with it (enclosed by a shape, pointed to by an arrow, etc.). An untouched empty circle = not selected.
+
+Examine ALL three columns (Yes / No / N/A) per row before deciding. If no column is clearly marked, use "na".
 
 TEXT READING INSTRUCTIONS:
-- Text fields may be filled in with a computer/digital font, a typewriter, or handwriting
-- For handwritten/scanned forms: read cursive and print handwriting carefully, including faint pencil marks, partial letters, or scratched-out corrections (use the most recent/legible version)
+- Text fields may be filled via digital form fill, typewriter, or handwriting (print or cursive)
+- Read faint pencil marks and scratched-out corrections (use the most recent/legible value)
 - If a text field is completely blank or illegible, return null for that field
 
 Map answers to BMP status:
@@ -71,12 +60,33 @@ The "section" field in bmpItems must be one of:
 
 For overallStatus: if any bmpItem has status "fail", use "non-compliant"; if all are "pass" or "na", use "compliant"; otherwise use "needs-attention".
 
-Extract ALL checklist rows from every section of the form. Put any text fields you cannot confidently assign to a field into "deadletter".
+Extract ALL checklist rows from every section of the form — list every BMP item as its own entry in bmpItems, even if no checkbox is marked (use "na" for unmarked rows). Never return an empty bmpItems array for a standard ISWGP form; the array should always reflect the full checklist structure. Put any text fields you cannot confidently assign to a field into "deadletter".
 
 Return only valid JSON, no markdown, no explanation.`
-          }
-        ]
-      }]
+
+export async function POST(request: NextRequest) {
+  try {
+    const { images } = await request.json() as { images: string[] }
+
+    if (!images?.length) {
+      return NextResponse.json({ error: 'No images provided' }, { status: 400 })
+    }
+
+    const response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 4096,
+      messages: [{
+        role: 'user',
+        content: [
+          // One image block per PDF page — Claude sees the fully rendered page
+          // including annotation/form-field layers where X marks live
+          ...images.map((img) => ({
+            type: 'image' as const,
+            source: { type: 'base64' as const, media_type: 'image/jpeg' as const, data: img },
+          })),
+          { type: 'text' as const, text: PROMPT },
+        ],
+      }],
     })
 
     const block = response.content[0]

@@ -17,6 +17,7 @@ import LogoutIcon from '@mui/icons-material/Logout'
 import MenuIcon from '@mui/icons-material/Menu'
 import { signOut } from 'next-auth/react'
 import { extractInspection } from '@/lib/extractInspection'
+import { gqlFetch } from '@/lib/graphql/client'
 import PdfUploader from './components/PdfUploader'
 import InspectionResults from './components/InspectionResults'
 import HistorySidebar, { type HistoryItem } from './components/HistorySidebar'
@@ -41,6 +42,45 @@ const EXTRACTED_FIELDS = [
   'Corrective actions & due dates',
 ]
 
+const SUBMISSIONS_QUERY = `
+  query {
+    submissions(limit: 50) {
+      id
+      fileName
+      processedAt
+      displayName
+      data
+    }
+  }
+`
+
+const CREATE_SUBMISSION_MUTATION = `
+  mutation CreateSubmission($input: CreateSubmissionInput!) {
+    createSubmission(input: $input) {
+      id
+      processedAt
+    }
+  }
+`
+
+interface GqlSubmission {
+  id: string
+  fileName: string
+  processedAt: string
+  displayName: string | null
+  data: Record<string, unknown>
+}
+
+function submissionToHistoryItem(s: GqlSubmission): HistoryItem {
+  return {
+    id: s.id,
+    fileName: s.fileName,
+    processedAt: s.processedAt,
+    facilityName: (s.data?.facilityName as string | undefined) ?? s.displayName ?? null,
+    data: s.data,
+  }
+}
+
 export default function Home() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<InspectionData | null>(null)
@@ -49,9 +89,8 @@ export default function Home() {
   const [history, setHistory] = useState<HistoryItem[]>([])
 
   useEffect(() => {
-    fetch('/api/history')
-      .then(r => r.json())
-      .then(setHistory)
+    gqlFetch<{ submissions: GqlSubmission[] }>(SUBMISSIONS_QUERY)
+      .then(({ submissions }) => setHistory(submissions.map(submissionToHistoryItem)))
       .catch(() => {/* DB not configured yet */})
   }, [])
 
@@ -63,20 +102,35 @@ export default function Home() {
       const data = await extractInspection(file)
       setResult(data)
 
-      const res = await fetch('/api/history', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ facilityName: data.facilityName ?? null, fileName: file.name }),
-      })
-      if (res.ok) {
-        const item: HistoryItem = await res.json()
-        setHistory(prev => [item, ...prev])
+      const { createSubmission } = await gqlFetch<{ createSubmission: { id: string; processedAt: string } }>(
+        CREATE_SUBMISSION_MUTATION,
+        {
+          input: {
+            fileName: file.name,
+            displayName: data.facilityName ?? null,
+            formType: 'iswgp',
+            data: data,
+          },
+        },
+      )
+
+      const newItem: HistoryItem = {
+        id: createSubmission.id,
+        fileName: file.name,
+        processedAt: createSubmission.processedAt,
+        facilityName: data.facilityName ?? null,
+        data: data as Record<string, unknown>,
       }
+      setHistory(prev => [newItem, ...prev])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Extraction failed')
     } finally {
       setLoading(false)
     }
+  }
+
+  function handleSelectHistory(item: HistoryItem) {
+    setResult(item.data as unknown as InspectionData)
   }
 
   return (
@@ -138,6 +192,7 @@ export default function Home() {
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         items={history}
+        onSelect={handleSelectHistory}
       />
 
       {/* Content */}
