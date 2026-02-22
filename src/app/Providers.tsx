@@ -35,24 +35,36 @@ const SETTINGS_QUERY = `
 
 // ── Providers ─────────────────────────────────────────────────────────────────
 
-export default function Providers({ children }: { children: React.ReactNode }) {
-  // Always start with 'light' on both server and client to avoid hydration mismatch.
-  // The real preference (system or DB) is applied after mount in the effect below.
-  const [mode, setModeState] = useState<ThemeMode>('light')
+function setCookie(m: ThemeMode) {
+  document.cookie = `theme=${m}; path=/; max-age=31536000; SameSite=Lax`
+}
 
-  // After mount: apply DB preference, falling back to system preference
+export default function Providers({
+  children,
+  initialMode = 'light',
+}: {
+  children: React.ReactNode
+  initialMode?: ThemeMode
+}) {
+  // initialMode comes from the server-read cookie, so server and client agree from the start.
+  const [mode, setModeState] = useState<ThemeMode>(initialMode)
+
+  // After mount: sync with DB preference (and keep cookie up to date)
   useEffect(() => {
-    const systemMode: ThemeMode = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
     gqlFetch<{ settings: { preferences: Record<string, unknown> } | null }>(SETTINGS_QUERY)
       .then(({ settings }) => {
         const dbMode = settings?.preferences?.theme as ThemeMode | undefined
-        setModeState(dbMode === 'light' || dbMode === 'dark' ? dbMode : systemMode)
+        if (dbMode === 'light' || dbMode === 'dark') {
+          setModeState(dbMode)
+          setCookie(dbMode)
+        }
       })
-      .catch(() => { setModeState(systemMode) })
+      .catch(() => {/* db not configured */})
   }, [])
 
   function setMode(m: ThemeMode) {
     setModeState(m)
+    setCookie(m)
     gqlFetch(UPDATE_SETTINGS_MUTATION, { input: { preferences: { theme: m } } })
       .catch(() => {/* db not configured */})
   }

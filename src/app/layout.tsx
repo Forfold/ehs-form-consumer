@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { cookies } from 'next/headers'
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v16-appRouter'
 import Providers from './Providers'
 import AuthGate from './components/AuthGate'
+import type { ThemeMode } from './theme'
 import './globals.css'
 
 const geistSans = Geist({
@@ -20,16 +22,20 @@ export const metadata: Metadata = {
   description: 'Extract and visualize industrial stormwater inspection data',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const cookieStore = await cookies()
+  const cookieTheme = cookieStore.get('theme')?.value
+  const initialMode: ThemeMode = cookieTheme === 'dark' ? 'dark' : 'light'
+
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
-          <Providers>
+          <Providers initialMode={initialMode}>
             <AuthGate>
               {children}
             </AuthGate>
