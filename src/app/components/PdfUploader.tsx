@@ -40,7 +40,7 @@ export default function PdfUploader({ onFile, loading }: Props) {
         onDragLeave={() => setDragging(false)}
         sx={{
           border: '1.5px dashed',
-          borderColor: selectedFile ? 'success.main' : dragging ? 'primary.main' : 'grey.300',
+          borderColor: selectedFile ? 'success.main' : dragging ? 'primary.main' : 'divider',
           borderRadius: 2,
           py: 5,
           px: 3,
@@ -50,7 +50,7 @@ export default function PdfUploader({ onFile, loading }: Props) {
           justifyContent: 'center',
           gap: 0.75,
           cursor: loading ? 'default' : 'pointer',
-          bgcolor: selectedFile ? 'success.50' : dragging ? 'primary.50' : 'grey.50',
+          bgcolor: selectedFile ? 'success.50' : dragging ? 'primary.50' : 'action.hover',
           transition: 'border-color 0.15s, background-color 0.15s',
           pointerEvents: loading ? 'none' : undefined,
           opacity: loading ? 0.6 : 1,
