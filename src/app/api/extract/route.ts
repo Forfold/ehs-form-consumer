@@ -5,23 +5,7 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY // never reaches the client
 })
 
-export async function POST(request: NextRequest) {
-  try {
-    const { base64, mediaType } = await request.json()
-
-    const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 4096,
-      messages: [{
-        role: 'user',
-        content: [
-          {
-            type: 'document',
-            source: { type: 'base64', media_type: mediaType, data: base64 }
-          },
-          {
-            type: 'text',
-            text: `This is an ISWGP (Industrial Stormwater General Permit) Monthly Inspection / Visual Evaluation Report.
+const PROMPT = `This is an ISWGP (Industrial Stormwater General Permit) Monthly Inspection / Visual Evaluation Report. The pages are rendered images of the PDF, including all annotation and form-field layers, so any handwritten or digital marks are visible.
 
 CHECKBOX READING INSTRUCTIONS:
 - Each checklist item has three circle columns: Yes, No, N/A
@@ -71,12 +55,33 @@ The "section" field in bmpItems must be one of:
 
 For overallStatus: if any bmpItem has status "fail", use "non-compliant"; if all are "pass" or "na", use "compliant"; otherwise use "needs-attention".
 
-Extract ALL checklist rows from every section of the form. Put any text fields you cannot confidently assign to a field into "deadletter".
+Extract ALL checklist rows from every section of the form — list every BMP item as its own entry in bmpItems, even if no checkbox is marked (use "na" for unmarked rows). Never return an empty bmpItems array for a standard ISWGP form; the array should always reflect the full checklist structure. Put any text fields you cannot confidently assign to a field into "deadletter".
 
 Return only valid JSON, no markdown, no explanation.`
-          }
-        ]
-      }]
+
+export async function POST(request: NextRequest) {
+  try {
+    const { images } = await request.json() as { images: string[] }
+
+    if (!images?.length) {
+      return NextResponse.json({ error: 'No images provided' }, { status: 400 })
+    }
+
+    const response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 4096,
+      messages: [{
+        role: 'user',
+        content: [
+          // One image block per PDF page — Claude sees the fully rendered page
+          // including annotation/form-field layers where X marks live
+          ...images.map((img) => ({
+            type: 'image' as const,
+            source: { type: 'base64' as const, media_type: 'image/jpeg' as const, data: img },
+          })),
+          { type: 'text' as const, text: PROMPT },
+        ],
+      }],
     })
 
     const block = response.content[0]

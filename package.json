@@ -26,6 +26,7 @@
     "graphql-yoga": "^5.18.0",
     "next": "16.1.6",
     "next-auth": "^5.0.0-beta.30",
+    "pdfjs-dist": "^5.4.624",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },

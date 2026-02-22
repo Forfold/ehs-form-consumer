@@ -1,21 +1,16 @@
-export async function extractInspection(file: File) {
-  const base64 = await fileToBase64(file)
+import { pdfToImages } from './pdfToImages'
 
-  const res = await fetch('/api/extract', { // relative URL — works locally and in prod
+export async function extractInspection(file: File) {
+  // Render each PDF page to an image via PDF.js so that annotation layers
+  // (hand-marked X's, checked boxes, form-field overlays) are visible to Claude.
+  const images = await pdfToImages(file)
+
+  const res = await fetch('/api/extract', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ base64, mediaType: 'application/pdf' })
+    body: JSON.stringify({ images }),
   })
 
   if (!res.ok) throw new Error('Extraction failed')
   return res.json()
-}
-
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve((reader.result as string).split(',')[1])
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
 }
