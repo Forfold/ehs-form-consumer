@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'EHS Form Extractor',
+  title: 'FormVis',
   description: 'Extract and visualize industrial stormwater inspection data',
 }
 

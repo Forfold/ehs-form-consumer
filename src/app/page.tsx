@@ -174,7 +174,7 @@ export default function Home() {
               variant="subtitle1"
               sx={{ fontWeight: 700, letterSpacing: '-0.01em', color: 'text.primary' }}
             >
-              EHS Inspector
+              FormVis
             </Typography>
           </Box>
 
