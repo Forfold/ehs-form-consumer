@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import AppBar from '@mui/material/AppBar'
 import Autocomplete from '@mui/material/Autocomplete'
 import Avatar from '@mui/material/Avatar'
 import Box from '@mui/material/Box'
@@ -21,18 +20,16 @@ import ListItemAvatar from '@mui/material/ListItemAvatar'
 import ListItemText from '@mui/material/ListItemText'
 import MenuItem from '@mui/material/MenuItem'
 import Paper from '@mui/material/Paper'
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
-import Toolbar from '@mui/material/Toolbar'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import AddIcon from '@mui/icons-material/Add'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import GroupAddIcon from '@mui/icons-material/GroupAdd'
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove'
-import Link from 'next/link'
 import { gqlFetch } from '@/lib/graphql/client'
 
 // ── GraphQL fragments ─────────────────────────────────────────────────────────
@@ -204,6 +201,7 @@ function AddMemberDialog({ teamId, open, onClose, onAdded }: AddMemberDialogProp
           value={selectedUser}
           onChange={(_, v) => setSelectedUser(v)}
           getOptionLabel={(o) => o.email ?? o.name ?? o.id}
+          filterOptions={(x) => x}
           isOptionEqualToValue={(a, b) => a.id === b.id}
           renderInput={(params) => (
             <TextField
@@ -233,16 +231,18 @@ function AddMemberDialog({ teamId, open, onClose, onAdded }: AddMemberDialogProp
             </Box>
           )}
         />
-        <Select
-          size="small"
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-          label="Role"
-        >
-          <MenuItem value="member">Member</MenuItem>
-          <MenuItem value="admin">Admin</MenuItem>
-          <MenuItem value="owner">Owner</MenuItem>
-        </Select>
+        <FormControl size="small">
+          <InputLabel>Role</InputLabel>
+          <Select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            label="Role"
+          >
+            <MenuItem value="member">Member</MenuItem>
+            <MenuItem value="admin">Admin</MenuItem>
+            <MenuItem value="owner">Owner</MenuItem>
+          </Select>
+        </FormControl>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={loading}>Cancel</Button>
@@ -453,27 +453,7 @@ export default function TeamManager() {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
-      <AppBar position="static">
-        <Toolbar sx={{ gap: 1 }}>
-          <IconButton
-            size="small"
-            edge="start"
-            component={Link}
-            href="/"
-            sx={{ color: 'text.secondary', mr: 0.5 }}
-            aria-label="back"
-          >
-            <ArrowBackIcon fontSize="small" />
-          </IconButton>
-          <AssignmentOutlinedIcon sx={{ color: 'primary.main', fontSize: 22 }} />
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, letterSpacing: '-0.01em', color: 'text.primary', flex: 1 }}>
-            Settings
-          </Typography>
-        </Toolbar>
-      </AppBar>
-
-      <Container maxWidth="sm" sx={{ py: 4, flex: 1 }}>
+    <Container maxWidth="sm" sx={{ py: 4, flex: 1 }}>
         <Typography variant="h6" gutterBottom>Teams</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           Create teams to share form submissions with colleagues. Any team member can share
@@ -526,7 +506,6 @@ export default function TeamManager() {
             ))}
           </Box>
         )}
-      </Container>
-    </Box>
+    </Container>
   )
 }

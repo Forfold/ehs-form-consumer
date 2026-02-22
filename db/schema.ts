@@ -20,6 +20,7 @@ export const users = pgTable('users', {
   email:         text('email').unique(),
   emailVerified: timestamp('email_verified', { mode: 'date' }),
   image:         text('image'),
+  isAdmin:       boolean('is_admin').notNull().default(false),
 })
 
 // ── NextAuth accounts ──────────────────────────────────────────────────────────

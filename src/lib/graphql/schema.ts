@@ -45,10 +45,11 @@ async function assertTeamRole(
 const UserRef = builder.objectRef<User>('User')
 UserRef.implement({
   fields: (t) => ({
-    id:    t.exposeID('id'),
-    name:  t.exposeString('name',  { nullable: true }),
-    email: t.exposeString('email', { nullable: true }),
-    image: t.exposeString('image', { nullable: true }),
+    id:      t.exposeID('id'),
+    name:    t.exposeString('name',    { nullable: true }),
+    email:   t.exposeString('email',   { nullable: true }),
+    image:   t.exposeString('image',   { nullable: true }),
+    isAdmin: t.exposeBoolean('isAdmin'),
   }),
 })
 
@@ -297,11 +298,22 @@ builder.queryType({
                 name:          m.userName,
                 email:         m.userEmail,
                 image:         m.userImage,
+                isAdmin:       false,
                 createdAt:     new Date(),
                 emailVerified: null,
               } satisfies User,
             })),
         }))
+      },
+    }),
+
+    // All users — site admins only
+    allUsers: t.field({
+      type:     [UserRef],
+      nullable: false,
+      resolve: async (_, _args, ctx) => {
+        if (!ctx.userId || !ctx.isAdmin) return []
+        return ctx.db.select().from(users).orderBy(users.name).limit(500)
       },
     }),
 
@@ -314,7 +326,7 @@ builder.queryType({
       },
       resolve: async (_, args, ctx) => {
         if (!ctx.userId) return []
-        const q = `${args.query}%`
+        const q = `%${args.query}%`
         return ctx.db
           .select()
           .from(users)
