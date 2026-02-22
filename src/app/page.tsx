@@ -15,6 +15,8 @@ import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import LogoutIcon from '@mui/icons-material/Logout'
 import MenuIcon from '@mui/icons-material/Menu'
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
+import Link from 'next/link'
 import { signOut } from 'next-auth/react'
 import { extractInspection } from '@/lib/extractInspection'
 import { gqlFetch } from '@/lib/graphql/client'
@@ -50,6 +52,10 @@ const SUBMISSIONS_QUERY = `
       processedAt
       displayName
       data
+      teams {
+        id
+        name
+      }
     }
   }
 `
@@ -69,6 +75,7 @@ interface GqlSubmission {
   processedAt: string
   displayName: string | null
   data: Record<string, unknown>
+  teams: Array<{ id: string; name: string }>
 }
 
 function submissionToHistoryItem(s: GqlSubmission): HistoryItem {
@@ -78,6 +85,7 @@ function submissionToHistoryItem(s: GqlSubmission): HistoryItem {
     processedAt: s.processedAt,
     facilityName: (s.data?.facilityName as string | undefined) ?? s.displayName ?? null,
     data: s.data,
+    teams: s.teams,
   }
 }
 
@@ -133,6 +141,10 @@ export default function Home() {
     setResult(item.data as unknown as InspectionData)
   }
 
+  function handleItemTeamsChanged(itemId: string, teams: Array<{ id: string; name: string }>) {
+    setHistory((prev) => prev.map((h) => h.id === itemId ? { ...h, teams } : h))
+  }
+
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
 
@@ -179,8 +191,18 @@ export default function Home() {
 
           <IconButton
             size="small"
+            component={Link}
+            href="/settings"
+            sx={{ color: 'text.secondary' }}
+            aria-label="settings"
+          >
+            <SettingsOutlinedIcon fontSize="small" />
+          </IconButton>
+
+          <IconButton
+            size="small"
             onClick={() => signOut()}
-            sx={{ color: 'text.secondary', ml: 0.5 }}
+            sx={{ color: 'text.secondary' }}
             aria-label="sign out"
           >
             <LogoutIcon fontSize="small" />
@@ -193,6 +215,7 @@ export default function Home() {
         onClose={() => setSidebarOpen(false)}
         items={history}
         onSelect={handleSelectHistory}
+        onItemTeamsChanged={handleItemTeamsChanged}
       />
 
       {/* Content */}

@@ -1,18 +1,46 @@
-import { desc, eq } from 'drizzle-orm'
+import { and, desc, eq, ilike, inArray, or, sql } from 'drizzle-orm'
 import {
   formSubmissions,
+  formSubmissionTeams,
+  teamMembers,
+  teams,
   userFieldPreferences,
   userSettings,
   users,
   type FormSubmission,
+  type Team,
+  type TeamMember,
   type User,
   type UserFieldPreference,
   type UserSettings,
 } from '../../../db/schema'
-import { builder } from './builder'
+import { builder, type Context } from './builder'
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+const ROLE_ORDER = { owner: 3, admin: 2, member: 1 } as const
+type Role = keyof typeof ROLE_ORDER
+
+/** Throws if the user's role in the team is below minRole. */
+async function assertTeamRole(
+  db: Context['db'],
+  teamId: string,
+  userId: string,
+  minRole: Role,
+) {
+  const rows = await db
+    .select()
+    .from(teamMembers)
+    .where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, userId)))
+    .limit(1)
+  const member = rows[0]
+  if (!member || ROLE_ORDER[member.role as Role] < ROLE_ORDER[minRole]) {
+    throw new Error('Forbidden')
+  }
+  return member
+}
 
 // ── Object types ──────────────────────────────────────────────────────────────
-// objectRef<T> ties Pothos fields to Drizzle's inferred row types.
 
 const UserRef = builder.objectRef<User>('User')
 UserRef.implement({
@@ -21,6 +49,36 @@ UserRef.implement({
     name:  t.exposeString('name',  { nullable: true }),
     email: t.exposeString('email', { nullable: true }),
     image: t.exposeString('image', { nullable: true }),
+  }),
+})
+
+// TeamMember row joined with user data
+interface TeamMemberWithUser extends TeamMember {
+  user: User
+}
+
+const TeamMemberRef = builder.objectRef<TeamMemberWithUser>('TeamMember')
+TeamMemberRef.implement({
+  fields: (t) => ({
+    userId:   t.exposeID('userId'),
+    role:     t.exposeString('role'),
+    joinedAt: t.field({ type: 'String', resolve: (r) => r.joinedAt.toISOString() }),
+    user:     t.field({ type: UserRef, resolve: (r) => r.user }),
+  }),
+})
+
+// Team row with members loaded
+interface TeamWithMembers extends Team {
+  members: TeamMemberWithUser[]
+}
+
+const TeamRef = builder.objectRef<TeamWithMembers>('Team')
+TeamRef.implement({
+  fields: (t) => ({
+    id:        t.exposeID('id'),
+    name:      t.exposeString('name'),
+    createdAt: t.field({ type: 'String', resolve: (r) => r.createdAt.toISOString() }),
+    members:   t.field({ type: [TeamMemberRef], resolve: (r) => r.members }),
   }),
 })
 
@@ -33,6 +91,29 @@ FormSubmissionRef.implement({
     formType:    t.exposeString('formType',    { nullable: true }),
     displayName: t.exposeString('displayName', { nullable: true }),
     data:        t.expose('data', { type: 'JSON' }),
+    // Teams this submission has been shared with (only teams the caller is also a member of)
+    teams: t.field({
+      type: [TeamRef],
+      resolve: async (submission, _args, ctx) => {
+        if (!ctx.userId) return []
+        const rows = await ctx.db
+          .select({
+            id:        teams.id,
+            name:      teams.name,
+            createdBy: teams.createdBy,
+            createdAt: teams.createdAt,
+          })
+          .from(teams)
+          .innerJoin(formSubmissionTeams, eq(formSubmissionTeams.teamId, teams.id))
+          .innerJoin(teamMembers, and(
+            eq(teamMembers.teamId, teams.id),
+            eq(teamMembers.userId, ctx.userId),
+          ))
+          .where(eq(formSubmissionTeams.formSubmissionId, submission.id))
+        // return as TeamWithMembers (members loaded lazily — not needed for sidebar badges)
+        return rows.map((r) => ({ ...r, members: [] }))
+      },
+    }),
   }),
 })
 
@@ -74,7 +155,7 @@ builder.queryType({
       },
     }),
 
-    // List of submissions for the current user, newest first
+    // User's own submissions + submissions shared via any team the user belongs to
     submissions: t.field({
       type:     [FormSubmissionRef],
       nullable: false,
@@ -84,21 +165,30 @@ builder.queryType({
       },
       resolve: async (_, args, ctx) => {
         if (!ctx.userId) return []
-        const query = ctx.db
+        const userIdVal = ctx.userId
+        return ctx.db
           .select()
           .from(formSubmissions)
           .where(
-            args.formType
-              ? eq(formSubmissions.userId, ctx.userId)   // TODO: AND formType when needed
-              : eq(formSubmissions.userId, ctx.userId)
+            and(
+              args.formType ? eq(formSubmissions.formType, args.formType) : undefined,
+              or(
+                eq(formSubmissions.userId, userIdVal),
+                sql`EXISTS (
+                  SELECT 1 FROM form_submission_teams fst
+                  INNER JOIN team_members tm ON tm.team_id = fst.team_id
+                  WHERE fst.form_submission_id = ${formSubmissions.id}
+                    AND tm.user_id = ${userIdVal}
+                )`
+              )
+            )
           )
           .orderBy(desc(formSubmissions.processedAt))
           .limit(args.limit ?? 50)
-        return query
       },
     }),
 
-    // Single submission by id
+    // Single submission by id — user must own it or be in a team it's shared with
     submission: t.field({
       type:     FormSubmissionRef,
       nullable: true,
@@ -107,15 +197,26 @@ builder.queryType({
       },
       resolve: async (_, args, ctx) => {
         if (!ctx.userId) return null
+        const userIdVal = ctx.userId
         const rows = await ctx.db
           .select()
           .from(formSubmissions)
-          // userId constraint ensures a user can only fetch their own submissions
-          .where(eq(formSubmissions.id, String(args.id)))
+          .where(
+            and(
+              eq(formSubmissions.id, String(args.id)),
+              or(
+                eq(formSubmissions.userId, userIdVal),
+                sql`EXISTS (
+                  SELECT 1 FROM form_submission_teams fst
+                  INNER JOIN team_members tm ON tm.team_id = fst.team_id
+                  WHERE fst.form_submission_id = ${formSubmissions.id}
+                    AND tm.user_id = ${userIdVal}
+                )`
+              )
+            )
+          )
           .limit(1)
-        const row = rows[0] ?? null
-        if (row && row.userId !== ctx.userId) return null
-        return row
+        return rows[0] ?? null
       },
     }),
 
@@ -148,6 +249,77 @@ builder.queryType({
           .where(eq(userSettings.userId, ctx.userId))
           .limit(1)
         return rows[0] ?? null
+      },
+    }),
+
+    // Teams the current user is a member of (with full member lists)
+    teams: t.field({
+      type:     [TeamRef],
+      nullable: false,
+      resolve: async (_, _args, ctx) => {
+        if (!ctx.userId) return []
+        // Fetch teams where user is a member
+        const teamRows = await ctx.db
+          .select({ id: teams.id, name: teams.name, createdBy: teams.createdBy, createdAt: teams.createdAt })
+          .from(teams)
+          .innerJoin(teamMembers, eq(teamMembers.teamId, teams.id))
+          .where(eq(teamMembers.userId, ctx.userId))
+
+        if (teamRows.length === 0) return []
+
+        // Load members for all teams in one query
+        const teamIds = teamRows.map((t) => t.id)
+        const memberRows = await ctx.db
+          .select({
+            teamId:   teamMembers.teamId,
+            userId:   teamMembers.userId,
+            role:     teamMembers.role,
+            joinedAt: teamMembers.joinedAt,
+            userName:  users.name,
+            userEmail: users.email,
+            userImage: users.image,
+          })
+          .from(teamMembers)
+          .innerJoin(users, eq(users.id, teamMembers.userId))
+          .where(inArray(teamMembers.teamId, teamIds))
+
+        return teamRows.map((team) => ({
+          ...team,
+          members: memberRows
+            .filter((m) => m.teamId === team.id)
+            .map((m) => ({
+              teamId:   m.teamId,
+              userId:   m.userId,
+              role:     m.role,
+              joinedAt: m.joinedAt,
+              user: {
+                id:            m.userId,
+                name:          m.userName,
+                email:         m.userEmail,
+                image:         m.userImage,
+                createdAt:     new Date(),
+                emailVerified: null,
+              } satisfies User,
+            })),
+        }))
+      },
+    }),
+
+    // Search users by name or email (for adding to teams)
+    searchUsers: t.field({
+      type:     [UserRef],
+      nullable: false,
+      args: {
+        query: t.arg.string({ required: true }),
+      },
+      resolve: async (_, args, ctx) => {
+        if (!ctx.userId) return []
+        const q = `${args.query}%`
+        return ctx.db
+          .select()
+          .from(users)
+          .where(or(ilike(users.email, q), ilike(users.name, q)))
+          .limit(10)
       },
     }),
 
@@ -260,6 +432,148 @@ builder.mutationType({
           })
           .returning()
         return rows[0]
+      },
+    }),
+
+    // Create a new team; creator becomes owner
+    createTeam: t.field({
+      type:     TeamRef,
+      args:     { name: t.arg.string({ required: true }) },
+      resolve: async (_, { name }, ctx) => {
+        if (!ctx.userId) throw new Error('Not authenticated')
+        const [team] = await ctx.db
+          .insert(teams)
+          .values({ name: name.trim(), createdBy: ctx.userId })
+          .returning()
+        const [member] = await ctx.db
+          .insert(teamMembers)
+          .values({ teamId: team.id, userId: ctx.userId, role: 'owner' })
+          .returning()
+        const userRows = await ctx.db.select().from(users).where(eq(users.id, ctx.userId)).limit(1)
+        return {
+          ...team,
+          members: [{
+            ...member,
+            user: userRows[0],
+          }],
+        }
+      },
+    }),
+
+    // Delete a team (owner only)
+    deleteTeam: t.field({
+      type:     'Boolean',
+      args:     { id: t.arg.id({ required: true }) },
+      resolve: async (_, { id }, ctx) => {
+        if (!ctx.userId) throw new Error('Not authenticated')
+        await assertTeamRole(ctx.db, String(id), ctx.userId, 'owner')
+        await ctx.db.delete(teams).where(eq(teams.id, String(id)))
+        return true
+      },
+    }),
+
+    // Add a user to a team (owner or admin)
+    addTeamMember: t.field({
+      type:     TeamMemberRef,
+      args: {
+        teamId: t.arg.id({ required: true }),
+        userId: t.arg.id({ required: true }),
+        role:   t.arg.string(),
+      },
+      resolve: async (_, { teamId, userId, role }, ctx) => {
+        if (!ctx.userId) throw new Error('Not authenticated')
+        await assertTeamRole(ctx.db, String(teamId), ctx.userId, 'admin')
+        const assignedRole = (role ?? 'member') as string
+        const [row] = await ctx.db
+          .insert(teamMembers)
+          .values({ teamId: String(teamId), userId: String(userId), role: assignedRole })
+          .onConflictDoUpdate({
+            target: [teamMembers.teamId, teamMembers.userId],
+            set: { role: assignedRole },
+          })
+          .returning()
+        const userRows = await ctx.db.select().from(users).where(eq(users.id, String(userId))).limit(1)
+        return { ...row, user: userRows[0] }
+      },
+    }),
+
+    // Remove a user from a team (owner or admin; can't remove the last owner)
+    removeTeamMember: t.field({
+      type:     'Boolean',
+      args: {
+        teamId: t.arg.id({ required: true }),
+        userId: t.arg.id({ required: true }),
+      },
+      resolve: async (_, { teamId, userId }, ctx) => {
+        if (!ctx.userId) throw new Error('Not authenticated')
+        await assertTeamRole(ctx.db, String(teamId), ctx.userId, 'admin')
+        // Prevent removing the last owner
+        const owners = await ctx.db
+          .select()
+          .from(teamMembers)
+          .where(and(eq(teamMembers.teamId, String(teamId)), eq(teamMembers.role, 'owner')))
+        if (owners.length === 1 && owners[0].userId === String(userId)) {
+          throw new Error('Cannot remove the last owner of a team')
+        }
+        await ctx.db
+          .delete(teamMembers)
+          .where(and(eq(teamMembers.teamId, String(teamId)), eq(teamMembers.userId, String(userId))))
+        return true
+      },
+    }),
+
+    // Share a submission with a team (must own submission AND be a team member)
+    addSubmissionToTeam: t.field({
+      type:     'Boolean',
+      args: {
+        submissionId: t.arg.id({ required: true }),
+        teamId:       t.arg.id({ required: true }),
+      },
+      resolve: async (_, { submissionId, teamId }, ctx) => {
+        if (!ctx.userId) throw new Error('Not authenticated')
+        // Verify submission ownership
+        const subRows = await ctx.db
+          .select()
+          .from(formSubmissions)
+          .where(and(eq(formSubmissions.id, String(submissionId)), eq(formSubmissions.userId, ctx.userId)))
+          .limit(1)
+        if (!subRows[0]) throw new Error('Submission not found or not owned by you')
+        // Verify team membership (any role is fine)
+        await assertTeamRole(ctx.db, String(teamId), ctx.userId, 'member')
+        await ctx.db
+          .insert(formSubmissionTeams)
+          .values({ formSubmissionId: String(submissionId), teamId: String(teamId), addedBy: ctx.userId })
+          .onConflictDoNothing()
+        return true
+      },
+    }),
+
+    // Remove a submission from a team (must own submission OR be owner/admin)
+    removeSubmissionFromTeam: t.field({
+      type:     'Boolean',
+      args: {
+        submissionId: t.arg.id({ required: true }),
+        teamId:       t.arg.id({ required: true }),
+      },
+      resolve: async (_, { submissionId, teamId }, ctx) => {
+        if (!ctx.userId) throw new Error('Not authenticated')
+        // Allow if user owns the submission
+        const subRows = await ctx.db
+          .select()
+          .from(formSubmissions)
+          .where(and(eq(formSubmissions.id, String(submissionId)), eq(formSubmissions.userId, ctx.userId)))
+          .limit(1)
+        if (!subRows[0]) {
+          // Otherwise require admin/owner of team
+          await assertTeamRole(ctx.db, String(teamId), ctx.userId, 'admin')
+        }
+        await ctx.db
+          .delete(formSubmissionTeams)
+          .where(and(
+            eq(formSubmissionTeams.formSubmissionId, String(submissionId)),
+            eq(formSubmissionTeams.teamId, String(teamId)),
+          ))
+        return true
       },
     }),
 

@@ -81,6 +81,43 @@ export const formSubmissions = pgTable(
   ]
 )
 
+// ── Teams ──────────────────────────────────────────────────────────────────────
+export const teams = pgTable('teams', {
+  id:        uuid('id').primaryKey().defaultRandom(),
+  name:      text('name').notNull(),
+  createdBy: uuid('created_by').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+// role: 'owner' | 'admin' | 'member'
+export const teamMembers = pgTable(
+  'team_members',
+  {
+    teamId:   uuid('team_id').notNull().references(() => teams.id, { onDelete: 'cascade' }),
+    userId:   uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    role:     text('role').notNull().default('member'),
+    joinedAt: timestamp('joined_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.teamId, t.userId] }),
+    index('team_members_user_id_idx').on(t.userId),
+  ]
+)
+
+export const formSubmissionTeams = pgTable(
+  'form_submission_teams',
+  {
+    formSubmissionId: uuid('form_submission_id').notNull().references(() => formSubmissions.id, { onDelete: 'cascade' }),
+    teamId:           uuid('team_id').notNull().references(() => teams.id, { onDelete: 'cascade' }),
+    addedBy:          uuid('added_by').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    addedAt:          timestamp('added_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.formSubmissionId, t.teamId] }),
+    index('form_submission_teams_team_id_idx').on(t.teamId),
+  ]
+)
+
 // ── User field preferences ─────────────────────────────────────────────────────
 export const userFieldPreferences = pgTable(
   'user_field_preferences',
@@ -118,3 +155,7 @@ export type UserSettings         = typeof userSettings.$inferSelect
 
 export type NewFormSubmission      = typeof formSubmissions.$inferInsert
 export type NewUserFieldPreference = typeof userFieldPreferences.$inferInsert
+
+export type Team               = typeof teams.$inferSelect
+export type TeamMember         = typeof teamMembers.$inferSelect
+export type FormSubmissionTeam = typeof formSubmissionTeams.$inferSelect
