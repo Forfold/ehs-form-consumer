@@ -27,8 +27,17 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
+    try {
+      const cached = localStorage.getItem('settings_isAdmin')
+      if (cached === 'true') setIsAdmin(true)
+    } catch {}
+
     gqlFetch<{ me: { isAdmin: boolean } | null }>('query { me { isAdmin } }')
-      .then(({ me }) => { if (me?.isAdmin) setIsAdmin(true) })
+      .then(({ me }) => {
+        const admin = !!me?.isAdmin
+        setIsAdmin(admin)
+        try { localStorage.setItem('settings_isAdmin', String(admin)) } catch {}
+      })
       .catch(() => {})
   }, [])
 

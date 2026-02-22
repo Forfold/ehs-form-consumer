@@ -12,9 +12,10 @@ import { DashboardGrid } from './DashboardGrid'
 
 interface Props {
   history: HistoryItem[]
+  historyLoading?: boolean
 }
 
-export default function DashboardPanel({ history }: Props) {
+export default function DashboardPanel({ history, historyLoading }: Props) {
   const [timeRange, setTimeRange] = useState<TimeRange>('6mo')
   const [teamId, setTeamId] = useState('all')
   const [selectedSubmissionId, setSelectedSubmissionId] = useState(() => history[0]?.id ?? '')
@@ -63,7 +64,7 @@ export default function DashboardPanel({ history }: Props) {
         selectedSubmissionId={resolvedSubmissionId}
         onSubmissionChange={setSelectedSubmissionId}
       />
-      <DashboardGrid stats={stats} windowLabel={windowLabel} />
+      <DashboardGrid stats={stats} windowLabel={windowLabel} historyLoading={historyLoading} />
     </Box>
   )
 }

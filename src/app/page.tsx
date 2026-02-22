@@ -51,11 +51,13 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [history, setHistory] = useState<HistoryItem[]>([])
+  const [historyLoading, setHistoryLoading] = useState(true)
 
   useEffect(() => {
     gqlFetch<{ submissions: GqlSubmission[] }>(SUBMISSIONS_QUERY)
       .then(({ submissions }) => setHistory(submissions.map(submissionToHistoryItem)))
       .catch(() => {/* DB not configured yet */})
+      .finally(() => setHistoryLoading(false))
   }, [])
 
   async function handleFile(file: File) {
@@ -113,7 +115,7 @@ export default function Home() {
 
       <Box sx={{ flex: 1, display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 3, p: 3, overflow: 'auto' }}>
         <UploaderCard onFile={handleFile} loading={loading} error={error} />
-        <DashboardPanel history={history} />
+        <DashboardPanel history={history} historyLoading={historyLoading} />
       </Box>
     </Box>
   )

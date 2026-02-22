@@ -1,4 +1,5 @@
 import Box from '@mui/material/Box'
+import CircularProgress from '@mui/material/CircularProgress'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
@@ -12,19 +13,24 @@ import type { OpenCorrectiveAction } from './types'
 interface Props {
   actions: OpenCorrectiveAction[]
   onSelectSubmission: (submissionId: string) => void
+  loading?: boolean
 }
 
 function isOverdue(dueDate: string) {
   return dueDate && new Date(dueDate) < new Date()
 }
 
-export default function CorrectiveActionsCard({ actions, onSelectSubmission }: Props) {
+export default function CorrectiveActionsCard({ actions, onSelectSubmission, loading }: Props) {
   return (
     <DashboardCard
       title="Open Corrective Actions"
-      subtitle={actions.length > 0 ? `${actions.length} pending across all forms` : undefined}
+      subtitle={!loading && actions.length > 0 ? `${actions.length} pending across all forms` : undefined}
     >
-      {actions.length === 0 ? (
+      {loading ? (
+        <Box sx={{ py: 2, textAlign: 'center' }}>
+          <CircularProgress size={24} />
+        </Box>
+      ) : actions.length === 0 ? (
         <Box sx={{ py: 2, textAlign: 'center' }}>
           <Typography variant="body2" color="text.secondary">
             No open corrective actions
