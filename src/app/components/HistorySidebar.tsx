@@ -36,7 +36,7 @@ export default function HistorySidebar({ open, onClose, items, onItemTeamsChange
 
   return (
     <Drawer
-      anchor="left"
+      anchor="right"
       open={open}
       onClose={onClose}
       PaperProps={{ sx: { width: 300 } }}

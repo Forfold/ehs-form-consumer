@@ -1,11 +1,16 @@
 'use client'
 
 import Box from '@mui/material/Box'
+import IconButton from '@mui/material/IconButton'
 import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import Typography from '@mui/material/Typography'
+import HistoryIcon from '@mui/icons-material/History'
+import { useState } from 'react'
+import HistorySidebar, { type HistoryItem } from '../HistorySidebar'
+import Tooltip from '@mui/material/Tooltip'
 
 export type TimeRange = '30d' | '90d' | '6mo' | '1yr' | 'all' | 'single'
 
@@ -28,6 +33,9 @@ interface Props {
   submissionOptions: SubmissionOption[]
   selectedSubmissionId: string
   onSubmissionChange: (id: string) => void
+  history: HistoryItem[]
+  historyLoading?: boolean
+  onItemTeamsChanged?: (itemId: string, teams: Array<{ id: string; name: string }>) => void
 }
 
 const TIME_OPTIONS: Array<{ value: TimeRange; label: string }> = [
@@ -43,7 +51,10 @@ export default function DashboardFilterBar({
   timeRange, onTimeRangeChange,
   teams, teamId, onTeamChange,
   submissionOptions, selectedSubmissionId, onSubmissionChange,
+  history, onItemTeamsChanged,
 }: Props) {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', mb: 1.5 }}>
       <Typography variant="caption" color="text.disabled" sx={{ fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', mr: 0.5 }}>
@@ -95,6 +106,24 @@ export default function DashboardFilterBar({
           </Select>
         )
       )}
+
+      <Tooltip title='Show processed forms history'>
+        <IconButton
+        size="small"
+        onClick={() => setSidebarOpen(true)}
+        sx={{ color: 'text.secondary', mr: 0.5 }}
+        aria-label="open history"
+      >
+        <HistoryIcon fontSize="small" />
+      </IconButton>
+      </Tooltip>
+
+      <HistorySidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        items={history}
+        onItemTeamsChanged={onItemTeamsChanged}
+      />
     </Box>
   )
 }
