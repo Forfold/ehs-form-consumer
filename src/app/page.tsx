@@ -1,66 +1,67 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client'
+
+import { useState } from 'react'
+import Alert from '@mui/material/Alert'
+import Box from '@mui/material/Box'
+import Container from '@mui/material/Container'
+import Typography from '@mui/material/Typography'
+import { extractInspection } from '@/lib/extractInspection'
+import PdfUploader from './components/PdfUploader'
+import InspectionResults from './components/InspectionResults'
+
+type OverallStatus = 'compliant' | 'non-compliant' | 'needs-attention'
+
+interface InspectionData {
+  facilityName: string
+  permitNumber: string
+  inspectionDate: string
+  inspectorName: string
+  overallStatus: OverallStatus
+  bmpItems: Array<{ description: string; status: 'pass' | 'fail' | 'na'; notes: string }>
+  correctiveActions: Array<{ description: string; dueDate: string; completed: boolean }>
+  summary: string
+  deadletter?: Record<string, unknown>
+}
 
 export default function Home() {
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState<InspectionData | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleFile(file: File) {
+    setLoading(true)
+    setError(null)
+    setResult(null)
+    try {
+      const data = await extractInspection(file)
+      setResult(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Extraction failed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+    <Container maxWidth="md" sx={{ py: 6 }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" fontWeight={700} gutterBottom>
+          EHS Form Extractor
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          Upload an industrial stormwater inspection PDF to extract and visualize form data.
+        </Typography>
+      </Box>
+
+      {!result && <PdfUploader onFile={handleFile} loading={loading} />}
+
+      {error && (
+        <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>
+      )}
+
+      {result && (
+        <InspectionResults data={result} onReset={() => setResult(null)} />
+      )}
+    </Container>
+  )
 }
