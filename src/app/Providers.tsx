@@ -36,13 +36,13 @@ const SETTINGS_QUERY = `
 // ── Providers ─────────────────────────────────────────────────────────────────
 
 export default function Providers({ children }: { children: React.ReactNode }) {
-  // Read from localStorage synchronously to avoid flash
   const [mode, setModeState] = useState<ThemeMode>(() => {
     if (typeof window === 'undefined') return 'light'
-    return (localStorage.getItem('theme') as ThemeMode | null) ?? 'light'
+    const stored = localStorage.getItem('theme') as ThemeMode | null
+    return stored === 'light' || stored === 'dark' ? stored : 'light'
   })
 
-  // On mount, confirm with DB (handles different-device scenario)
+  // After hydration: confirm stored theme with DB
   useEffect(() => {
     gqlFetch<{ settings: { preferences: Record<string, unknown> } | null }>(SETTINGS_QUERY)
       .then(({ settings }) => {
