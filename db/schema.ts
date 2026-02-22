@@ -15,15 +15,19 @@ import {
 export const users = pgTable('users', {
   id:            uuid('id').primaryKey().defaultRandom(),
   createdAt:     timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  // NextAuth Drizzle adapter required fields
+  // Required by @auth/drizzle-adapter (DefaultPostgresUsersTable)
   name:          text('name'),
   email:         text('email').unique(),
   emailVerified: timestamp('email_verified', { mode: 'date' }),
   image:         text('image'),
+  // App-specific
   isAdmin:       boolean('is_admin').notNull().default(false),
 })
 
 // ── NextAuth accounts ──────────────────────────────────────────────────────────
+// All columns below are required by @auth/drizzle-adapter (DefaultPostgresAccountsTable).
+// The type definition is strict — omitting any column causes a compile error, even if
+// the provider (Google OAuth) does not populate it at runtime.
 export const accounts = pgTable(
   'accounts',
   {
@@ -31,13 +35,13 @@ export const accounts = pgTable(
     type:              text('type').notNull(),
     provider:          text('provider').notNull(),
     providerAccountId: text('provider_account_id').notNull(),
-    refresh_token:     text('refresh_token'),
+    refresh_token:     text('refresh_token'),     // not sent by Google OAuth; required by adapter type
     access_token:      text('access_token'),
     expires_at:        integer('expires_at'),
     token_type:        text('token_type'),
     scope:             text('scope'),
     id_token:          text('id_token'),
-    session_state:     text('session_state'),
+    session_state:     text('session_state'),     // OpenID Connect only; required by adapter type
   },
   (t) => [
     primaryKey({ columns: [t.provider, t.providerAccountId] }),
