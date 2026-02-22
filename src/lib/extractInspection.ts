@@ -2,7 +2,7 @@ import { pdfToImages } from './pdfToImages'
 
 export async function extractInspection(file: File) {
   // Render each PDF page to an image via PDF.js so that annotation layers
-  // (hand-marked X's, checked boxes, form-field overlays) are visible to Claude.
+  // (hand-marked X's, checked boxes, form-field overlays) are visible to Claude
   const images = await pdfToImages(file)
 
   const res = await fetch('/api/extract', {

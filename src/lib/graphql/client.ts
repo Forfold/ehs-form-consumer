@@ -1,6 +1,6 @@
 /**
- * Minimal GraphQL client for use in client components.
- * Sends requests to the local /api/graphql endpoint.
+ * Minimal GraphQL client for use in client components
+ * Sends requests to the local /api/graphql endpoint
  */
 export async function gqlFetch<T = unknown>(
   query: string,

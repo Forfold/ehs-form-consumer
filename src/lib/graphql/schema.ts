@@ -17,7 +17,6 @@ import {
 import { builder, type Context } from './builder'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
 const ROLE_ORDER = { owner: 3, admin: 2, member: 1 } as const
 type Role = keyof typeof ROLE_ORDER
 
@@ -41,7 +40,6 @@ async function assertTeamRole(
 }
 
 // ── Object types ──────────────────────────────────────────────────────────────
-
 interface UserTeamMembership {
   teamId:   string
   teamName: string
@@ -125,7 +123,7 @@ FormSubmissionRef.implement({
     formType:    t.exposeString('formType',    { nullable: true }),
     displayName: t.exposeString('displayName', { nullable: true }),
     data:        t.expose('data', { type: 'JSON' }),
-    // Teams this submission has been shared with (only teams the caller is also a member of)
+    // Teams this submission has been shared with (that user is a member of)
     teams: t.field({
       type: [TeamRef],
       resolve: async (submission, _args, ctx) => {
@@ -144,7 +142,7 @@ FormSubmissionRef.implement({
             eq(teamMembers.userId, ctx.userId),
           ))
           .where(eq(formSubmissionTeams.formSubmissionId, submission.id))
-        // return as TeamWithMembers (members loaded lazily — not needed for sidebar badges)
+        // return as TeamWithMembers (members loaded lazily)
         return rows.map((r) => ({ ...r, members: [] }))
       },
     }),
@@ -174,7 +172,6 @@ UserSettingsRef.implement({
 })
 
 // ── Queries ───────────────────────────────────────────────────────────────────
-
 builder.queryType({
   fields: (t) => ({
 
@@ -430,7 +427,6 @@ builder.queryType({
 })
 
 // ── Mutations ─────────────────────────────────────────────────────────────────
-
 const CreateSubmissionInput = builder.inputType('CreateSubmissionInput', {
   fields: (t) => ({
     fileName:    t.string({ required: true }),

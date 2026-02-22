@@ -3,7 +3,7 @@
 let workerReady = false
 
 /**
- * Renders every page of a PDF to JPEG base64 strings, compositing ALL layers:
+ * Renders every page of a PDF to JPEG base64 strings, compositing all layers:
  *
  *   annotationMode: ENABLE_STORAGE (3)
  *   ├── Base page content stream (always rendered)

@@ -13,7 +13,7 @@ const { handleRequest } = createYoga({
   context: () => buildContext(),
 })
 
-// NextRequest extends Request, so the cast is safe at runtime.
-// The wrapper is needed to satisfy Next.js App Router's route handler types.
+// NextRequest extends Request, so the cast is safe at runtime
+// The wrapper is needed to satisfy Next.js App Router's route handler types
 const handler = (req: NextRequest) => handleRequest(req, {})
 export { handler as GET, handler as POST, handler as OPTIONS }
