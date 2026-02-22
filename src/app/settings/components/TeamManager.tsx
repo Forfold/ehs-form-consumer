@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import Autocomplete from '@mui/material/Autocomplete'
+import { useEffect, useState } from 'react'
 import Avatar from '@mui/material/Avatar'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -13,15 +12,17 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import Divider from '@mui/material/Divider'
+import FormControl from '@mui/material/FormControl'
 import IconButton from '@mui/material/IconButton'
+import InputAdornment from '@mui/material/InputAdornment'
+import InputLabel from '@mui/material/InputLabel'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemAvatar from '@mui/material/ListItemAvatar'
+import ListItemButton from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
 import MenuItem from '@mui/material/MenuItem'
 import Paper from '@mui/material/Paper'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
 import Tooltip from '@mui/material/Tooltip'
@@ -30,6 +31,7 @@ import AddIcon from '@mui/icons-material/Add'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import GroupAddIcon from '@mui/icons-material/GroupAdd'
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove'
+import SearchIcon from '@mui/icons-material/Search'
 import { gqlFetch } from '@/lib/graphql/client'
 
 // ── GraphQL fragments ─────────────────────────────────────────────────────────
@@ -140,39 +142,32 @@ interface AddMemberDialogProps {
 }
 
 function AddMemberDialog({ teamId, open, onClose, onAdded }: AddMemberDialogProps) {
-  const [inputValue, setInputValue] = useState('')
-  const [options, setOptions] = useState<GqlUser[]>([])
+  const [allUsers, setAllUsers]       = useState<GqlUser[]>([])
+  const [filter, setFilter]           = useState('')
   const [selectedUser, setSelectedUser] = useState<GqlUser | null>(null)
-  const [role, setRole] = useState('member')
-  const [loading, setLoading] = useState(false)
-  const [searching, setSearching] = useState(false)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [role, setRole]               = useState('member')
+  const [loading, setLoading]         = useState(false)
+  const [fetching, setFetching]       = useState(false)
 
   useEffect(() => {
     if (!open) {
-      setInputValue('')
-      setOptions([])
+      setFilter('')
       setSelectedUser(null)
       setRole('member')
+      return
     }
+    setFetching(true)
+    gqlFetch<{ searchUsers: GqlUser[] }>(SEARCH_USERS_QUERY, { query: '' })
+      .then(({ searchUsers }) => setAllUsers(searchUsers))
+      .catch(() => {})
+      .finally(() => setFetching(false))
   }, [open])
 
-  function handleInputChange(_: React.SyntheticEvent, value: string) {
-    setInputValue(value)
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (value.length < 2) { setOptions([]); return }
-    debounceRef.current = setTimeout(async () => {
-      setSearching(true)
-      try {
-        const { searchUsers } = await gqlFetch<{ searchUsers: GqlUser[] }>(
-          SEARCH_USERS_QUERY, { query: value }
-        )
-        setOptions(searchUsers)
-      } finally {
-        setSearching(false)
-      }
-    }, 300)
-  }
+  const filtered = allUsers.filter((u) => {
+    if (!filter) return true
+    const q = filter.toLowerCase()
+    return u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q)
+  })
 
   async function handleAdd() {
     if (!selectedUser) return
@@ -192,57 +187,82 @@ function AddMemberDialog({ teamId, open, onClose, onAdded }: AddMemberDialogProp
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
       <DialogTitle>Add team member</DialogTitle>
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: '16px !important' }}>
-        <Autocomplete
-          options={options}
-          loading={searching}
-          inputValue={inputValue}
-          onInputChange={handleInputChange}
-          value={selectedUser}
-          onChange={(_, v) => setSelectedUser(v)}
-          getOptionLabel={(o) => o.email ?? o.name ?? o.id}
-          filterOptions={(x) => x}
-          isOptionEqualToValue={(a, b) => a.id === b.id}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Search by name or email"
-              size="small"
-              slotProps={{
-                input: {
-                  ...params.InputProps,
-                  endAdornment: (
-                    <>
-                      {searching && <CircularProgress size={16} />}
-                      {params.InputProps.endAdornment}
-                    </>
-                  ),
-                },
-              }}
-            />
-          )}
-          renderOption={(props, option) => (
-            <Box component="li" {...props} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-              <UserAvatar user={option} size={28} />
-              <Box>
-                <Typography variant="body2">{option.name ?? option.email}</Typography>
-                {option.name && <Typography variant="caption" color="text.secondary">{option.email}</Typography>}
-              </Box>
-            </Box>
-          )}
+      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: '12px !important' }}>
+
+        {/* Filter input */}
+        <TextField
+          size="small"
+          fullWidth
+          placeholder="Filter users…"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" />
+                </InputAdornment>
+              ),
+            },
+          }}
         />
+
+        {/* Scrollable user list */}
+        <Box
+          sx={{
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: 1,
+            maxHeight: 400,
+            overflowY: 'auto',
+          }}
+        >
+          {fetching ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+              <CircularProgress size={24} />
+            </Box>
+          ) : filtered.length === 0 ? (
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', py: 3 }}>
+              {filter ? 'No users match your filter.' : 'No users found.'}
+            </Typography>
+          ) : (
+            <List disablePadding dense>
+              {filtered.map((user, idx) => (
+                <Box key={user.id}>
+                  {idx > 0 && <Divider component="li" />}
+                  <ListItemButton
+                    selected={selectedUser?.id === user.id}
+                    onClick={() => setSelectedUser(user)}
+                    sx={{ py: 0.75 }}
+                  >
+                    <ListItemAvatar sx={{ minWidth: 40 }}>
+                      <UserAvatar user={user} size={30} />
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={<Typography variant="body2" noWrap>{user.name ?? user.email}</Typography>}
+                      secondary={
+                        user.name
+                          ? <Typography variant="caption" color="text.secondary" noWrap>{user.email}</Typography>
+                          : undefined
+                      }
+                    />
+                  </ListItemButton>
+                </Box>
+              ))}
+            </List>
+          )}
+        </Box>
+
+        {/* Role selector */}
         <FormControl size="small">
           <InputLabel>Role</InputLabel>
-          <Select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            label="Role"
-          >
+          <Select value={role} onChange={(e) => setRole(e.target.value)} label="Role">
             <MenuItem value="member">Member</MenuItem>
             <MenuItem value="admin">Admin</MenuItem>
             <MenuItem value="owner">Owner</MenuItem>
           </Select>
         </FormControl>
+
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={loading}>Cancel</Button>

@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike, inArray, or, sql } from 'drizzle-orm'
+import { and, count, desc, eq, ilike, inArray, or, sql } from 'drizzle-orm'
 import {
   formSubmissions,
   formSubmissionTeams,
@@ -41,6 +41,39 @@ async function assertTeamRole(
 }
 
 // ── Object types ──────────────────────────────────────────────────────────────
+
+interface UserTeamMembership {
+  teamId:   string
+  teamName: string
+  role:     string
+}
+
+const UserTeamMembershipRef = builder.objectRef<UserTeamMembership>('UserTeamMembership')
+UserTeamMembershipRef.implement({
+  fields: (t) => ({
+    teamId:   t.exposeID('teamId'),
+    teamName: t.exposeString('teamName'),
+    role:     t.exposeString('role'),
+  }),
+})
+
+interface AdminUserData extends User {
+  teamMemberships: UserTeamMembership[]
+  formCount:       number
+}
+
+const AdminUserRef = builder.objectRef<AdminUserData>('AdminUser')
+AdminUserRef.implement({
+  fields: (t) => ({
+    id:              t.exposeID('id'),
+    name:            t.exposeString('name',  { nullable: true }),
+    email:           t.exposeString('email', { nullable: true }),
+    image:           t.exposeString('image', { nullable: true }),
+    isAdmin:         t.exposeBoolean('isAdmin'),
+    teamMemberships: t.field({ type: [UserTeamMembershipRef], resolve: (r) => r.teamMemberships }),
+    formCount:       t.exposeInt('formCount'),
+  }),
+})
 
 const UserRef = builder.objectRef<User>('User')
 UserRef.implement({
@@ -317,7 +350,64 @@ builder.queryType({
       },
     }),
 
-    // Search users by name or email (for adding to teams)
+    // All users with team memberships and form counts — site admins only
+    adminUserList: t.field({
+      type:     [AdminUserRef],
+      nullable: false,
+      resolve: async (_, _args, ctx) => {
+        if (!ctx.userId || !ctx.isAdmin) throw new Error('Forbidden')
+        const userRows = await ctx.db.select().from(users).orderBy(users.name).limit(500)
+        if (userRows.length === 0) return []
+        const userIds = userRows.map((u) => u.id)
+        const [membershipRows, countRows] = await Promise.all([
+          ctx.db
+            .select({
+              userId:   teamMembers.userId,
+              teamId:   teamMembers.teamId,
+              teamName: teams.name,
+              role:     teamMembers.role,
+            })
+            .from(teamMembers)
+            .innerJoin(teams, eq(teams.id, teamMembers.teamId))
+            .where(inArray(teamMembers.userId, userIds)),
+          ctx.db
+            .select({
+              userId: formSubmissions.userId,
+              n:      count(formSubmissions.id),
+            })
+            .from(formSubmissions)
+            .where(inArray(formSubmissions.userId, userIds))
+            .groupBy(formSubmissions.userId),
+        ])
+        const countMap = new Map(countRows.map((r) => [r.userId, r.n]))
+        const memberMap = new Map<string, typeof membershipRows>()
+        for (const m of membershipRows) {
+          if (!memberMap.has(m.userId)) memberMap.set(m.userId, [])
+          memberMap.get(m.userId)!.push(m)
+        }
+        return userRows.map((u) => ({
+          ...u,
+          teamMemberships: memberMap.get(u.id) ?? [],
+          formCount:       countMap.get(u.id)  ?? 0,
+        }))
+      },
+    }),
+
+    // All teams in system — site admins only (for add-to-team UI)
+    adminAllTeams: t.field({
+      type:     [TeamRef],
+      nullable: false,
+      resolve: async (_, _args, ctx) => {
+        if (!ctx.userId || !ctx.isAdmin) throw new Error('Forbidden')
+        const teamRows = await ctx.db
+          .select({ id: teams.id, name: teams.name, createdBy: teams.createdBy, createdAt: teams.createdAt })
+          .from(teams)
+          .orderBy(teams.name)
+        return teamRows.map((t) => ({ ...t, members: [] }))
+      },
+    }),
+
+    // Search users by name or email — empty query returns all users (up to 500)
     searchUsers: t.field({
       type:     [UserRef],
       nullable: false,
@@ -331,7 +421,8 @@ builder.queryType({
           .select()
           .from(users)
           .where(or(ilike(users.email, q), ilike(users.name, q)))
-          .limit(10)
+          .orderBy(users.name)
+          .limit(500)
       },
     }),
 
@@ -556,6 +647,78 @@ builder.mutationType({
           .insert(formSubmissionTeams)
           .values({ formSubmissionId: String(submissionId), teamId: String(teamId), addedBy: ctx.userId })
           .onConflictDoNothing()
+        return true
+      },
+    }),
+
+    // Set or unset site-admin flag — site admins only, cannot change own status
+    adminSetUserRole: t.field({
+      type: UserRef,
+      args: {
+        userId:  t.arg.id({ required: true }),
+        isAdmin: t.arg.boolean({ required: true }),
+      },
+      resolve: async (_, { userId, isAdmin: newIsAdmin }, ctx) => {
+        if (!ctx.userId || !ctx.isAdmin) throw new Error('Forbidden')
+        if (String(userId) === ctx.userId) throw new Error('Cannot change your own admin status')
+        const rows = await ctx.db
+          .update(users)
+          .set({ isAdmin: newIsAdmin })
+          .where(eq(users.id, String(userId)))
+          .returning()
+        if (!rows[0]) throw new Error('User not found')
+        return rows[0]
+      },
+    }),
+
+    // Delete any user — site admins only, cannot delete self
+    adminDeleteUser: t.field({
+      type:     'Boolean',
+      args:     { userId: t.arg.id({ required: true }) },
+      resolve: async (_, { userId }, ctx) => {
+        if (!ctx.userId || !ctx.isAdmin) throw new Error('Forbidden')
+        if (String(userId) === ctx.userId) throw new Error('Cannot delete yourself')
+        await ctx.db.delete(users).where(eq(users.id, String(userId)))
+        return true
+      },
+    }),
+
+    // Add any user to any team with any role — site admins only
+    adminAddUserToTeam: t.field({
+      type: TeamMemberRef,
+      args: {
+        userId: t.arg.id({ required: true }),
+        teamId: t.arg.id({ required: true }),
+        role:   t.arg.string(),
+      },
+      resolve: async (_, { userId, teamId, role }, ctx) => {
+        if (!ctx.userId || !ctx.isAdmin) throw new Error('Forbidden')
+        const assignedRole = (role ?? 'member') as string
+        const [row] = await ctx.db
+          .insert(teamMembers)
+          .values({ teamId: String(teamId), userId: String(userId), role: assignedRole })
+          .onConflictDoUpdate({
+            target: [teamMembers.teamId, teamMembers.userId],
+            set: { role: assignedRole },
+          })
+          .returning()
+        const userRows = await ctx.db.select().from(users).where(eq(users.id, String(userId))).limit(1)
+        return { ...row, user: userRows[0] }
+      },
+    }),
+
+    // Remove any user from any team — site admins only
+    adminRemoveUserFromTeam: t.field({
+      type: 'Boolean',
+      args: {
+        userId: t.arg.id({ required: true }),
+        teamId: t.arg.id({ required: true }),
+      },
+      resolve: async (_, { userId, teamId }, ctx) => {
+        if (!ctx.userId || !ctx.isAdmin) throw new Error('Forbidden')
+        await ctx.db
+          .delete(teamMembers)
+          .where(and(eq(teamMembers.teamId, String(teamId)), eq(teamMembers.userId, String(userId))))
         return true
       },
     }),

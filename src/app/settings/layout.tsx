@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
@@ -12,14 +13,26 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined'
 import Link from 'next/link'
 import UserMenu from '@/app/components/UserMenu'
+import { gqlFetch } from '@/lib/graphql/client'
 
-const TABS = [
+const BASE_TABS = [
   { label: 'General', href: '/settings' },
   { label: 'Teams',   href: '/settings/teams' },
 ]
 
+const ADMIN_TAB = { label: 'Users', href: '/settings/users' }
+
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    gqlFetch<{ me: { isAdmin: boolean } | null }>('query { me { isAdmin } }')
+      .then(({ me }) => { if (me?.isAdmin) setIsAdmin(true) })
+      .catch(() => {})
+  }, [])
+
+  const TABS = isAdmin ? [...BASE_TABS, ADMIN_TAB] : BASE_TABS
   const activeTab = TABS.findIndex((t) => t.href === pathname)
 
   return (
@@ -46,7 +59,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
           <UserMenu />
         </Toolbar>
         <Tabs
-          value={activeTab === -1 ? 0 : activeTab}
+          value={activeTab === -1 ? false : activeTab}
           sx={{ px: 2, minHeight: 40, '& .MuiTab-root': { minHeight: 40, py: 0, fontSize: '0.8125rem' } }}
         >
           {TABS.map((tab) => (
