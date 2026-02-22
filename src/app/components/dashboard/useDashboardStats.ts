@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { HistoryItem } from '../HistorySidebar'
-import type { DashboardStats, InspectionDataSummary, MonthBucket } from './types'
+import type { DashboardStats, FlaggedForm, InspectionDataSummary, MonthBucket } from './types'
 
 function monthKey(d: Date) {
   return `${d.getFullYear()}-${d.getMonth()}`
@@ -61,6 +61,21 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
         }))
     })
 
-    return { compliancePercent, formCount: history.length, bmpTotals, monthlyBuckets, openActions }
+    // Flagged forms — non-compliant items with their failed BMP checks
+    const flaggedForms: FlaggedForm[] = history
+      .filter(item => (item.data as Partial<InspectionDataSummary>).overallStatus === 'non-compliant')
+      .map(item => {
+        const d = item.data as Partial<InspectionDataSummary>
+        return {
+          submissionId: item.id,
+          facilityName: item.facilityName ?? item.fileName,
+          inspectionDate: d.inspectionDate ?? null,
+          failedBmpItems: (d.bmpItems ?? [])
+            .filter(b => b.status === 'fail')
+            .map(b => ({ section: b.section, description: b.description, notes: b.notes })),
+        }
+      })
+
+    return { compliancePercent, formCount: history.length, bmpTotals, monthlyBuckets, openActions, flaggedForms }
   }, [history])
 }

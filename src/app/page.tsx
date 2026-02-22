@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
@@ -40,12 +40,6 @@ const SUBMISSIONS_QUERY = `
     }
   }
 `
-const SETTINGS_QUERY = `query { settings { preferences } }`
-const UPDATE_SETTINGS_MUTATION = `
-  mutation UpdateSettings($input: UpdateSettingsInput!) {
-    updateSettings(input: $input) { preferences }
-  }
-`
 const CREATE_SUBMISSION_MUTATION = `
   mutation CreateSubmission($input: CreateSubmissionInput!) {
     createSubmission(input: $input) { id processedAt }
@@ -72,31 +66,12 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [history, setHistory] = useState<HistoryItem[]>([])
-  const [threshold, setThreshold] = useState(80)
-  const [preferences, setPreferences] = useState<Record<string, unknown>>({})
-  const thresholdTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    Promise.all([
-      gqlFetch<{ submissions: GqlSubmission[] }>(SUBMISSIONS_QUERY),
-      gqlFetch<{ settings: { preferences: Record<string, unknown> } | null }>(SETTINGS_QUERY),
-    ]).then(([{ submissions }, { settings }]) => {
-      setHistory(submissions.map(submissionToHistoryItem))
-      const prefs = settings?.preferences ?? {}
-      setPreferences(prefs)
-      if (typeof prefs.complianceThreshold === 'number') setThreshold(prefs.complianceThreshold)
-    }).catch(() => {/* DB not configured yet */})
+    gqlFetch<{ submissions: GqlSubmission[] }>(SUBMISSIONS_QUERY)
+      .then(({ submissions }) => setHistory(submissions.map(submissionToHistoryItem)))
+      .catch(() => {/* DB not configured yet */})
   }, [])
-
-  function handleThresholdChange(value: number) {
-    setThreshold(value)
-    const merged = { ...preferences, complianceThreshold: value }
-    setPreferences(merged)
-    if (thresholdTimer.current) clearTimeout(thresholdTimer.current)
-    thresholdTimer.current = setTimeout(() => {
-      gqlFetch(UPDATE_SETTINGS_MUTATION, { input: { preferences: merged } }).catch(() => {})
-    }, 500)
-  }
 
   async function handleFile(file: File) {
     setLoading(true)
@@ -177,8 +152,6 @@ export default function Home() {
           <UploaderCard onFile={handleFile} loading={loading} error={error} />
           <DashboardPanel
             history={history}
-            threshold={threshold}
-            onThresholdChange={handleThresholdChange}
             onSelectHistory={handleSelectHistory}
           />
         </Box>

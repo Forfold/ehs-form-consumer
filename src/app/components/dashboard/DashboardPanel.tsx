@@ -12,8 +12,6 @@ import DashboardFilterBar, { type TimeRange } from './DashboardFilterBar'
 
 interface Props {
   history: HistoryItem[]
-  threshold: number
-  onThresholdChange: (value: number) => void
   onSelectHistory: (item: HistoryItem) => void
 }
 
@@ -42,7 +40,7 @@ function submissionLabel(item: HistoryItem): string {
   return `${name} · ${date}`
 }
 
-export default function DashboardPanel({ history, threshold, onThresholdChange, onSelectHistory }: Props) {
+export default function DashboardPanel({ history, onSelectHistory }: Props) {
   const [timeRange, setTimeRange] = useState<TimeRange>('6mo')
   const [teamId, setTeamId] = useState('all')
   const [selectedSubmissionId, setSelectedSubmissionId] = useState(() => history[0]?.id ?? '')
@@ -124,8 +122,8 @@ export default function DashboardPanel({ history, threshold, onThresholdChange, 
             percent={stats.compliancePercent}
             formCount={stats.formCount}
             windowLabel={windowLabel}
-            threshold={threshold}
-            onThresholdChange={onThresholdChange}
+            flaggedForms={stats.flaggedForms}
+            onSelectForm={id => { onSelectHistory(history.find(h => h.id === id)!) }}
           />
         </Box>
 

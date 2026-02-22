@@ -1,6 +1,6 @@
 export interface InspectionDataSummary {
   overallStatus: 'compliant' | 'non-compliant' | 'needs-attention'
-  bmpItems: Array<{ description: string; status: 'pass' | 'fail' | 'na'; notes: string }>
+  bmpItems: Array<{ section?: string; description: string; status: 'pass' | 'fail' | 'na'; notes: string }>
   correctiveActions: Array<{ description: string; dueDate: string; completed: boolean }>
   facilityName: string | null
   inspectionDate: string | null
@@ -19,6 +19,13 @@ export interface MonthBucket {
   needsAttention: number
 }
 
+export interface FlaggedForm {
+  submissionId: string
+  facilityName: string
+  inspectionDate: string | null
+  failedBmpItems: Array<{ section?: string; description: string; notes: string }>
+}
+
 export interface OpenCorrectiveAction {
   submissionId: string
   facilityName: string
@@ -32,4 +39,5 @@ export interface DashboardStats {
   bmpTotals: BmpTotals
   monthlyBuckets: MonthBucket[]
   openActions: OpenCorrectiveAction[]
+  flaggedForms: FlaggedForm[]
 }

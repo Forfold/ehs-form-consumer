@@ -1,21 +1,25 @@
+import { useState } from 'react'
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
-import Slider from '@mui/material/Slider'
 import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/material/styles'
 import DashboardCard from './DashboardCard'
+import FlaggedItemsModal from './FlaggedItemsModal'
+import type { FlaggedForm } from './types'
 
 interface Props {
   percent: number
   formCount: number
   windowLabel: string
-  threshold: number
-  onThresholdChange: (value: number) => void
+  flaggedForms: FlaggedForm[]
+  onSelectForm: (submissionId: string) => void
 }
 
-export default function ComplianceStatusCard({ percent, formCount, windowLabel, threshold, onThresholdChange }: Props) {
+export default function ComplianceStatusCard({ percent, formCount, windowLabel, flaggedForms, onSelectForm }: Props) {
   const theme = useTheme()
-  const passing = percent >= threshold
+  const [modalOpen, setModalOpen] = useState(false)
+  const passing = percent === 100
   const color = passing ? theme.palette.success.main : theme.palette.error.main
 
   return (
@@ -28,7 +32,7 @@ export default function ComplianceStatusCard({ percent, formCount, windowLabel, 
           {percent}%
         </Typography>
         <Chip
-          label={passing ? 'Within Compliance' : 'At Risk'}
+          label={passing ? 'Within Compliance' : 'Non-Compliant'}
           size="small"
           sx={{
             bgcolor: passing ? 'success.light' : 'error.light',
@@ -36,22 +40,25 @@ export default function ComplianceStatusCard({ percent, formCount, windowLabel, 
             fontWeight: 600,
           }}
         />
+        {flaggedForms.length > 0 && (
+          <Button
+            size="small"
+            variant="outlined"
+            color="error"
+            onClick={() => setModalOpen(true)}
+            sx={{ ml: 'auto', flexShrink: 0 }}
+          >
+            {flaggedForms.length} flagged form{flaggedForms.length !== 1 ? 's' : ''}
+          </Button>
+        )}
       </Box>
 
-      <Box>
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-          Alert threshold: {threshold}%
-        </Typography>
-        <Slider
-          size="small"
-          value={threshold}
-          min={0}
-          max={100}
-          marks={[{ value: 0 }, { value: 50 }, { value: 80 }, { value: 100 }]}
-          onChange={(_, v) => onThresholdChange(v as number)}
-          sx={{ color }}
-        />
-      </Box>
+      <FlaggedItemsModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        forms={flaggedForms}
+        onSelectForm={onSelectForm}
+      />
     </DashboardCard>
   )
 }
