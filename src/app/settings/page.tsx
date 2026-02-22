@@ -15,7 +15,7 @@ export default function SettingsPage() {
   const { mode, setMode } = useThemeMode()
 
   return (
-    <Container maxWidth="sm" sx={{ py: 4 }}>
+    <Container maxWidth="md" sx={{ py: 4 }}>
       <Typography variant="h6" gutterBottom>Appearance</Typography>
       <Divider sx={{ mb: 3 }} />
 

@@ -538,7 +538,7 @@ export default function TeamManager() {
   }
 
   return (
-    <Container maxWidth="sm" sx={{ py: 4, flex: 1 }}>
+    <Container maxWidth="md" sx={{ py: 4, flex: 1 }}>
         <Typography variant="h6" gutterBottom>Teams</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           Create teams to share form submissions with colleagues. Any team member can share
