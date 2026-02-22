@@ -17,6 +17,7 @@ import Link from 'next/link'
 import { gqlFetch } from '@/lib/graphql/client'
 import InspectionResults from '@/app/components/InspectionResults'
 import HistorySidebar from '@/app/components/HistorySidebar'
+import PdfSection from '@/app/components/pdf/PdfSection'
 import UserMenu from '@/app/components/UserMenu'
 
 type OverallStatus = 'compliant' | 'non-compliant' | 'needs-attention'
@@ -38,6 +39,7 @@ interface GqlSubmission {
   fileName: string
   processedAt: string
   displayName: string | null
+  pdfStorageKey: string | null
   data: Record<string, unknown>
   teams: Array<{ id: string; name: string }>
 }
@@ -45,7 +47,7 @@ interface GqlSubmission {
 const SUBMISSION_QUERY = `
   query GetSubmission($id: ID!) {
     submission(id: $id) {
-      id fileName processedAt displayName data
+      id fileName processedAt displayName pdfStorageKey data
       teams { id name }
     }
   }
@@ -162,6 +164,10 @@ export default function FormDetailPage() {
           <InspectionResults
             data={submission.data as unknown as InspectionData}
             onReset={() => router.push('/')}
+          />
+          <PdfSection
+            submissionId={submission.id}
+            initialPdfUrl={submission.pdfStorageKey}
           />
         </Container>
       )}

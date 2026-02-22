@@ -73,11 +73,12 @@ export const formSubmissions = pgTable(
   {
     id:          uuid('id').primaryKey().defaultRandom(),
     userId:      uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-    fileName:    text('file_name').notNull(),
-    processedAt: timestamp('processed_at', { withTimezone: true }).notNull().defaultNow(),
-    formType:    text('form_type'),
-    displayName: text('display_name'),
-    data:        jsonb('data').notNull(),
+    fileName:       text('file_name').notNull(),
+    processedAt:    timestamp('processed_at', { withTimezone: true }).notNull().defaultNow(),
+    formType:       text('form_type'),
+    displayName:    text('display_name'),
+    pdfStorageKey:  text('pdf_storage_key'),
+    data:           jsonb('data').notNull(),
   },
   (t) => [
     index('form_submissions_user_id_processed_at_idx').on(t.userId, t.processedAt),

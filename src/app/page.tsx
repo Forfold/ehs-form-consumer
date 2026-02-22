@@ -9,6 +9,7 @@ import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined'
 import { extractInspection } from '@/lib/extractInspection'
+import { uploadPdf } from '@/lib/uploadPdf'
 import { gqlFetch } from '@/lib/graphql/client'
 import { type HistoryItem } from './components/HistorySidebar'
 import UserMenu from './components/UserMenu'
@@ -62,10 +63,13 @@ export default function Home() {
     setLoading(true)
     setError(null)
     try {
-      const data = await extractInspection(file)
+      const [data, pdfStorageKey] = await Promise.all([
+        extractInspection(file),
+        uploadPdf(file).catch(() => null), // non-fatal: proceed without PDF if upload fails
+      ])
       const { createSubmission } = await gqlFetch<{ createSubmission: { id: string; processedAt: string } }>(
         CREATE_SUBMISSION_MUTATION,
-        { input: { fileName: file.name, displayName: data.facilityName ?? null, formType: 'iswgp', data } },
+        { input: { fileName: file.name, displayName: data.facilityName ?? null, formType: 'iswgp', pdfStorageKey, data } },
       )
       router.push(`/forms/${createSubmission.id}`)
     } catch (err) {

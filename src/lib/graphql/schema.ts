@@ -117,12 +117,13 @@ TeamRef.implement({
 const FormSubmissionRef = builder.objectRef<FormSubmission>('FormSubmission')
 FormSubmissionRef.implement({
   fields: (t) => ({
-    id:          t.exposeID('id'),
-    fileName:    t.exposeString('fileName'),
-    processedAt: t.field({ type: 'String', resolve: (r) => r.processedAt.toISOString() }),
-    formType:    t.exposeString('formType',    { nullable: true }),
-    displayName: t.exposeString('displayName', { nullable: true }),
-    data:        t.expose('data', { type: 'JSON' }),
+    id:             t.exposeID('id'),
+    fileName:       t.exposeString('fileName'),
+    processedAt:    t.field({ type: 'String', resolve: (r) => r.processedAt.toISOString() }),
+    formType:       t.exposeString('formType',       { nullable: true }),
+    displayName:    t.exposeString('displayName',    { nullable: true }),
+    pdfStorageKey:  t.exposeString('pdfStorageKey',  { nullable: true }),
+    data:           t.expose('data', { type: 'JSON' }),
     // Teams this submission has been shared with (that user is a member of)
     teams: t.field({
       type: [TeamRef],
@@ -429,10 +430,11 @@ builder.queryType({
 // ── Mutations ─────────────────────────────────────────────────────────────────
 const CreateSubmissionInput = builder.inputType('CreateSubmissionInput', {
   fields: (t) => ({
-    fileName:    t.string({ required: true }),
-    formType:    t.string(),
-    displayName: t.string(),
-    data:        t.field({ type: 'JSON', required: true }),
+    fileName:      t.string({ required: true }),
+    formType:      t.string(),
+    displayName:   t.string(),
+    pdfStorageKey: t.string(),
+    data:          t.field({ type: 'JSON', required: true }),
   }),
 })
 
@@ -466,11 +468,12 @@ builder.mutationType({
         const rows = await ctx.db
           .insert(formSubmissions)
           .values({
-            userId:      ctx.userId,
-            fileName:    input.fileName,
-            formType:    input.formType ?? null,
-            displayName: input.displayName ?? null,
-            data:        input.data as Record<string, unknown>,
+            userId:        ctx.userId,
+            fileName:      input.fileName,
+            formType:      input.formType ?? null,
+            displayName:   input.displayName ?? null,
+            pdfStorageKey: input.pdfStorageKey ?? null,
+            data:          input.data as Record<string, unknown>,
           })
           .returning()
         return rows[0]
@@ -750,6 +753,25 @@ builder.mutationType({
           .delete(teamMembers)
           .where(and(eq(teamMembers.teamId, String(teamId)), eq(teamMembers.userId, String(userId))))
         return true
+      },
+    }),
+
+    // Attach (or replace) a PDF storage URL on an existing submission the user owns
+    attachPdfToSubmission: t.field({
+      type:     FormSubmissionRef,
+      args: {
+        id:            t.arg.id({ required: true }),
+        pdfStorageKey: t.arg.string({ required: true }),
+      },
+      resolve: async (_, { id, pdfStorageKey }, ctx) => {
+        if (!ctx.userId) throw new Error('Not authenticated')
+        const rows = await ctx.db
+          .update(formSubmissions)
+          .set({ pdfStorageKey: String(pdfStorageKey) })
+          .where(and(eq(formSubmissions.id, String(id)), eq(formSubmissions.userId, ctx.userId)))
+          .returning()
+        if (!rows[0]) throw new Error('Submission not found or access denied')
+        return rows[0]
       },
     }),
 
