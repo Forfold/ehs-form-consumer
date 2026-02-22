@@ -17,7 +17,7 @@ interface Props {
   onSelectHistory: (item: HistoryItem) => void
 }
 
-const WINDOW_LABELS: Record<TimeRange, string> = {
+const WINDOW_LABELS: Record<Exclude<TimeRange, 'single'>, string> = {
   '30d': 'Last 30 days',
   '90d': 'Last 90 days',
   '6mo': 'Last 6 months',
@@ -25,7 +25,7 @@ const WINDOW_LABELS: Record<TimeRange, string> = {
   'all': 'All time',
 }
 
-function cutoffDate(range: TimeRange): Date | null {
+function cutoffDate(range: Exclude<TimeRange, 'single'>): Date | null {
   const now = new Date()
   switch (range) {
     case '30d': return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
@@ -36,9 +36,21 @@ function cutoffDate(range: TimeRange): Date | null {
   }
 }
 
+function submissionLabel(item: HistoryItem): string {
+  const name = item.facilityName ?? item.fileName
+  const date = new Date(item.processedAt).toLocaleDateString('default', { month: 'short', day: 'numeric', year: '2-digit' })
+  return `${name} · ${date}`
+}
+
 export default function DashboardPanel({ history, threshold, onThresholdChange, onSelectHistory }: Props) {
   const [timeRange, setTimeRange] = useState<TimeRange>('6mo')
   const [teamId, setTeamId] = useState('all')
+  const [selectedSubmissionId, setSelectedSubmissionId] = useState(() => history[0]?.id ?? '')
+
+  // Keep selectedSubmissionId valid when history loads or changes
+  const resolvedSubmissionId = history.some(h => h.id === selectedSubmissionId)
+    ? selectedSubmissionId
+    : (history[0]?.id ?? '')
 
   const teams = useMemo(() => {
     const seen = new Map<string, string>()
@@ -50,7 +62,15 @@ export default function DashboardPanel({ history, threshold, onThresholdChange, 
     return Array.from(seen.entries()).map(([id, name]) => ({ id, name }))
   }, [history])
 
+  const submissionOptions = useMemo(
+    () => history.map(h => ({ id: h.id, label: submissionLabel(h) })),
+    [history],
+  )
+
   const filteredHistory = useMemo(() => {
+    if (timeRange === 'single') {
+      return history.filter(h => h.id === resolvedSubmissionId)
+    }
     const cutoff = cutoffDate(timeRange)
     const byTeam = teamId === 'all'
       ? history
@@ -60,7 +80,15 @@ export default function DashboardPanel({ history, threshold, onThresholdChange, 
     return cutoff
       ? byTeam.filter(h => new Date(h.processedAt) >= cutoff)
       : byTeam
-  }, [history, timeRange, teamId])
+  }, [history, timeRange, teamId, resolvedSubmissionId])
+
+  const windowLabel = useMemo(() => {
+    if (timeRange === 'single') {
+      const item = history.find(h => h.id === resolvedSubmissionId)
+      return item ? (item.facilityName ?? item.fileName) : '1 form'
+    }
+    return WINDOW_LABELS[timeRange]
+  }, [timeRange, history, resolvedSubmissionId])
 
   const stats = useDashboardStats(filteredHistory)
 
@@ -77,6 +105,9 @@ export default function DashboardPanel({ history, threshold, onThresholdChange, 
         teams={teams}
         teamId={teamId}
         onTeamChange={setTeamId}
+        submissionOptions={submissionOptions}
+        selectedSubmissionId={resolvedSubmissionId}
+        onSubmissionChange={setSelectedSubmissionId}
       />
 
       <Box
@@ -92,7 +123,7 @@ export default function DashboardPanel({ history, threshold, onThresholdChange, 
           <ComplianceStatusCard
             percent={stats.compliancePercent}
             formCount={stats.formCount}
-            windowLabel={WINDOW_LABELS[timeRange]}
+            windowLabel={windowLabel}
             threshold={threshold}
             onThresholdChange={onThresholdChange}
           />

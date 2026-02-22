@@ -7,11 +7,16 @@ import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import Typography from '@mui/material/Typography'
 
-export type TimeRange = '30d' | '90d' | '6mo' | '1yr' | 'all'
+export type TimeRange = '30d' | '90d' | '6mo' | '1yr' | 'all' | 'single'
 
 export interface FilterTeam {
   id: string
   name: string
+}
+
+export interface SubmissionOption {
+  id: string
+  label: string
 }
 
 interface Props {
@@ -20,6 +25,9 @@ interface Props {
   teams: FilterTeam[]
   teamId: string
   onTeamChange: (teamId: string) => void
+  submissionOptions: SubmissionOption[]
+  selectedSubmissionId: string
+  onSubmissionChange: (id: string) => void
 }
 
 const TIME_OPTIONS: Array<{ value: TimeRange; label: string }> = [
@@ -28,9 +36,14 @@ const TIME_OPTIONS: Array<{ value: TimeRange; label: string }> = [
   { value: '6mo', label: '6mo' },
   { value: '1yr', label: '1yr' },
   { value: 'all', label: 'All' },
+  { value: 'single', label: 'Form' },
 ]
 
-export default function DashboardFilterBar({ timeRange, onTimeRangeChange, teams, teamId, onTeamChange }: Props) {
+export default function DashboardFilterBar({
+  timeRange, onTimeRangeChange,
+  teams, teamId, onTeamChange,
+  submissionOptions, selectedSubmissionId, onSubmissionChange,
+}: Props) {
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', mb: 1.5 }}>
       <Typography variant="caption" color="text.disabled" sx={{ fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', mr: 0.5 }}>
@@ -51,19 +64,36 @@ export default function DashboardFilterBar({ timeRange, onTimeRangeChange, teams
         ))}
       </ToggleButtonGroup>
 
-      {teams.length > 0 && (
+      {timeRange === 'single' ? (
         <Select
-          value={teamId}
-          onChange={e => onTeamChange(e.target.value)}
+          value={selectedSubmissionId}
+          onChange={e => onSubmissionChange(e.target.value)}
           size="small"
-          sx={{ fontSize: '0.75rem', minWidth: 130, '& .MuiSelect-select': { py: '3px' } }}
+          displayEmpty
+          sx={{ fontSize: '0.75rem', minWidth: 200, maxWidth: 300, '& .MuiSelect-select': { py: '3px' } }}
         >
-          <MenuItem value="all">All teams</MenuItem>
-          <MenuItem value="personal">Personal only</MenuItem>
-          {teams.map(t => (
-            <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>
-          ))}
+          {submissionOptions.length === 0
+            ? <MenuItem value="" disabled>No submissions</MenuItem>
+            : submissionOptions.map(s => (
+                <MenuItem key={s.id} value={s.id}>{s.label}</MenuItem>
+              ))
+          }
         </Select>
+      ) : (
+        teams.length > 0 && (
+          <Select
+            value={teamId}
+            onChange={e => onTeamChange(e.target.value)}
+            size="small"
+            sx={{ fontSize: '0.75rem', minWidth: 130, '& .MuiSelect-select': { py: '3px' } }}
+          >
+            <MenuItem value="all">All teams</MenuItem>
+            <MenuItem value="personal">Personal only</MenuItem>
+            {teams.map(t => (
+              <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>
+            ))}
+          </Select>
+        )
       )}
     </Box>
   )
