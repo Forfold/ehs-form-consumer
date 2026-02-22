@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { SessionProvider } from 'next-auth/react'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
@@ -35,23 +35,28 @@ const SETTINGS_QUERY = `
 
 // ── Providers ─────────────────────────────────────────────────────────────────
 
-export default function Providers({ children }: { children: React.ReactNode }) {
-  // Start with 'light' to match SSR — real theme applied after hydration
-  const [mode, setModeState] = useState<ThemeMode>('light')
+function setCookie(m: ThemeMode) {
+  document.cookie = `theme=${m}; path=/; max-age=31536000; SameSite=Lax`
+}
 
-  // Runs before first paint — no flash
-  useLayoutEffect(() => {
-    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    setModeState(systemDark ? 'dark' : 'light')
-  }, [])
+export default function Providers({
+  children,
+  initialMode = 'light',
+}: {
+  children: React.ReactNode
+  initialMode?: ThemeMode
+}) {
+  // initialMode comes from the server-read cookie, so server and client agree from the start.
+  const [mode, setModeState] = useState<ThemeMode>(initialMode)
 
-  // Fetch from DB and override if a preference is saved
+  // After mount: sync with DB preference (and keep cookie up to date)
   useEffect(() => {
     gqlFetch<{ settings: { preferences: Record<string, unknown> } | null }>(SETTINGS_QUERY)
       .then(({ settings }) => {
         const dbMode = settings?.preferences?.theme as ThemeMode | undefined
         if (dbMode === 'light' || dbMode === 'dark') {
           setModeState(dbMode)
+          setCookie(dbMode)
         }
       })
       .catch(() => {/* db not configured */})
@@ -59,6 +64,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   function setMode(m: ThemeMode) {
     setModeState(m)
+    setCookie(m)
     gqlFetch(UPDATE_SETTINGS_MUTATION, { input: { preferences: { theme: m } } })
       .catch(() => {/* db not configured */})
   }

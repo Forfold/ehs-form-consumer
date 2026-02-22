@@ -10,7 +10,8 @@
       "Bash(npm run db:generate:*)",
       "Bash(npx drizzle-kit push:*)",
       "Bash(psql:*)",
-      "Bash(npx auth secret:*)"
+      "Bash(npx auth secret:*)",
+      "Bash(npm run lint:*)"
     ]
   }
 }

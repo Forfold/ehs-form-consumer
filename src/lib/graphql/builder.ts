@@ -14,7 +14,7 @@ export interface Context {
   isAdmin: boolean
 }
 
-export async function buildContext(_request: Request): Promise<Context> {
+export async function buildContext(): Promise<Context> {
   const session = await auth()
   const userId = session?.user?.id ?? null
 

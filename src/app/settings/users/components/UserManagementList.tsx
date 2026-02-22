@@ -1,107 +1,28 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import Avatar from '@mui/material/Avatar'
 import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
-import Button from '@mui/material/Button'
-import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
-import Dialog from '@mui/material/Dialog'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogTitle from '@mui/material/DialogTitle'
-import Divider from '@mui/material/Divider'
-import FormControl from '@mui/material/FormControl'
-import IconButton from '@mui/material/IconButton'
-import InputAdornment from '@mui/material/InputAdornment'
-import InputLabel from '@mui/material/InputLabel'
-import Menu from '@mui/material/Menu'
-import MenuItem from '@mui/material/MenuItem'
-import Paper from '@mui/material/Paper'
-import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import CloseIcon from '@mui/icons-material/Close'
-import MoreVertIcon from '@mui/icons-material/MoreVert'
+import InputAdornment from '@mui/material/InputAdornment'
 import SearchIcon from '@mui/icons-material/Search'
 import { gqlFetch } from '@/lib/graphql/client'
-
-// ── GraphQL ───────────────────────────────────────────────────────────────────
-
-const ME_QUERY = `query { me { id isAdmin } }`
-
-const ADMIN_USER_LIST_QUERY = `
-  query {
-    adminUserList {
-      id name email image isAdmin formCount
-      teamMemberships { teamId teamName role }
-    }
-  }
-`
-
-const ADMIN_ALL_TEAMS_QUERY = `
-  query {
-    adminAllTeams { id name }
-  }
-`
-
-const SET_USER_ROLE_MUTATION = `
-  mutation AdminSetUserRole($userId: ID!, $isAdmin: Boolean!) {
-    adminSetUserRole(userId: $userId, isAdmin: $isAdmin) { id isAdmin }
-  }
-`
-
-const DELETE_USER_MUTATION = `
-  mutation AdminDeleteUser($userId: ID!) {
-    adminDeleteUser(userId: $userId)
-  }
-`
-
-const ADD_USER_TO_TEAM_MUTATION = `
-  mutation AdminAddUserToTeam($userId: ID!, $teamId: ID!, $role: String) {
-    adminAddUserToTeam(userId: $userId, teamId: $teamId, role: $role) { userId role }
-  }
-`
-
-const REMOVE_USER_FROM_TEAM_MUTATION = `
-  mutation AdminRemoveUserFromTeam($userId: ID!, $teamId: ID!) {
-    adminRemoveUserFromTeam(userId: $userId, teamId: $teamId)
-  }
-`
-
-// ── Types ─────────────────────────────────────────────────────────────────────
-
-interface UserTeamMembership {
-  teamId:   string
-  teamName: string
-  role:     string
-}
-
-interface AdminUser {
-  id:              string
-  name:            string | null
-  email:           string | null
-  image:           string | null
-  isAdmin:         boolean
-  teamMemberships: UserTeamMembership[]
-  formCount:       number
-}
-
-interface SlimTeam {
-  id:   string
-  name: string
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function userInitials(user: AdminUser): string {
-  if (user.name) return user.name.split(' ').map((s) => s[0]).slice(0, 2).join('').toUpperCase()
-  if (user.email) return user.email[0].toUpperCase()
-  return '?'
-}
-
-const ROLE_LABELS: Record<string, string> = { owner: 'Owner', admin: 'Admin', member: 'Member' }
+import {
+  AdminUser,
+  SlimTeam,
+  ME_QUERY,
+  ADMIN_USER_LIST_QUERY,
+  ADMIN_ALL_TEAMS_QUERY,
+  SET_USER_ROLE_MUTATION,
+  DELETE_USER_MUTATION,
+  ADD_USER_TO_TEAM_MUTATION,
+  REMOVE_USER_FROM_TEAM_MUTATION,
+} from './graphql'
+import { UserRow } from './UserRow'
+import { AddUserToTeamDialog } from './AddUserToTeamDialog'
+import { DeleteUserDialog } from './DeleteUserDialog'
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -113,16 +34,8 @@ export default function UserManagementList() {
   const [loading, setLoading]           = useState(true)
   const [search, setSearch]             = useState('')
 
-  // Menu
-  const [menuAnchor, setMenuAnchor]   = useState<HTMLElement | null>(null)
-  const [menuUserId, setMenuUserId]   = useState<string | null>(null)
-
-  // Add-to-team dialog
+  // Dialog states
   const [addTeamUserId, setAddTeamUserId] = useState<string | null>(null)
-  const [addTeamTeamId, setAddTeamTeamId] = useState('')
-  const [addTeamRole, setAddTeamRole]     = useState('member')
-
-  // Delete confirmation dialog
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null)
 
   // Per-item loading states
@@ -159,24 +72,9 @@ export default function UserManagementList() {
       })
   }, [])
 
-  // ── Menu helpers ──────────────────────────────────────────────────────────
-
-  const menuUser = users.find((u) => u.id === menuUserId) ?? null
-
-  function openMenu(e: React.MouseEvent<HTMLElement>, userId: string) {
-    setMenuAnchor(e.currentTarget)
-    setMenuUserId(userId)
-  }
-
-  function closeMenu() {
-    setMenuAnchor(null)
-    setMenuUserId(null)
-  }
-
   // ── Actions ───────────────────────────────────────────────────────────────
 
   async function handleToggleAdmin(user: AdminUser) {
-    closeMenu()
     setBusyUserIds((prev) => new Set(prev).add(user.id))
     try {
       const { adminSetUserRole } = await gqlFetch<{ adminSetUserRole: { id: string; isAdmin: boolean } }>(
@@ -193,36 +91,28 @@ export default function UserManagementList() {
     }
   }
 
-  function openAddTeamDialog(userId: string) {
-    closeMenu()
-    setAddTeamUserId(userId)
-    setAddTeamTeamId(allTeams[0]?.id ?? '')
-    setAddTeamRole('member')
-  }
-
-  async function handleAddToTeam() {
-    if (!addTeamUserId || !addTeamTeamId) return
-    const userId = addTeamUserId
+  async function handleAddToTeam(userId: string, teamId: string, role: string) {
+    if (!userId || !teamId) return
     setBusyUserIds((prev) => new Set(prev).add(userId))
     try {
-      await gqlFetch(ADD_USER_TO_TEAM_MUTATION, { userId, teamId: addTeamTeamId, role: addTeamRole })
-      const team = allTeams.find((t) => t.id === addTeamTeamId)
+      await gqlFetch(ADD_USER_TO_TEAM_MUTATION, { userId, teamId, role })
+      const team = allTeams.find((t) => t.id === teamId)
       if (team) {
         setUsers((prev) =>
           prev.map((u) => {
             if (u.id !== userId) return u
-            const existing = u.teamMemberships.find((m) => m.teamId === addTeamTeamId)
+            const existing = u.teamMemberships.find((m) => m.teamId === teamId)
             if (existing) {
               return {
                 ...u,
                 teamMemberships: u.teamMemberships.map((m) =>
-                  m.teamId === addTeamTeamId ? { ...m, role: addTeamRole } : m
+                  m.teamId === teamId ? { ...m, role: role } : m
                 ),
               }
             }
             return {
               ...u,
-              teamMemberships: [...u.teamMemberships, { teamId: team.id, teamName: team.name, role: addTeamRole }],
+              teamMemberships: [...u.teamMemberships, { teamId: team.id, teamName: team.name, role }],
             }
           })
         )
@@ -252,11 +142,6 @@ export default function UserManagementList() {
     } finally {
       setBusyMemberships((prev) => { const s = new Set(prev); s.delete(key); return s })
     }
-  }
-
-  function openDeleteDialog(userId: string) {
-    closeMenu()
-    setDeleteUserId(userId)
   }
 
   async function handleDeleteUser() {
@@ -301,6 +186,7 @@ export default function UserManagementList() {
   })
 
   const deleteUser = users.find((u) => u.id === deleteUserId)
+  const addUserToTeamUser = users.find((u) => u.id === addTeamUserId)
 
   // ── Main UI ───────────────────────────────────────────────────────────────
 
@@ -339,195 +225,39 @@ export default function UserManagementList() {
       )}
 
       {/* User rows */}
-      {filtered.map((user) => {
-        const isBusy = busyUserIds.has(user.id)
-        const isSelf = user.id === currentUserId
+      {filtered.map((user) => (
+        <UserRow
+          key={user.id}
+          user={user}
+          currentUserId={currentUserId}
+          allTeams={allTeams}
+          busyUserIds={busyUserIds}
+          busyMemberships={busyMemberships}
+          onToggleAdmin={handleToggleAdmin}
+          onAddTeam={() => setAddTeamUserId(user.id)}
+          onRemoveFromTeam={handleRemoveFromTeam}
+          onDelete={() => setDeleteUserId(user.id)}
+        />
+      ))}
 
-        return (
-          <Paper key={user.id} variant="outlined" sx={{ mb: 1.5, p: 2, borderRadius: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-
-              {/* Avatar */}
-              <Avatar
-                src={user.image ?? undefined}
-                alt={user.name ?? user.email ?? '?'}
-                sx={{ width: 44, height: 44, flexShrink: 0, mt: 0.25 }}
-              >
-                {userInitials(user)}
-              </Avatar>
-
-              {/* Content */}
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                {/* Name + badges */}
-                <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.75, mb: 0.25 }}>
-                  <Typography variant="subtitle2" fontWeight={600}>
-                    {user.name ?? user.email}
-                  </Typography>
-                  {isSelf && (
-                    <Typography component="span" variant="caption" color="text.disabled">(you)</Typography>
-                  )}
-                  {user.isAdmin && (
-                    <Chip
-                      label="Site Admin"
-                      size="small"
-                      color="primary"
-                      sx={{ height: 20, fontSize: '0.6875rem', fontWeight: 600 }}
-                    />
-                  )}
-                  {user.formCount > 0 && (
-                    <Chip
-                      label={`${user.formCount} form${user.formCount !== 1 ? 's' : ''}`}
-                      size="small"
-                      variant="outlined"
-                      sx={{ height: 20, fontSize: '0.6875rem' }}
-                    />
-                  )}
-                </Box>
-
-                {/* Email (only if name was shown above) */}
-                {user.name && (
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75 }}>
-                    {user.email}
-                  </Typography>
-                )}
-
-                {/* Team membership chips */}
-                {user.teamMemberships.length > 0 ? (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: user.name ? 0 : 0.5 }}>
-                    {user.teamMemberships.map((m) => {
-                      const memberKey = `${user.id}:${m.teamId}`
-                      const isRemoving = busyMemberships.has(memberKey)
-                      return (
-                        <Chip
-                          key={m.teamId}
-                          label={`${m.teamName} · ${ROLE_LABELS[m.role] ?? m.role}`}
-                          size="small"
-                          variant="outlined"
-                          disabled={isRemoving}
-                          onDelete={isSelf ? undefined : () => handleRemoveFromTeam(user.id, m.teamId)}
-                          deleteIcon={
-                            isRemoving
-                              ? <CircularProgress size={10} />
-                              : <CloseIcon sx={{ fontSize: '12px !important' }} />
-                          }
-                          sx={{ fontSize: '0.6875rem' }}
-                        />
-                      )
-                    })}
-                  </Box>
-                ) : (
-                  <Typography variant="caption" color="text.disabled" sx={{ mt: user.name ? 0 : 0.5, display: 'block' }}>
-                    No teams
-                  </Typography>
-                )}
-              </Box>
-
-              {/* Three-dot menu button */}
-              <IconButton
-                size="small"
-                onClick={(e) => openMenu(e, user.id)}
-                disabled={isBusy}
-                sx={{ flexShrink: 0, mt: 0.25 }}
-              >
-                {isBusy ? <CircularProgress size={16} /> : <MoreVertIcon fontSize="small" />}
-              </IconButton>
-            </Box>
-          </Paper>
-        )
-      })}
-
-      {/* ── Actions menu ── */}
-      <Menu anchorEl={menuAnchor} open={!!menuAnchor} onClose={closeMenu}>
-        {menuUser && [
-          <MenuItem
-            key="toggle-admin"
-            onClick={() => handleToggleAdmin(menuUser)}
-            disabled={menuUser.id === currentUserId}
-          >
-            {menuUser.isAdmin ? 'Remove Site Admin' : 'Make Site Admin'}
-          </MenuItem>,
-          <MenuItem
-            key="add-team"
-            onClick={() => openAddTeamDialog(menuUser.id)}
-            disabled={allTeams.length === 0}
-          >
-            Add to Team
-          </MenuItem>,
-          <Divider key="divider" />,
-          <MenuItem
-            key="delete"
-            onClick={() => openDeleteDialog(menuUser.id)}
-            disabled={menuUser.id === currentUserId}
-            sx={{ color: 'error.main' }}
-          >
-            Delete User
-          </MenuItem>,
-        ]}
-      </Menu>
-
-      {/* ── Add to Team dialog ── */}
-      <Dialog open={!!addTeamUserId} onClose={() => setAddTeamUserId(null)} maxWidth="xs" fullWidth>
-        <DialogTitle>Add to Team</DialogTitle>
-        <DialogContent sx={{ pt: '12px !important', display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <FormControl size="small" fullWidth>
-            <InputLabel>Team</InputLabel>
-            <Select
-              value={addTeamTeamId}
-              label="Team"
-              onChange={(e) => setAddTeamTeamId(e.target.value)}
-            >
-              {allTeams.map((t) => (
-                <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl size="small" fullWidth>
-            <InputLabel>Role</InputLabel>
-            <Select
-              value={addTeamRole}
-              label="Role"
-              onChange={(e) => setAddTeamRole(e.target.value)}
-            >
-              <MenuItem value="member">Member</MenuItem>
-              <MenuItem value="admin">Admin</MenuItem>
-              <MenuItem value="owner">Owner</MenuItem>
-            </Select>
-          </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setAddTeamUserId(null)}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleAddToTeam}
-            disabled={!addTeamTeamId || (addTeamUserId ? busyUserIds.has(addTeamUserId) : false)}
-          >
-            Add
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* ── Delete confirmation dialog ── */}
-      <Dialog open={!!deleteUserId} onClose={() => setDeleteUserId(null)} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete User</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2">
-            Are you sure you want to delete{' '}
-            <strong>{deleteUser?.name ?? deleteUser?.email ?? 'this user'}</strong>?
-            {' '}This will permanently remove their account and all associated data.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteUserId(null)}>Cancel</Button>
-          <Button
-            color="error"
-            variant="contained"
-            onClick={handleDeleteUser}
-            disabled={deleteUserId ? busyUserIds.has(deleteUserId) : false}
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* ── Dialogs ── */}
+      {addUserToTeamUser && (
+        <AddUserToTeamDialog
+          user={addUserToTeamUser}
+          teams={allTeams}
+          onClose={() => setAddTeamUserId(null)}
+          onAdd={handleAddToTeam}
+          busyUserIds={busyUserIds}
+        />
+      )}
+      {deleteUser && (
+        <DeleteUserDialog
+          user={deleteUser}
+          onClose={() => setDeleteUserId(null)}
+          onDelete={handleDeleteUser}
+          busyUserIds={busyUserIds}
+        />
+      )}
     </Container>
   )
 }
