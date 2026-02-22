@@ -1,25 +1,22 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Alert from '@mui/material/Alert'
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
 import Container from '@mui/material/Container'
-import Divider from '@mui/material/Divider'
 import IconButton from '@mui/material/IconButton'
-import Paper from '@mui/material/Paper'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined'
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import MenuIcon from '@mui/icons-material/Menu'
 import { extractInspection } from '@/lib/extractInspection'
 import { gqlFetch } from '@/lib/graphql/client'
-import PdfUploader from './components/PdfUploader'
 import InspectionResults from './components/InspectionResults'
 import HistorySidebar, { type HistoryItem } from './components/HistorySidebar'
 import UserMenu from './components/UserMenu'
+import UploaderCard from './components/dashboard/UploaderCard'
+import DashboardPanel from './components/dashboard/DashboardPanel'
 
 type OverallStatus = 'compliant' | 'non-compliant' | 'needs-attention'
 
@@ -35,54 +32,31 @@ interface InspectionData {
   deadletter?: Record<string, unknown>
 }
 
-const EXTRACTED_FIELDS = [
-  'Facility & permit details',
-  'BMP inspection results',
-  'Corrective actions & due dates',
-]
-
 const SUBMISSIONS_QUERY = `
   query {
     submissions(limit: 50) {
-      id
-      fileName
-      processedAt
-      displayName
-      data
-      teams {
-        id
-        name
-      }
+      id fileName processedAt displayName data
+      teams { id name }
     }
   }
 `
-
 const CREATE_SUBMISSION_MUTATION = `
   mutation CreateSubmission($input: CreateSubmissionInput!) {
-    createSubmission(input: $input) {
-      id
-      processedAt
-    }
+    createSubmission(input: $input) { id processedAt }
   }
 `
 
 interface GqlSubmission {
-  id: string
-  fileName: string
-  processedAt: string
-  displayName: string | null
-  data: Record<string, unknown>
+  id: string; fileName: string; processedAt: string
+  displayName: string | null; data: Record<string, unknown>
   teams: Array<{ id: string; name: string }>
 }
 
 function submissionToHistoryItem(s: GqlSubmission): HistoryItem {
   return {
-    id: s.id,
-    fileName: s.fileName,
-    processedAt: s.processedAt,
+    id: s.id, fileName: s.fileName, processedAt: s.processedAt,
     facilityName: (s.data?.facilityName as string | undefined) ?? s.displayName ?? null,
-    data: s.data,
-    teams: s.teams,
+    data: s.data, teams: s.teams,
   }
 }
 
@@ -106,22 +80,12 @@ export default function Home() {
     try {
       const data = await extractInspection(file)
       setResult(data)
-
       const { createSubmission } = await gqlFetch<{ createSubmission: { id: string; processedAt: string } }>(
         CREATE_SUBMISSION_MUTATION,
-        {
-          input: {
-            fileName: file.name,
-            displayName: data.facilityName ?? null,
-            formType: 'iswgp',
-            data: data,
-          },
-        },
+        { input: { fileName: file.name, displayName: data.facilityName ?? null, formType: 'iswgp', data } },
       )
-
       const newItem: HistoryItem = {
-        id: createSubmission.id,
-        fileName: file.name,
+        id: createSubmission.id, fileName: file.name,
         processedAt: createSubmission.processedAt,
         facilityName: data.facilityName ?? null,
         data: data as Record<string, unknown>,
@@ -139,18 +103,16 @@ export default function Home() {
   }
 
   function handleItemTeamsChanged(itemId: string, teams: Array<{ id: string; name: string }>) {
-    setHistory((prev) => prev.map((h) => h.id === itemId ? { ...h, teams } : h))
+    setHistory(prev => prev.map(h => h.id === itemId ? { ...h, teams } : h))
   }
 
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
 
-      {/* App bar */}
       <AppBar position="static">
         <Toolbar sx={{ gap: 1 }}>
           <IconButton
-            size="small"
-            edge="start"
+            size="small" edge="start"
             onClick={() => setSidebarOpen(true)}
             sx={{ color: 'text.secondary', mr: 0.5 }}
             aria-label="open history"
@@ -160,32 +122,15 @@ export default function Home() {
 
           <Box
             onClick={() => setResult(null)}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              flexGrow: 1,
-              cursor: 'pointer',
-              '&:hover': { opacity: 0.8 },
-            }}
+            sx={{ display: 'flex', alignItems: 'center', gap: 1, flexGrow: 1, cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
           >
             <AssignmentOutlinedIcon sx={{ color: 'primary.main', fontSize: 22 }} />
-            <Typography
-              variant="subtitle1"
-              sx={{ fontWeight: 700, letterSpacing: '-0.01em', color: 'text.primary' }}
-            >
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, letterSpacing: '-0.01em', color: 'text.primary' }}>
               FormVis
             </Typography>
           </Box>
 
-          <Chip
-            label="Beta"
-            size="small"
-            variant="outlined"
-            color="primary"
-            sx={{ borderRadius: 1, fontSize: '0.7rem', height: 22 }}
-          />
-
+          <Chip label="Beta" size="small" variant="outlined" color="primary" sx={{ borderRadius: 1, fontSize: '0.7rem', height: 22 }} />
           <UserMenu />
         </Toolbar>
       </AppBar>
@@ -198,55 +143,17 @@ export default function Home() {
         onItemTeamsChanged={handleItemTeamsChanged}
       />
 
-      {/* Content */}
       {result ? (
         <Container maxWidth="md" sx={{ py: 4, flex: 1 }}>
           <InspectionResults data={result} onReset={() => setResult(null)} />
         </Container>
       ) : (
-        <Box
-          sx={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            p: 3,
-          }}
-        >
-          <Paper
-            variant="outlined"
-            sx={{ width: '100%', maxWidth: 480, p: { xs: 3, sm: 4 }, borderRadius: 3 }}
-          >
-            {/* Card header */}
-            <Typography variant="h6" gutterBottom>
-              Monthly Inspection Form
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Upload your ISWGP PDF and extract structured data in seconds.
-            </Typography>
-
-            <PdfUploader onFile={handleFile} loading={loading} />
-
-            {error && (
-              <Alert severity="error" sx={{ mt: 2 }}>
-                {error}
-              </Alert>
-            )}
-
-            <Divider sx={{ my: 3 }} />
-
-            {/* What gets extracted */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-              {EXTRACTED_FIELDS.map(field => (
-                <Box key={field} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CheckCircleOutlineIcon sx={{ fontSize: 15, color: 'text.disabled' }} />
-                  <Typography variant="caption" color="text.secondary">
-                    {field}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          </Paper>
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 3, p: 3, overflow: 'auto' }}>
+          <UploaderCard onFile={handleFile} loading={loading} error={error} />
+          <DashboardPanel
+            history={history}
+            onSelectHistory={handleSelectHistory}
+          />
         </Box>
       )}
     </Box>
