@@ -5,7 +5,6 @@ import Avatar from '@mui/material/Avatar'
 import Box from '@mui/material/Box'
 import Divider from '@mui/material/Divider'
 import IconButton from '@mui/material/IconButton'
-import ListItemIcon from '@mui/material/ListItemIcon'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import ToggleButton from '@mui/material/ToggleButton'
@@ -83,13 +82,13 @@ export default function UserMenu() {
         {user && <Divider />}
 
         <MenuItem component={Link} href="/settings/teams">
-          <ListItemIcon><GroupsOutlinedIcon fontSize="small" /></ListItemIcon>
+          <GroupsOutlinedIcon fontSize="small" sx={{ mr: 1.25 }} />
           Teams
         </MenuItem>
 
         <Divider />
 
-        <MenuItem disableRipple sx={{ justifyContent: 'space-between', gap: 1, cursor: 'default', '&:hover': { bgcolor: 'transparent' } }}>
+        <MenuItem disableRipple sx={{ display: 'flex', flexDirection: 'column', alignItems: 'baseline', gap: 0.5, cursor: 'default', '&:hover': { bgcolor: 'transparent' } }}>
           <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             Theme
           </Typography>
@@ -97,10 +96,9 @@ export default function UserMenu() {
             <ToggleButtonGroup
               value={mode}
               exclusive
-              size="small"
               onChange={(_, v: ThemeMode | null) => { if (v) setMode(v) }}
               aria-label="theme mode"
-              sx={{ '& .MuiToggleButton-root': { px: 1.25, py: 0.25, fontSize: '0.7rem', fontWeight: 600, textTransform: 'none', lineHeight: 1.6 } }}
+              sx={{ '& .MuiToggleButton-root': { px: 1.25, py: 0.25, fontWeight: 600, textTransform: 'none', lineHeight: 1.6 } }}
             >
               <ToggleButton value="light" aria-label="light">Light</ToggleButton>
               <ToggleButton value="system" aria-label="system">System</ToggleButton>
@@ -110,8 +108,8 @@ export default function UserMenu() {
         </MenuItem>
 
         <Divider />
-        <MenuItem onClick={() => signOut()}>
-          <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>
+        <MenuItem onClick={() => signOut()} sx={(theme) => ({ color:  theme.palette.error.main})}>
+          <LogoutIcon color='error' fontSize="small" sx={{ mr: 1.25 }} />
           Sign Out
         </MenuItem>
       </Menu>
