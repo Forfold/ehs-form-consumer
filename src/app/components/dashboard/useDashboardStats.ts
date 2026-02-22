@@ -48,17 +48,32 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
     }
     const monthlyBuckets = Array.from(bucketMap.values())
 
-    // Open corrective actions
+    // Open corrective actions (documented) + BMP failures with no documented action (gaps)
     const openActions = history.flatMap(item => {
       const d = item.data as Partial<InspectionDataSummary>
-      return (d.correctiveActions ?? [])
+      const documented = (d.correctiveActions ?? [])
         .filter(a => !a.completed)
         .map(a => ({
           submissionId: item.id,
           facilityName: item.facilityName ?? item.fileName,
           description: a.description,
           dueDate: a.dueDate,
+          source: 'documented' as const,
         }))
+
+      // If no corrective actions were documented, surface each failed BMP item as a gap
+      const failedBmps = (d.bmpItems ?? []).filter(b => b.status === 'fail')
+      const gaps = documented.length === 0 && failedBmps.length > 0
+        ? failedBmps.map(b => ({
+            submissionId: item.id,
+            facilityName: item.facilityName ?? item.fileName,
+            description: b.description,
+            dueDate: '',
+            source: 'gap' as const,
+          }))
+        : []
+
+      return [...documented, ...gaps]
     })
 
     // Flagged forms — non-compliant items with their failed BMP checks

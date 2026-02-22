@@ -40,7 +40,7 @@ export default function ComplianceStatusCard({ percent, formCount, windowLabel, 
             fontWeight: 600,
           }}
         />
-        {flaggedForms.length > 0 && (
+        {flaggedForms.length > 1 && (
           <Button
             size="small"
             variant="outlined"

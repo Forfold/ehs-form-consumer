@@ -31,6 +31,7 @@ export interface OpenCorrectiveAction {
   facilityName: string
   description: string
   dueDate: string
+  source: 'documented' | 'gap'
 }
 
 export interface DashboardStats {

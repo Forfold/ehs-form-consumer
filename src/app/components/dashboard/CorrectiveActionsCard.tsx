@@ -45,7 +45,11 @@ export default function CorrectiveActionsCard({ actions, onSelectSubmission }: P
                 <TableRow
                   key={`${a.submissionId}-${i}`}
                   onClick={() => onSelectSubmission(a.submissionId)}
-                  sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}
+                  sx={{
+                    cursor: 'pointer',
+                    '&:hover': { bgcolor: 'action.hover' },
+                    ...(a.source === 'gap' && { bgcolor: 'warning.50', opacity: 0.85 }),
+                  }}
                 >
                   <TableCell sx={{ fontSize: '0.75rem', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {a.facilityName}
@@ -53,8 +57,8 @@ export default function CorrectiveActionsCard({ actions, onSelectSubmission }: P
                   <TableCell sx={{ fontSize: '0.75rem', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {a.description}
                   </TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem', color: isOverdue(a.dueDate) ? 'error.main' : 'text.primary', whiteSpace: 'nowrap' }}>
-                    {a.dueDate || '—'}
+                  <TableCell sx={{ fontSize: '0.75rem', whiteSpace: 'nowrap', color: a.source === 'gap' ? 'warning.main' : isOverdue(a.dueDate) ? 'error.main' : 'text.primary' }}>
+                    {a.source === 'gap' ? 'Undocumented' : (a.dueDate || '—')}
                   </TableCell>
                 </TableRow>
               ))}
