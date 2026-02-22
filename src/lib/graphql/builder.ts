@@ -1,29 +1,21 @@
 import SchemaBuilder from '@pothos/core'
+import { auth } from '@/auth'
 import { db, type Db } from '@/lib/db'
 
 // ── Context ──────────────────────────────────────────────────────────────────
 // Built once per request in the Yoga context factory.
-// userId comes from the `ehs-user-id` cookie; null until a session is created.
+// userId comes from the NextAuth session; null if unauthenticated.
 
 export interface Context {
   db: Db
   userId: string | null
 }
 
-function parseCookies(header: string): Record<string, string> {
-  return Object.fromEntries(
-    header.split(';').flatMap(pair => {
-      const [k, ...v] = pair.trim().split('=')
-      return k ? [[k.trim(), v.join('=').trim()]] : []
-    })
-  )
-}
-
-export function buildContext(request: Request): Context {
-  const cookies = parseCookies(request.headers.get('cookie') ?? '')
+export async function buildContext(_request: Request): Promise<Context> {
+  const session = await auth()
   return {
     db,
-    userId: cookies['ehs-user-id'] ?? null,
+    userId: session?.user?.id ?? null,
   }
 }
 

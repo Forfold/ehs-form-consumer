@@ -3,7 +3,9 @@ import {
   formSubmissions,
   userFieldPreferences,
   userSettings,
+  users,
   type FormSubmission,
+  type User,
   type UserFieldPreference,
   type UserSettings,
 } from '../../../db/schema'
@@ -11,6 +13,16 @@ import { builder } from './builder'
 
 // ── Object types ──────────────────────────────────────────────────────────────
 // objectRef<T> ties Pothos fields to Drizzle's inferred row types.
+
+const UserRef = builder.objectRef<User>('User')
+UserRef.implement({
+  fields: (t) => ({
+    id:    t.exposeID('id'),
+    name:  t.exposeString('name',  { nullable: true }),
+    email: t.exposeString('email', { nullable: true }),
+    image: t.exposeString('image', { nullable: true }),
+  }),
+})
 
 const FormSubmissionRef = builder.objectRef<FormSubmission>('FormSubmission')
 FormSubmissionRef.implement({
@@ -50,6 +62,17 @@ UserSettingsRef.implement({
 
 builder.queryType({
   fields: (t) => ({
+
+    // Current authenticated user
+    me: t.field({
+      type:     UserRef,
+      nullable: true,
+      resolve: async (_, _args, ctx) => {
+        if (!ctx.userId) return null
+        const rows = await ctx.db.select().from(users).where(eq(users.id, ctx.userId)).limit(1)
+        return rows[0] ?? null
+      },
+    }),
 
     // List of submissions for the current user, newest first
     submissions: t.field({
