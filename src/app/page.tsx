@@ -8,13 +8,12 @@ import Chip from '@mui/material/Chip'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined'
-import { extractInspection } from '@/lib/extractInspection'
-import { uploadPdf } from '@/lib/uploadPdf'
 import { gqlFetch } from '@/lib/graphql/client'
 import { type HistoryItem } from './components/history/HistorySidebar'
 import UserMenu from './components/main/UserMenu'
 import UploaderCard from './components/dashboard/UploaderCard'
 import DashboardPanel from './components/dashboard/DashboardPanel'
+import UploadFlowDialog from './components/upload/UploadFlowDialog'
 
 const SUBMISSIONS_QUERY = `
   query {
@@ -22,11 +21,6 @@ const SUBMISSIONS_QUERY = `
       id fileName processedAt displayName data
       teams { id name }
     }
-  }
-`
-const CREATE_SUBMISSION_MUTATION = `
-  mutation CreateSubmission($input: CreateSubmissionInput!) {
-    createSubmission(input: $input) { id processedAt }
   }
 `
 
@@ -46,36 +40,23 @@ function submissionToHistoryItem(s: GqlSubmission): HistoryItem {
 
 export default function Home() {
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [dialogFile, setDialogFile] = useState<File | null>(null)
   const [history, setHistory] = useState<HistoryItem[]>([])
   const [historyLoading, setHistoryLoading] = useState(true)
 
-  useEffect(() => {
+  function loadHistory() {
     gqlFetch<{ submissions: GqlSubmission[] }>(SUBMISSIONS_QUERY)
       .then(({ submissions }) => setHistory(submissions.map(submissionToHistoryItem)))
       .catch(() => {/* DB not configured yet */})
       .finally(() => setHistoryLoading(false))
-  }, [])
+  }
 
+  useEffect(() => { loadHistory() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function handleFile(file: File) {
-    setLoading(true)
-    setError(null)
-    try {
-      const [data, pdfStorageKey] = await Promise.all([
-        extractInspection(file),
-        uploadPdf(file).catch(() => null), // non-fatal: proceed without PDF if upload fails
-      ])
-      const { createSubmission } = await gqlFetch<{ createSubmission: { id: string; processedAt: string } }>(
-        CREATE_SUBMISSION_MUTATION,
-        { input: { fileName: file.name, displayName: data.facilityName ?? null, formType: 'iswgp', pdfStorageKey, data } },
-      )
-      router.push(`/forms/${createSubmission.id}`)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Extraction failed')
-      setLoading(false)
-    }
+  function handleSaved(submissionId: string) {
+    setDialogFile(null)
+    loadHistory()
+    router.push(`/forms/${submissionId}`)
   }
 
   function handleItemTeamsChanged(itemId: string, teams: Array<{ id: string; name: string }>) {
@@ -99,9 +80,16 @@ export default function Home() {
       </AppBar>
 
       <Box sx={{ flex: 1, display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 3, p: 3, overflow: 'auto' }}>
-        <UploaderCard onFile={handleFile} loading={loading} error={error} />
+        <UploaderCard onFile={setDialogFile} />
         <DashboardPanel history={history} historyLoading={historyLoading} onItemTeamsChanged={handleItemTeamsChanged} />
       </Box>
+
+      <UploadFlowDialog
+        open={!!dialogFile}
+        file={dialogFile}
+        onClose={() => setDialogFile(null)}
+        onSaved={handleSaved}
+      />
     </Box>
   )
 }

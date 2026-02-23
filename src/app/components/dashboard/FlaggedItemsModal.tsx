@@ -56,7 +56,7 @@ export default function FlaggedItemsModal({ open, onClose, forms, onSelectForm }
                   )}
                 </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-                  {form.failedBmpItems.map((item, j) => (
+                  {form.failedChecklistItems.map((item, j) => (
                     <Box key={j} sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
                       <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
                         <Chip label="Fail" size="small" color="error" variant="outlined" sx={{ height: 18, fontSize: '0.65rem', mt: 0.25, flexShrink: 0 }} />

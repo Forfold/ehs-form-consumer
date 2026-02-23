@@ -43,7 +43,7 @@ export function DashboardGrid({ stats, windowLabel, historyLoading }: DashboardG
         />
       </Box>
 
-      <Box sx={{ minWidth: 0 }}><BmpCheckSummaryCard bmpTotals={stats.bmpTotals} /></Box>
+      <Box sx={{ minWidth: 0 }}><BmpCheckSummaryCard checklistTotals={stats.checklistTotals} /></Box>
       <Box sx={{ minWidth: 0 }}><MonthlyActivityCard buckets={stats.monthlyBuckets} /></Box>
 
       <Box sx={{ gridColumn: { xs: '1', md: '1 / -1' }, minWidth: 0 }}>

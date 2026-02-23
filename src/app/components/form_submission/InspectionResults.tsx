@@ -15,39 +15,15 @@ import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
+import type { ChecklistStatus, InspectionData } from '@/lib/types/inspection'
 
-type BmpStatus = 'pass' | 'fail' | 'na'
-type OverallStatus = 'compliant' | 'non-compliant' | 'needs-attention'
-
-interface BmpItem {
-  description: string
-  status: BmpStatus
-  notes: string
-}
-
-interface CorrectiveAction {
-  description: string
-  dueDate: string
-  completed: boolean
-}
-
-export interface InspectionData {
-  facilityName: string
-  permitNumber: string
-  inspectionDate: string
-  inspectorName: string
-  overallStatus: OverallStatus
-  bmpItems: BmpItem[]
-  correctiveActions: CorrectiveAction[]
-  summary: string
-  deadletter?: Record<string, unknown>
-}
+export type { InspectionData }
 
 interface Props {
   data: InspectionData
 }
 
-const bmpChipProps: Record<BmpStatus, { label: string; color: 'success' | 'error' | 'default' }> = {
+const bmpChipProps: Record<ChecklistStatus, { label: string; color: 'success' | 'error' | 'default' }> = {
   pass: { label: 'Pass', color: 'success' },
   fail: { label: 'Fail', color: 'error'   },
   na:   { label: 'N/A',  color: 'default' },
@@ -72,7 +48,9 @@ function SectionHeading({ children, large }: { children: React.ReactNode; large?
 }
 
 export default function InspectionResults({ data }: Props) {
-  const bmpItems = data.bmpItems ?? []
+  // Fall back to legacy 'bmpItems' key for submissions saved before the rename
+  // Fall back to legacy 'bmpItems' key for submissions saved before the rename
+  const bmpItems = (data.checklistItems ?? (data as unknown as Record<string, unknown>).bmpItems ?? []) as InspectionData['checklistItems']
   const correctiveActions = data.correctiveActions ?? []
   const pendingCount = correctiveActions.filter(a => !a.completed).length
   const deadletterCount = data.deadletter ? Object.keys(data.deadletter).length : 0
@@ -153,7 +131,7 @@ export default function InspectionResults({ data }: Props) {
       {/* BMP items */}
       {bmpItems.length > 0 && (
         <Paper variant="outlined" sx={{ p: 2 }}>
-          <SectionHeading>BMP Inspection Items</SectionHeading>
+          <SectionHeading>Inspection Items</SectionHeading>
           <TableContainer>
             <Table size="small">
               <TableHead>

@@ -26,7 +26,8 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import MenuIcon from '@mui/icons-material/Menu'
 import Link from 'next/link'
 import { gqlFetch } from '@/lib/graphql/client'
-import InspectionResults, { type InspectionData } from '@/app/components/form_submission/InspectionResults'
+import InspectionResults from '@/app/components/form_submission/InspectionResults'
+import type { InspectionData } from '@/lib/types/inspection'
 import HistorySidebar from '@/app/components/history/HistorySidebar'
 import PdfSection from '@/app/components/pdf/PdfSection'
 import UserMenu from '@/app/components/main/UserMenu'
@@ -118,7 +119,9 @@ export default function FormDetailPage() {
   const inspectionData = submission?.data as Partial<InspectionData> | undefined
   const overallStatus = inspectionData?.overallStatus
   const statusConfig = overallStatus ? STATUS_CONFIG[overallStatus] : null
-  const bmpItems = inspectionData?.bmpItems ?? []
+  // Fall back to legacy 'bmpItems' key for submissions saved before the rename
+  type ChecklistItemArr = NonNullable<InspectionData['checklistItems']>
+  const bmpItems: ChecklistItemArr = (inspectionData?.checklistItems ?? (inspectionData as unknown as Record<string, unknown>)?.bmpItems ?? []) as ChecklistItemArr
   const passCount = bmpItems.filter(i => i.status === 'pass').length
   const failCount = bmpItems.filter(i => i.status === 'fail').length
   const failedItems = bmpItems.filter(i => i.status === 'fail')
