@@ -61,6 +61,20 @@ export function makeTheme(mode: ThemeMode) {
           outlined: { borderColor: dark ? '#2D3548' : '#E5E8EC' },
         },
       },
+      MuiToggleButton: {
+        styleOverrides: {
+          root: {
+            textTransform: 'none',
+            fontWeight: 600,
+          },
+        },
+      },
+      MuiCssBaseline: {
+        styleOverrides: {
+          html: { overflowX: 'hidden' },
+          body: { overflowX: 'hidden' },
+        },
+      },
       MuiTableCell: {
         styleOverrides: {
           head: {
