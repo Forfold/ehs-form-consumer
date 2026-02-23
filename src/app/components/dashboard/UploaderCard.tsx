@@ -4,7 +4,7 @@ import Divider from '@mui/material/Divider'
 import Paper from '@mui/material/Paper'
 import Typography from '@mui/material/Typography'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
-import PdfUploader from '../PdfUploader'
+import PdfUploader from '../pdf/PdfUploader'
 
 const EXTRACTED_FIELDS = [
   'Facility & permit details',
