@@ -1,12 +1,14 @@
 'use client'
 
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import Box from '@mui/material/Box'
 import Checkbox from '@mui/material/Checkbox'
+import Chip from '@mui/material/Chip'
 import Divider from '@mui/material/Divider'
 import FormControl from '@mui/material/FormControl'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import IconButton from '@mui/material/IconButton'
+import InputAdornment from '@mui/material/InputAdornment'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
@@ -33,9 +35,29 @@ function deriveOverallStatus(items: ChecklistItem[]): OverallStatus {
   return 'needs-attention'
 }
 
+function uniqueSections(items: ChecklistItem[]): string[] {
+  const seen = new Set<string>()
+  const result: string[] = []
+  for (const item of items) {
+    const s = item.section?.trim()
+    if (s && !seen.has(s)) { seen.add(s); result.push(s) }
+  }
+  return result
+}
+
 export default function PostReviewStep({ data, onChange }: Props) {
+  const [sections, setSections] = useState<string[]>(() => uniqueSections(data.checklistItems))
+  const [newSection, setNewSection] = useState('')
+
   function setField<K extends keyof InspectionData>(key: K, value: InspectionData[K]) {
     onChange({ ...data, [key]: value })
+  }
+
+  // Section management
+  function commitNewSection() {
+    const trimmed = newSection.trim()
+    if (trimmed && !sections.includes(trimmed)) setSections(prev => [...prev, trimmed])
+    setNewSection('')
   }
 
   // Checklist items
@@ -44,7 +66,7 @@ export default function PostReviewStep({ data, onChange }: Props) {
     onChange({ ...data, checklistItems: updated, overallStatus: deriveOverallStatus(updated) })
   }
   function addChecklistItem() {
-    const updated = [...data.checklistItems, { section: '', description: '', status: 'na' as const, notes: '' }]
+    const updated = [...data.checklistItems, { section: sections[0] ?? '', description: '', status: 'na' as const, notes: '' }]
     onChange({ ...data, checklistItems: updated, overallStatus: deriveOverallStatus(updated) })
   }
   function removeChecklistItem(index: number) {
@@ -112,94 +134,140 @@ export default function PostReviewStep({ data, onChange }: Props) {
         <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: '0.08em' }}>
           Inspection Items
         </Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 1 }}>
-          {data.checklistItems.map((item, i) => (
-            <Box
-              key={i}
-              sx={{
-                border: '2px solid',
-                borderColor: 'divider',
-                borderRadius: 2,
-                p: 1.5,
-                bgcolor: 'action.hover',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 1.5,
-              }}
-            >
-              {/* Section + delete */}
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                <TextField
-                  label="Section"
-                  size="small"
-                  value={item.section ?? ''}
-                  onChange={e => setChecklistItem(i, { section: e.target.value })}
-                  sx={{ flex: 1 }}
-                />
-                <IconButton size="small" onClick={() => removeChecklistItem(i)} sx={{ flexShrink: 0, color: 'text.secondary' }}>
-                  <DeleteOutlineIcon fontSize="small" />
-                </IconButton>
-              </Box>
 
-              {/* Description */}
-              <TextField
-                label="Description"
-                size="small"
-                value={item.description}
-                onChange={e => setChecklistItem(i, { description: e.target.value })}
-              />
-
-              {/* Status toggle */}
-              <ToggleButtonGroup
-                value={item.status}
-                exclusive
-                onChange={(_, val) => { if (val !== null) setChecklistItem(i, { status: val as ChecklistItem['status'] }) }}
-                size="small"
-                fullWidth
-              >
-                <ToggleButton
-                  value="pass"
-                  sx={{
-                    flex: 1,
-                    '&.Mui-selected': {
-                      bgcolor: 'success.main',
-                      color: 'success.contrastText',
-                      '&:hover': { bgcolor: 'success.dark' },
-                    },
-                  }}
-                >
-                  <CheckIcon sx={{ mr: 0.5, fontSize: 16 }} />
-                  Pass
-                </ToggleButton>
-                <ToggleButton
-                  value="fail"
-                  sx={{
-                    flex: 1,
-                    '&.Mui-selected': {
-                      bgcolor: 'error.main',
-                      color: 'error.contrastText',
-                      '&:hover': { bgcolor: 'error.dark' },
-                    },
-                  }}
-                >
-                  <CloseIcon sx={{ mr: 0.5, fontSize: 16 }} />
-                  Fail
-                </ToggleButton>
-                <ToggleButton value="na" sx={{ flex: 1 }}>
-                  <RemoveIcon sx={{ mr: 0.5, fontSize: 16 }} />
-                  N/A
-                </ToggleButton>
-              </ToggleButtonGroup>
-
-              {/* Notes */}
-              <TextField
-                label="Notes"
-                size="small"
-                value={item.notes}
-                onChange={e => setChecklistItem(i, { notes: e.target.value })}
-              />
-            </Box>
+        {/* Section master list */}
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1, mb: 2, alignItems: 'center' }}>
+          {sections.map(s => (
+            <Chip
+              key={s}
+              label={s}
+              size="small"
+              onDelete={() => setSections(prev => prev.filter(x => x !== s))}
+            />
           ))}
+          <TextField
+            size="small"
+            placeholder="Add section…"
+            value={newSection}
+            onChange={e => setNewSection(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); commitNewSection() } }}
+            sx={{ width: 180 }}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton size="small" edge="end" onClick={commitNewSection} disabled={!newSection.trim()}>
+                      <AddIcon fontSize="small" />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+        </Box>
+
+        {/* Items */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          {data.checklistItems.map((item, i) => {
+            // Include item's current section even if removed from master list
+            const currentSection = item.section?.trim() ?? ''
+            const sectionOptions = currentSection && !sections.includes(currentSection)
+              ? [...sections, currentSection]
+              : sections
+
+            return (
+              <Box
+                key={i}
+                sx={{
+                  border: '2px solid',
+                  borderColor: 'divider',
+                  borderRadius: 2,
+                  p: 1.5,
+                  bgcolor: 'action.hover',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1.5,
+                }}
+              >
+                {/* Section dropdown + delete */}
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                  <FormControl size="small" sx={{ flex: 1 }}>
+                    <InputLabel>Section</InputLabel>
+                    <Select
+                      label="Section"
+                      value={currentSection}
+                      onChange={e => setChecklistItem(i, { section: e.target.value })}
+                    >
+                      {sectionOptions.map(s => (
+                        <MenuItem key={s} value={s}>{s}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <IconButton size="small" onClick={() => removeChecklistItem(i)} sx={{ flexShrink: 0, color: 'text.secondary' }}>
+                    <DeleteOutlineIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+
+                {/* Description */}
+                <TextField
+                  label="Description"
+                  size="small"
+                  value={item.description}
+                  onChange={e => setChecklistItem(i, { description: e.target.value })}
+                />
+
+                {/* Status toggle */}
+                <ToggleButtonGroup
+                  value={item.status}
+                  exclusive
+                  onChange={(_, val) => { if (val !== null) setChecklistItem(i, { status: val as ChecklistItem['status'] }) }}
+                  size="small"
+                  fullWidth
+                >
+                  <ToggleButton
+                    value="pass"
+                    sx={{
+                      flex: 1,
+                      '&.Mui-selected': {
+                        bgcolor: 'success.main',
+                        color: 'success.contrastText',
+                        '&:hover': { bgcolor: 'success.dark' },
+                      },
+                    }}
+                  >
+                    <CheckIcon sx={{ mr: 0.5, fontSize: 16 }} />
+                    Pass
+                  </ToggleButton>
+                  <ToggleButton
+                    value="fail"
+                    sx={{
+                      flex: 1,
+                      '&.Mui-selected': {
+                        bgcolor: 'error.main',
+                        color: 'error.contrastText',
+                        '&:hover': { bgcolor: 'error.dark' },
+                      },
+                    }}
+                  >
+                    <CloseIcon sx={{ mr: 0.5, fontSize: 16 }} />
+                    Fail
+                  </ToggleButton>
+                  <ToggleButton value="na" sx={{ flex: 1 }}>
+                    <RemoveIcon sx={{ mr: 0.5, fontSize: 16 }} />
+                    N/A
+                  </ToggleButton>
+                </ToggleButtonGroup>
+
+                {/* Notes */}
+                <TextField
+                  label="Notes"
+                  size="small"
+                  value={item.notes}
+                  onChange={e => setChecklistItem(i, { notes: e.target.value })}
+                />
+              </Box>
+            )
+          })}
         </Box>
         <Button size="small" startIcon={<AddIcon />} onClick={addChecklistItem} sx={{ mt: 1.5 }}>
           Add Item
