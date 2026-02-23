@@ -55,9 +55,9 @@ export function makeTheme(mode: ThemeMode) {
       },
       MuiPaper: {
         styleOverrides: {
-          root: ({ theme }) => ({
-            borderRadius: theme.shape.borderRadius * 2,
-          }),
+          root: {
+            borderRadius: 18,
+          },
           outlined: { borderColor: dark ? '#2D3548' : '#E5E8EC' },
         },
       },
