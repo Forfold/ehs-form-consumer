@@ -82,6 +82,10 @@ export default function TeamManager() {
     setTeams((prev) => prev.filter((t) => t.id !== id))
   }
 
+  function handleTeamRenamed(teamId: string, name: string) {
+    setTeams((prev) => prev.map((t) => t.id === teamId ? { ...t, name } : t))
+  }
+
   function handleMemberAdded(teamId: string, member: GqlTeamMember) {
     setTeams((prev) => prev.map((t) =>
       t.id === teamId
@@ -167,6 +171,7 @@ export default function TeamManager() {
                 team={team}
                 currentUserId={currentUserId}
                 onDeleted={handleTeamDeleted}
+                onRenamed={handleTeamRenamed}
                 onMemberAdded={handleMemberAdded}
                 onMemberRemoved={handleMemberRemoved}
                 onMemberRoleChanged={handleMemberRoleChanged}

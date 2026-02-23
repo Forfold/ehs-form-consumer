@@ -562,6 +562,26 @@ builder.mutationType({
       },
     }),
 
+    // Rename a team (owner only)
+    renameTeam: t.field({
+      type:     TeamRef,
+      args: {
+        id:   t.arg.id({ required: true }),
+        name: t.arg.string({ required: true }),
+      },
+      resolve: async (_, { id, name }, ctx) => {
+        if (!ctx.userId) throw new Error('Not authenticated')
+        await assertTeamRole(ctx.db, String(id), ctx.userId, 'owner')
+        const [team] = await ctx.db
+          .update(teams)
+          .set({ name: name.trim() })
+          .where(eq(teams.id, String(id)))
+          .returning()
+        if (!team) throw new Error('Team not found')
+        return { ...team, members: [] }
+      },
+    }),
+
     // Delete a team (owner only)
     deleteTeam: t.field({
       type:     'Boolean',
@@ -753,6 +773,25 @@ builder.mutationType({
           .delete(teamMembers)
           .where(and(eq(teamMembers.teamId, String(teamId)), eq(teamMembers.userId, String(userId))))
         return true
+      },
+    }),
+
+    // Update the extracted data for a submission the user owns
+    updateSubmissionData: t.field({
+      type:     FormSubmissionRef,
+      args: {
+        id:   t.arg.id({ required: true }),
+        data: t.arg({ type: 'JSON', required: true }),
+      },
+      resolve: async (_, { id, data }, ctx) => {
+        if (!ctx.userId) throw new Error('Not authenticated')
+        const rows = await ctx.db
+          .update(formSubmissions)
+          .set({ data: data as Record<string, unknown> })
+          .where(and(eq(formSubmissions.id, String(id)), eq(formSubmissions.userId, ctx.userId)))
+          .returning()
+        if (!rows[0]) throw new Error('Submission not found or access denied')
+        return rows[0]
       },
     }),
 

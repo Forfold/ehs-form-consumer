@@ -23,7 +23,7 @@ import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
-import MenuIcon from '@mui/icons-material/Menu'
+import HistoryIcon from '@mui/icons-material/History'
 import Link from 'next/link'
 import { gqlFetch } from '@/lib/graphql/client'
 import InspectionResults from '@/app/components/form_submission/InspectionResults'
@@ -67,11 +67,19 @@ const SUBMISSIONS_QUERY = `
   }
 `
 
+const ME_QUERY = `query { me { name email } }`
+
+const UPDATE_DATA_MUTATION = `
+  mutation UpdateSubmissionData($id: ID!, $data: JSON!) {
+    updateSubmissionData(id: $id, data: $data) { id data }
+  }
+`
+
 function submissionToHistoryItem(s: GqlSubmission) {
   return {
     id: s.id,
-    fileName: s.fileName,
     processedAt: s.processedAt,
+    permitNumber: (s.data?.permitNumber as string | undefined) ?? '',
     facilityName: (s.data?.facilityName as string | undefined) ?? s.displayName ?? null,
     data: s.data,
     teams: s.teams,
@@ -81,10 +89,9 @@ function submissionToHistoryItem(s: GqlSubmission) {
 function breadcrumbTitle(submission: GqlSubmission | null, loading: boolean): string {
   if (loading) return '…'
   if (!submission) return '—'
-  const data = submission.data as Partial<InspectionData>
-  const parts = [data.permitNumber, data.inspectionDate].filter(Boolean)
-  if (parts.length > 0) return parts.join(' · ')
-  return (data.facilityName ?? submission.displayName ?? submission.fileName ?? '—')
+  // todo: make ID and permitNumber always required on submission data
+  const data = submission.data as unknown as InspectionData
+  return data.permitNumber
 }
 
 export default function FormDetailPage() {
@@ -98,6 +105,8 @@ export default function FormDetailPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [history, setHistory] = useState<ReturnType<typeof submissionToHistoryItem>[]>([])
   const [ncModalOpen, setNcModalOpen] = useState(false)
+  const [currentUserName, setCurrentUserName] = useState<string | undefined>(undefined)
+  const [editError, setEditError] = useState<string | null>(null)
 
   useEffect(() => {
     gqlFetch<{ submission: GqlSubmission | null }>(SUBMISSION_QUERY, { id })
@@ -114,6 +123,26 @@ export default function FormDetailPage() {
       .then(({ submissions }) => setHistory(submissions.map(submissionToHistoryItem)))
       .catch(() => {/* DB not configured yet */})
   }, [])
+
+  useEffect(() => {
+    gqlFetch<{ me: { name: string | null; email: string | null } | null }>(ME_QUERY)
+      .then(({ me }) => setCurrentUserName(me?.name ?? me?.email ?? undefined))
+      .catch(() => {/* optional */})
+  }, [])
+
+  async function handleEdit(updated: InspectionData) {
+    if (!submission) return
+    const prev = submission
+    // Optimistic update
+    setSubmission({ ...submission, data: updated as unknown as Record<string, unknown> })
+    setEditError(null)
+    try {
+      await gqlFetch(UPDATE_DATA_MUTATION, { id: submission.id, data: updated })
+    } catch (err) {
+      setSubmission(prev)
+      setEditError(err instanceof Error ? err.message : 'Failed to save edit')
+    }
+  }
 
   // Derived banner data
   const inspectionData = submission?.data as Partial<InspectionData> | undefined
@@ -142,15 +171,6 @@ export default function FormDetailPage() {
 
       <AppBar position="static">
         <Toolbar sx={{ gap: 1 }}>
-          <IconButton
-            size="small" edge="start"
-            onClick={() => setSidebarOpen(true)}
-            sx={{ color: 'text.secondary', mr: 0.5 }}
-            aria-label="open history"
-          >
-            <MenuIcon fontSize="small" />
-          </IconButton>
-
           <Breadcrumbs
             sx={{ flexGrow: 1, '& .MuiBreadcrumbs-separator': { color: 'text.disabled' } }}
           >
@@ -172,6 +192,14 @@ export default function FormDetailPage() {
             </Typography>
           </Breadcrumbs>
 
+          <IconButton
+            size="small" edge="start"
+            onClick={() => setSidebarOpen(true)}
+            sx={{ color: 'text.secondary', mr: 0.5 }}
+            aria-label="open history"
+          >
+            <HistoryIcon fontSize="small" />
+          </IconButton>
           <Chip label="Beta" size="small" variant="outlined" color="primary" sx={{ borderRadius: 1, fontSize: '0.7rem', height: 22 }} />
           <UserMenu />
         </Toolbar>
@@ -196,6 +224,7 @@ export default function FormDetailPage() {
 
           {/* Full-width banners */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
+            {editError && <Alert severity="error" onClose={() => setEditError(null)}>{editError}</Alert>}
             {isBlankForm && (
               <Alert severity="info">
                 This appears to be an unfilled form template. Upload a completed inspection form to see extracted results.
@@ -255,6 +284,8 @@ export default function FormDetailPage() {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
               <InspectionResults
                 data={submission.data as unknown as InspectionData}
+                currentUserName={currentUserName}
+                onEdit={handleEdit}
               />
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                 <Button variant="outlined" onClick={() => router.push('/')}>

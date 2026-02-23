@@ -13,7 +13,7 @@ import { HistoryList } from './HistoryList'
 export interface HistoryItem {
   id: string
   facilityName: string | null
-  fileName: string
+  permitNumber: string
   processedAt: string
   data: Record<string, unknown>
   teams?: Array<{ id: string; name: string }>
