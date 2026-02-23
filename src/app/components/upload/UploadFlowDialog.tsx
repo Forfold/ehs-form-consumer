@@ -108,7 +108,7 @@ export default function UploadFlowDialog({ open, file, onClose, onSaved }: Props
 
   return (
     <Dialog open={open} onClose={step === 'processing' ? undefined : onClose} maxWidth="md" fullWidth>
-      <DialogTitle sx={{ pb: 1 }}>
+      <DialogTitle component="div" sx={{ pb: 1 }}>
         <Typography variant="h6" fontWeight={700}>Review Form Submission</Typography>
         {file && (
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{file.name}</Typography>
