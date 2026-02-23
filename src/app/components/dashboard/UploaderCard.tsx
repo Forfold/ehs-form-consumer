@@ -36,6 +36,9 @@ export default function UploaderCard({ onFile, loading, error }: Props) {
       {error && (
         <Alert severity="error" sx={{ mt: 2 }}>
           {error}
+          <Typography variant="caption" display="block" sx={{ mt: 0.5, opacity: 0.85 }}>
+            Re-upload your PDF to try again, or contact support if the problem persists.
+          </Typography>
         </Alert>
       )}
 
