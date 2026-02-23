@@ -22,15 +22,25 @@ import MenuItem from '@mui/material/MenuItem'
 import Paper from '@mui/material/Paper'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
+import CheckIcon from '@mui/icons-material/Check'
+import CloseIcon from '@mui/icons-material/Close'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
+import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline'
 import GroupAddIcon from '@mui/icons-material/GroupAdd'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove'
+import InputBase from '@mui/material/InputBase'
 
 import { gqlFetch } from '@/lib/graphql/client'
 import { AddMemberDialog } from './AddMemberDialog'
 
 // ── GraphQL fragments ─────────────────────────────────────────────────────────
+
+const RENAME_TEAM_MUTATION = `
+  mutation RenameTeam($id: ID!, $name: String!) {
+    renameTeam(id: $id, name: $name) { id name }
+  }
+`
 
 const DELETE_TEAM_MUTATION = `
   mutation DeleteTeam($id: ID!) {
@@ -102,23 +112,40 @@ interface TeamCardProps {
   team: GqlTeam
   currentUserId: string | null
   onDeleted: (id: string) => void
+  onRenamed: (teamId: string, name: string) => void
   onMemberAdded: (teamId: string, member: GqlTeamMember) => void
   onMemberRemoved: (teamId: string, userId: string) => void
   onMemberRoleChanged: (teamId: string, member: GqlTeamMember) => void
 }
 
-export function TeamCard({ team, currentUserId, onDeleted, onMemberAdded, onMemberRemoved, onMemberRoleChanged }: TeamCardProps) {
+export function TeamCard({ team, currentUserId, onDeleted, onRenamed, onMemberAdded, onMemberRemoved, onMemberRoleChanged }: TeamCardProps) {
   const [addOpen, setAddOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [removingId, setRemovingId] = useState<string | null>(null)
   const [changingRoleId, setChangingRoleId] = useState<string | null>(null)
   const [menuAnchor, setMenuAnchor] = useState<{ el: HTMLElement; userId: string } | null>(null)
+  const [editingName, setEditingName] = useState(false)
+  const [nameValue, setNameValue] = useState(team.name)
+  const [renaming, setRenaming] = useState(false)
 
   const myMember = team.members.find((m) => m.userId === currentUserId)
   const myRole = myMember?.role ?? 'member'
   const canManageMembers = myRole === 'owner' || myRole === 'admin'
   const isOwner = myRole === 'owner'
+
+  async function handleRename() {
+    const trimmed = nameValue.trim()
+    if (!trimmed || trimmed === team.name) { setEditingName(false); return }
+    setRenaming(true)
+    try {
+      await gqlFetch(RENAME_TEAM_MUTATION, { id: team.id, name: trimmed })
+      onRenamed(team.id, trimmed)
+      setEditingName(false)
+    } finally {
+      setRenaming(false)
+    }
+  }
 
   async function handleDelete() {
     setDeleting(true)
@@ -168,23 +195,59 @@ export function TeamCard({ team, currentUserId, onDeleted, onMemberAdded, onMemb
     <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
       {/* Header */}
       <Box sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Typography variant="subtitle2" fontWeight={700} sx={{ flex: 1 }}>
-          {team.name}
-        </Typography>
-        <RoleChip role={myRole} />
-        {canManageMembers && (
-          <Tooltip title="Add member">
-            <IconButton size="small" onClick={() => setAddOpen(true)}>
-              <GroupAddIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        )}
-        {isOwner && (
-          <Tooltip title="Delete team">
-            <IconButton size="small" color="error" onClick={() => setDeleteOpen(true)}>
-              <DeleteOutlineIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
+        {editingName ? (
+          <>
+            <InputBase
+              value={nameValue}
+              onChange={(e) => setNameValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleRename()
+                if (e.key === 'Escape') { setNameValue(team.name); setEditingName(false) }
+              }}
+              autoFocus
+              sx={{ flex: 1, fontWeight: 700, fontSize: '0.875rem' }}
+            />
+            <Tooltip title="Save">
+              <span>
+                <IconButton size="small" color="primary" onClick={handleRename} disabled={renaming}>
+                  {renaming ? <CircularProgress size={16} /> : <CheckIcon fontSize="small" />}
+                </IconButton>
+              </span>
+            </Tooltip>
+            <Tooltip title="Cancel">
+              <IconButton size="small" onClick={() => { setNameValue(team.name); setEditingName(false) }}>
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </>
+        ) : (
+          <>
+            <Typography variant="subtitle2" fontWeight={700} sx={{ flex: 1 }}>
+              {team.name}
+            </Typography>
+            <RoleChip role={myRole} />
+            {isOwner && (
+              <Tooltip title="Rename team">
+                <IconButton size="small" onClick={() => { setNameValue(team.name); setEditingName(true) }}>
+                  <DriveFileRenameOutlineIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+            {canManageMembers && (
+              <Tooltip title="Add member">
+                <IconButton size="small" onClick={() => setAddOpen(true)}>
+                  <GroupAddIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+            {isOwner && (
+              <Tooltip title="Delete team">
+                <IconButton size="small" color="error" onClick={() => setDeleteOpen(true)}>
+                  <DeleteOutlineIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+          </>
         )}
       </Box>
 

@@ -562,6 +562,26 @@ builder.mutationType({
       },
     }),
 
+    // Rename a team (owner only)
+    renameTeam: t.field({
+      type:     TeamRef,
+      args: {
+        id:   t.arg.id({ required: true }),
+        name: t.arg.string({ required: true }),
+      },
+      resolve: async (_, { id, name }, ctx) => {
+        if (!ctx.userId) throw new Error('Not authenticated')
+        await assertTeamRole(ctx.db, String(id), ctx.userId, 'owner')
+        const [team] = await ctx.db
+          .update(teams)
+          .set({ name: name.trim() })
+          .where(eq(teams.id, String(id)))
+          .returning()
+        if (!team) throw new Error('Team not found')
+        return { ...team, members: [] }
+      },
+    }),
+
     // Delete a team (owner only)
     deleteTeam: t.field({
       type:     'Boolean',
