@@ -16,9 +16,10 @@ const ATTACH_PDF_MUTATION = `
 interface Props {
   submissionId: string
   onUploaded: (url: string) => void
+  replace?: boolean
 }
 
-export default function PdfUploadButton({ submissionId, onUploaded }: Props) {
+export default function PdfUploadButton({ submissionId, onUploaded, replace }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(false)
 
@@ -55,7 +56,7 @@ export default function PdfUploadButton({ submissionId, onUploaded }: Props) {
         disabled={loading}
         onClick={() => inputRef.current?.click()}
       >
-        {loading ? 'Uploading…' : 'Attach original PDF'}
+        {loading ? 'Uploading…' : replace ? 'Replace PDF' : 'Attach original PDF'}
       </Button>
     </>
   )
