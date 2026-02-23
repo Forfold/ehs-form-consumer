@@ -3,8 +3,13 @@
 import { useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
-import TextField from '@mui/material/TextField'
+import Dialog from '@mui/material/Dialog'
+import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import ZoomInIcon from '@mui/icons-material/ZoomIn'
+import CloseIcon from '@mui/icons-material/Close'
 import { pdfToImages } from '@/lib/pdfToImages'
 import { extractPdfFields } from '@/lib/extractPdfFields'
 import type { InspectionFieldHints } from '@/lib/types/inspection'
@@ -16,117 +21,155 @@ interface Props {
 }
 
 export default function PreReviewStep({ file, hints, onChange }: Props) {
-  const [thumbnail, setThumbnail] = useState<string | null>(null)
-  const [acroFormStatus, setAcroFormStatus] = useState<'loading' | 'found' | 'prefilled' | 'none'>('loading')
+  const [pages, setPages] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(0)
+  const [zoomOpen, setZoomOpen] = useState(false)
 
   useEffect(() => {
     let cancelled = false
+    setPages([])
+    setCurrentPage(0)
+    setLoading(true)
 
-    // Render page 1 at low scale for the PDF thumbnail
-    pdfToImages(file, 0.4)
-      .then(([firstPage]) => {
-        if (!cancelled && firstPage) setThumbnail(`data:image/jpeg;base64,${firstPage}`)
-      })
-      .catch(err => console.warn('[PreReviewStep] thumbnail failed:', err))
-
-    // Try to extract AcroForm text fields and pre-populate hints
-    extractPdfFields(file)
-      .then(({ hints: extracted, hasAcroForm, anyPrefilled }) => {
+    pdfToImages(file, 1.5)
+      .then((images) => {
         if (cancelled) return
-        if (!hasAcroForm) {
-          setAcroFormStatus('none')
-          return
-        }
-        // Only auto-fill if the user hasn't already typed anything
-        const userHasTyped = Object.values(hints).some(v => v?.trim())
-        if (!userHasTyped && anyPrefilled) {
-          onChange(extracted)
-          setAcroFormStatus('prefilled')
-        } else {
-          setAcroFormStatus('found')
-        }
+        setPages(images.map(img => `data:image/jpeg;base64,${img}`))
+        setLoading(false)
       })
       .catch(err => {
-        console.warn('[PreReviewStep] field extraction failed:', err)
-        setAcroFormStatus('none')
+        console.warn('[PreReviewStep] PDF render failed:', err)
+        setLoading(false)
       })
+
+    // Auto-extract AcroForm fields silently for AI hints
+    extractPdfFields(file)
+      .then(({ hints: extracted, anyPrefilled }) => {
+        if (cancelled) return
+        const userHasTyped = Object.values(hints).some(v => v?.trim())
+        if (!userHasTyped && anyPrefilled) onChange(extracted)
+      })
+      .catch(() => {})
 
     return () => { cancelled = true }
   }, [file]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  function setHint(key: keyof InspectionFieldHints, value: string) {
-    onChange({ ...hints, [key]: value || undefined })
-  }
+  const pageCount = pages.length
+  const currentSrc = pages[currentPage]
 
-  const statusNote =
-    acroFormStatus === 'loading'   ? 'Reading form fields…' :
-    acroFormStatus === 'prefilled' ? 'Fields pre-filled from PDF — review and correct as needed.' :
-    acroFormStatus === 'found'     ? 'AcroForm fields found in PDF.' :
-    'No fillable fields detected — enter hints manually or leave blank.'
+  function goPrev() { setCurrentPage(p => Math.max(0, p - 1)) }
+  function goNext() { setCurrentPage(p => Math.min(pageCount - 1, p + 1)) }
 
   return (
-    <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
 
-      {/* PDF thumbnail */}
-      <Box sx={{ width: 200, flexShrink: 0 }}>
-        {thumbnail ? (
-          <Box
-            component="img"
-            src={thumbnail}
-            alt="PDF preview"
-            sx={{ width: '100%', borderRadius: 1, border: '1px solid', borderColor: 'divider', boxShadow: 1 }}
-          />
-        ) : (
+      {/* PDF page preview */}
+      <Box sx={{ position: 'relative', width: '100%' }}>
+        {loading ? (
           <Box sx={{
             width: '100%', aspectRatio: '8.5 / 11',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             bgcolor: 'action.hover', borderRadius: 1,
           }}>
-            <CircularProgress size={24} />
+            <CircularProgress size={32} />
           </Box>
+        ) : currentSrc ? (
+          <Box sx={{ position: 'relative' }}>
+            <Box
+              component="img"
+              src={currentSrc}
+              alt={`Page ${currentPage + 1}`}
+              onClick={() => setZoomOpen(true)}
+              sx={{
+                width: '100%',
+                display: 'block',
+                borderRadius: 1,
+                border: '1px solid',
+                borderColor: 'divider',
+                boxShadow: 1,
+                cursor: 'zoom-in',
+              }}
+            />
+            <IconButton
+              size="small"
+              onClick={() => setZoomOpen(true)}
+              sx={{
+                position: 'absolute', top: 8, right: 8,
+                bgcolor: 'rgba(0,0,0,0.45)', color: 'white',
+                '&:hover': { bgcolor: 'rgba(0,0,0,0.65)' },
+              }}
+            >
+              <ZoomInIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        ) : (
+          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+            Could not render PDF preview.
+          </Typography>
         )}
       </Box>
 
-      {/* Hints form */}
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Box>
-          <Typography variant="subtitle2" fontWeight={700}>Field Hints</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            {statusNote}
+      {/* Page navigation */}
+      {pageCount > 1 && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <IconButton size="small" onClick={goPrev} disabled={currentPage === 0}>
+            <ChevronLeftIcon />
+          </IconButton>
+          <Typography variant="body2" color="text.secondary" sx={{ minWidth: 56, textAlign: 'center' }}>
+            {currentPage + 1} / {pageCount}
           </Typography>
+          <IconButton size="small" onClick={goNext} disabled={currentPage === pageCount - 1}>
+            <ChevronRightIcon />
+          </IconButton>
         </Box>
+      )}
 
-        <TextField
-          label="Facility Name"
-          size="small"
-          value={hints.facilityName ?? ''}
-          onChange={e => setHint('facilityName', e.target.value)}
-        />
-        <TextField
-          label="Permit Number"
-          size="small"
-          value={hints.permitNumber ?? ''}
-          onChange={e => setHint('permitNumber', e.target.value)}
-        />
-        <TextField
-          label="Inspection Date"
-          size="small"
-          value={hints.inspectionDate ?? ''}
-          onChange={e => setHint('inspectionDate', e.target.value)}
-        />
-        <TextField
-          label="Inspector"
-          size="small"
-          value={hints.inspectorName ?? ''}
-          onChange={e => setHint('inspectorName', e.target.value)}
-        />
-        <TextField
-          label="Weather Conditions"
-          size="small"
-          value={hints.weatherConditions ?? ''}
-          onChange={e => setHint('weatherConditions', e.target.value)}
-        />
-      </Box>
+      {/* Zoom dialog */}
+      <Dialog
+        open={zoomOpen}
+        onClose={() => setZoomOpen(false)}
+        maxWidth="xl"
+        fullWidth
+        scroll="body"
+      >
+        <Box sx={{ position: 'relative' }}>
+          <IconButton
+            onClick={() => setZoomOpen(false)}
+            sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1, bgcolor: 'rgba(0,0,0,0.45)', color: 'white', '&:hover': { bgcolor: 'rgba(0,0,0,0.65)' } }}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+
+          {currentSrc && (
+            <Box
+              component="img"
+              src={currentSrc}
+              alt={`Page ${currentPage + 1}`}
+              sx={{ width: '100%', display: 'block' }}
+            />
+          )}
+
+          {pageCount > 1 && (
+            <Box sx={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1,
+              position: 'sticky', bottom: 0,
+              bgcolor: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
+              py: 1,
+            }}>
+              <IconButton onClick={goPrev} disabled={currentPage === 0} sx={{ color: 'white' }}>
+                <ChevronLeftIcon />
+              </IconButton>
+              <Typography variant="body2" sx={{ color: 'white', minWidth: 56, textAlign: 'center' }}>
+                {currentPage + 1} / {pageCount}
+              </Typography>
+              <IconButton onClick={goNext} disabled={currentPage === pageCount - 1} sx={{ color: 'white' }}>
+                <ChevronRightIcon />
+              </IconButton>
+            </Box>
+          )}
+        </Box>
+      </Dialog>
 
     </Box>
   )

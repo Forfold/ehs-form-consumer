@@ -27,7 +27,7 @@ const CREATE_SUBMISSION_MUTATION = `
 `
 
 type FlowStep = 'pre-review' | 'processing' | 'post-review'
-const STEP_LABELS = ['Review Fields', 'Processing', 'Review Results']
+const STEP_LABELS = ['Preview PDF', 'Processing', 'Review Results']
 const STEP_INDEX: Record<FlowStep, number> = { 'pre-review': 0, 'processing': 1, 'post-review': 2 }
 
 const EMPTY_DATA: InspectionData = {

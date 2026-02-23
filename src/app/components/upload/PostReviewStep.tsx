@@ -11,10 +11,15 @@ import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
+import ToggleButton from '@mui/material/ToggleButton'
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 import AddIcon from '@mui/icons-material/Add'
+import CheckIcon from '@mui/icons-material/Check'
+import CloseIcon from '@mui/icons-material/Close'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
+import RemoveIcon from '@mui/icons-material/Remove'
 import type { ChecklistItem, CorrectiveAction, InspectionData, OverallStatus } from '@/lib/types/inspection'
 
 interface Props {
@@ -66,11 +71,11 @@ export default function PostReviewStep({ data, onChange }: Props) {
         <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: '0.08em' }}>
           Facility Information
         </Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mt: 1 }}>
-          <TextField label="Facility Name"    size="small" value={data.facilityName    ?? ''} onChange={e => setField('facilityName',    e.target.value)} />
-          <TextField label="Permit Number"    size="small" value={data.permitNumber    ?? ''} onChange={e => setField('permitNumber',    e.target.value)} />
-          <TextField label="Inspection Date"  size="small" value={data.inspectionDate  ?? ''} onChange={e => setField('inspectionDate',  e.target.value)} />
-          <TextField label="Inspector"        size="small" value={data.inspectorName   ?? ''} onChange={e => setField('inspectorName',   e.target.value)} />
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mt: 1 }}>
+          <TextField label="Facility Name"   size="small" value={data.facilityName   ?? ''} onChange={e => setField('facilityName',   e.target.value)} />
+          <TextField label="Permit Number"   size="small" value={data.permitNumber   ?? ''} onChange={e => setField('permitNumber',   e.target.value)} />
+          <TextField label="Inspection Date" size="small" value={data.inspectionDate ?? ''} onChange={e => setField('inspectionDate', e.target.value)} />
+          <TextField label="Inspector"       size="small" value={data.inspectorName  ?? ''} onChange={e => setField('inspectorName',  e.target.value)} />
         </Box>
       </Box>
 
@@ -107,48 +112,93 @@ export default function PostReviewStep({ data, onChange }: Props) {
         <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: '0.08em' }}>
           Inspection Items
         </Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 1 }}>
           {data.checklistItems.map((item, i) => (
-            <Fragment key={i}>
-              {i > 0 && <Divider />}
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+            <Box
+              key={i}
+              sx={{
+                border: '2px solid',
+                borderColor: 'divider',
+                borderRadius: 2,
+                p: 1.5,
+                bgcolor: 'action.hover',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1.5,
+              }}
+            >
+              {/* Section + delete */}
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                 <TextField
                   label="Section"
                   size="small"
                   value={item.section ?? ''}
                   onChange={e => setChecklistItem(i, { section: e.target.value })}
+                  sx={{ flex: 1 }}
                 />
-                <FormControl size="small">
-                  <InputLabel>Status</InputLabel>
-                  <Select
-                    label="Status"
-                    value={item.status}
-                    onChange={e => setChecklistItem(i, { status: e.target.value as ChecklistItem['status'] })}
-                  >
-                    <MenuItem value="pass">Pass</MenuItem>
-                    <MenuItem value="fail">Fail</MenuItem>
-                    <MenuItem value="na">N/A</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
-              <Box sx={{ display: 'grid', gridTemplateColumns: '2fr 2fr auto', gap: 1, alignItems: 'flex-start' }}>
-                <TextField
-                  label="Description"
-                  size="small"
-                  value={item.description}
-                  onChange={e => setChecklistItem(i, { description: e.target.value })}
-                />
-                <TextField
-                  label="Notes"
-                  size="small"
-                  value={item.notes}
-                  onChange={e => setChecklistItem(i, { notes: e.target.value })}
-                />
-                <IconButton size="small" onClick={() => removeChecklistItem(i)} sx={{ mt: 0.5 }}>
+                <IconButton size="small" onClick={() => removeChecklistItem(i)} sx={{ flexShrink: 0, color: 'text.secondary' }}>
                   <DeleteOutlineIcon fontSize="small" />
                 </IconButton>
               </Box>
-            </Fragment>
+
+              {/* Description */}
+              <TextField
+                label="Description"
+                size="small"
+                value={item.description}
+                onChange={e => setChecklistItem(i, { description: e.target.value })}
+              />
+
+              {/* Status toggle */}
+              <ToggleButtonGroup
+                value={item.status}
+                exclusive
+                onChange={(_, val) => { if (val !== null) setChecklistItem(i, { status: val as ChecklistItem['status'] }) }}
+                size="small"
+                fullWidth
+              >
+                <ToggleButton
+                  value="pass"
+                  sx={{
+                    flex: 1,
+                    '&.Mui-selected': {
+                      bgcolor: 'success.main',
+                      color: 'success.contrastText',
+                      '&:hover': { bgcolor: 'success.dark' },
+                    },
+                  }}
+                >
+                  <CheckIcon sx={{ mr: 0.5, fontSize: 16 }} />
+                  Pass
+                </ToggleButton>
+                <ToggleButton
+                  value="fail"
+                  sx={{
+                    flex: 1,
+                    '&.Mui-selected': {
+                      bgcolor: 'error.main',
+                      color: 'error.contrastText',
+                      '&:hover': { bgcolor: 'error.dark' },
+                    },
+                  }}
+                >
+                  <CloseIcon sx={{ mr: 0.5, fontSize: 16 }} />
+                  Fail
+                </ToggleButton>
+                <ToggleButton value="na" sx={{ flex: 1 }}>
+                  <RemoveIcon sx={{ mr: 0.5, fontSize: 16 }} />
+                  N/A
+                </ToggleButton>
+              </ToggleButtonGroup>
+
+              {/* Notes */}
+              <TextField
+                label="Notes"
+                size="small"
+                value={item.notes}
+                onChange={e => setChecklistItem(i, { notes: e.target.value })}
+              />
+            </Box>
           ))}
         </Box>
         <Button size="small" startIcon={<AddIcon />} onClick={addChecklistItem} sx={{ mt: 1.5 }}>
@@ -167,25 +217,27 @@ export default function PostReviewStep({ data, onChange }: Props) {
           {data.correctiveActions.map((action, i) => (
             <Fragment key={i}>
               {i > 0 && <Divider />}
-              <Box sx={{ display: 'grid', gridTemplateColumns: '2fr 140px auto auto', gap: 1, alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
                 <TextField
                   label="Description"
                   size="small"
                   value={action.description}
                   onChange={e => setAction(i, { description: e.target.value })}
+                  sx={{ flex: '1 1 180px', minWidth: 0 }}
                 />
                 <TextField
                   label="Due Date"
                   size="small"
                   value={action.dueDate}
                   onChange={e => setAction(i, { dueDate: e.target.value })}
+                  sx={{ width: 140, flexShrink: 0 }}
                 />
                 <FormControlLabel
                   control={<Checkbox size="small" checked={action.completed} onChange={e => setAction(i, { completed: e.target.checked })} />}
                   label={<Typography variant="body2">Done</Typography>}
                   sx={{ mx: 0 }}
                 />
-                <IconButton size="small" onClick={() => removeAction(i)}>
+                <IconButton size="small" onClick={() => removeAction(i)} sx={{ color: 'text.secondary' }}>
                   <DeleteOutlineIcon fontSize="small" />
                 </IconButton>
               </Box>
