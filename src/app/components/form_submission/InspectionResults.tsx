@@ -1,13 +1,5 @@
-'use client'
-
-import { useRef, useState } from 'react'
-import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
-import Dialog from '@mui/material/Dialog'
-import DialogContent from '@mui/material/DialogContent'
-import DialogTitle from '@mui/material/DialogTitle'
 import Divider from '@mui/material/Divider'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
@@ -22,7 +14,6 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 
 type BmpStatus = 'pass' | 'fail' | 'na'
@@ -40,7 +31,7 @@ interface CorrectiveAction {
   completed: boolean
 }
 
-interface InspectionData {
+export interface InspectionData {
   facilityName: string
   permitNumber: string
   inspectionDate: string
@@ -54,12 +45,6 @@ interface InspectionData {
 
 interface Props {
   data: InspectionData
-}
-
-const overallStatusMap: Record<OverallStatus, { label: string; severity: 'success' | 'error' | 'warning' }> = {
-  compliant:          { label: 'Compliant',       severity: 'success'  },
-  'non-compliant':    { label: 'Non-Compliant',   severity: 'error'    },
-  'needs-attention':  { label: 'Needs Attention', severity: 'warning'  },
 }
 
 const bmpChipProps: Record<BmpStatus, { label: string; color: 'success' | 'error' | 'default' }> = {
@@ -87,80 +72,48 @@ function SectionHeading({ children, large }: { children: React.ReactNode; large?
 }
 
 export default function InspectionResults({ data }: Props) {
-  const status = overallStatusMap[data.overallStatus] ?? { label: data.overallStatus, severity: 'info' as const }
   const bmpItems = data.bmpItems ?? []
   const correctiveActions = data.correctiveActions ?? []
-  const isBlankForm =
-    !data.facilityName &&
-    !data.permitNumber &&
-    !data.inspectionDate &&
-    (bmpItems.length === 0 || bmpItems.every(i => i.status === 'na'))
   const pendingCount = correctiveActions.filter(a => !a.completed).length
-  const passCount = bmpItems.filter(i => i.status === 'pass').length
-  const failCount = bmpItems.filter(i => i.status === 'fail').length
-  const failedItems = bmpItems.filter(i => i.status === 'fail')
   const deadletterCount = data.deadletter ? Object.keys(data.deadletter).length : 0
-
-  const [ncModalOpen, setNcModalOpen] = useState(false)
-  const deadletterRef = useRef<HTMLDivElement>(null)
-
-  const isNonCompliantClickable = data.overallStatus === 'non-compliant' && failedItems.length > 0
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
 
-      {/* Blank form warning */}
-      {isBlankForm && (
-        <Alert severity="info">
-          This appears to be an unfilled form template. Upload a completed inspection form to see extracted results.
-        </Alert>
-      )}
-
-      {/* Overall status — clickable when non-compliant */}
-      <Box
-        onClick={isNonCompliantClickable ? () => setNcModalOpen(true) : undefined}
-        sx={isNonCompliantClickable ? { cursor: 'pointer' } : undefined}
-      >
-        <Alert
-          severity={status.severity}
-          sx={{ alignItems: 'center', pointerEvents: 'none' }}
-          action={
-            bmpItems.length > 0 ? (
-              <Typography variant="body2" sx={{ whiteSpace: 'nowrap', opacity: 0.85, pr: 1 }}>
-                {passCount} pass &middot; {failCount} fail &middot; {bmpItems.length} items
-                {isNonCompliantClickable && (
-                  <Box component="span" sx={{ ml: 1, opacity: 0.7, fontSize: '0.75rem' }}>· tap to view</Box>
-                )}
+      {/* Facility info */}
+      <Paper variant="outlined" sx={{ p: 2 }}>
+        <SectionHeading large>Facility Information</SectionHeading>
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+          {[
+            ['Facility Name',    data.facilityName],
+            ['Permit Number',    data.permitNumber],
+            ['Inspection Date',  data.inspectionDate],
+            ['Inspector',        data.inspectorName],
+          ].map(([label, value]) => (
+            <Box key={label}>
+              <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+                {label}
               </Typography>
-            ) : undefined
-          }
-        >
-          <Typography fontWeight={700}>{status.label}</Typography>
-        </Alert>
-      </Box>
+              <Typography variant="body1">{value || '—'}</Typography>
+            </Box>
+          ))}
+        </Box>
+      </Paper>
 
-      {/* Unprocessable fields banner */}
-      {deadletterCount > 0 && (
-        <Alert
-          severity="warning"
-          action={
-            <Button
-              size="small"
-              color="inherit"
-              onClick={() => deadletterRef.current?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              View
-            </Button>
-          }
-        >
-          {deadletterCount} field{deadletterCount !== 1 ? 's' : ''} could not be processed — review below.
-        </Alert>
+      {/* Summary */}
+      {data.summary && (
+        <Paper variant="outlined" sx={{ p: 2 }}>
+          <SectionHeading>Summary</SectionHeading>
+          <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.7 }}>
+            {data.summary}
+          </Typography>
+        </Paper>
       )}
 
       {/* Corrective actions */}
       {correctiveActions.length > 0 && (
         <Paper variant="outlined" sx={{ p: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
             <SectionHeading>Corrective Actions</SectionHeading>
             {pendingCount > 0 && (
               <Chip
@@ -194,36 +147,6 @@ export default function InspectionResults({ data }: Props) {
               </Box>
             ))}
           </List>
-        </Paper>
-      )}
-
-      {/* Facility info */}
-      <Paper variant="outlined" sx={{ p: 2 }}>
-        <SectionHeading large>Facility Information</SectionHeading>
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-          {[
-            ['Facility Name',    data.facilityName],
-            ['Permit Number',    data.permitNumber],
-            ['Inspection Date',  data.inspectionDate],
-            ['Inspector',        data.inspectorName],
-          ].map(([label, value]) => (
-            <Box key={label}>
-              <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
-                {label}
-              </Typography>
-              <Typography variant="body1">{value || '—'}</Typography>
-            </Box>
-          ))}
-        </Box>
-      </Paper>
-
-      {/* Summary */}
-      {data.summary && (
-        <Paper variant="outlined" sx={{ p: 2 }}>
-          <SectionHeading>Summary</SectionHeading>
-          <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.7 }}>
-            {data.summary}
-          </Typography>
         </Paper>
       )}
 
@@ -264,7 +187,7 @@ export default function InspectionResults({ data }: Props) {
 
       {/* Deadletter */}
       {deadletterCount > 0 && (
-        <Paper ref={deadletterRef} variant="outlined" sx={{ p: 2 }}>
+        <Paper id="deadletter-section" variant="outlined" sx={{ p: 2 }}>
           <SectionHeading>Unprocessable Fields</SectionHeading>
           <Box
             component="pre"
@@ -283,33 +206,6 @@ export default function InspectionResults({ data }: Props) {
           </Box>
         </Paper>
       )}
-
-      {/* Non-compliant items modal */}
-      <Dialog open={ncModalOpen} onClose={() => setNcModalOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Non-Compliant Items</DialogTitle>
-        <DialogContent>
-          <List disablePadding>
-            {failedItems.map((item, i) => (
-              <Box key={i}>
-                {i > 0 && <Divider component="li" />}
-                <ListItem disableGutters sx={{ py: 1 }}>
-                  <ListItemIcon sx={{ minWidth: 36 }}>
-                    <ErrorOutlineIcon color="error" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={item.description}
-                    secondary={item.notes || undefined}
-                    slotProps={{
-                      primary: { variant: 'body2', fontWeight: 500 } as object,
-                      secondary: { variant: 'caption' } as object,
-                    }}
-                  />
-                </ListItem>
-              </Box>
-            ))}
-          </List>
-        </DialogContent>
-      </Dialog>
 
     </Box>
   )
