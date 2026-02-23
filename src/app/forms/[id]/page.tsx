@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
 import Breadcrumbs from '@mui/material/Breadcrumbs'
+import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
 import Container from '@mui/material/Container'
@@ -74,6 +75,15 @@ function submissionToHistoryItem(s: GqlSubmission) {
   }
 }
 
+function breadcrumbTitle(submission: GqlSubmission | null, loading: boolean): string {
+  if (loading) return '…'
+  if (!submission) return '—'
+  const data = submission.data as Partial<InspectionData>
+  const parts = [data.permitNumber, data.inspectionDate].filter(Boolean)
+  if (parts.length > 0) return parts.join(' · ')
+  return (data.facilityName ?? submission.displayName ?? submission.fileName ?? '—')
+}
+
 export default function FormDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -100,6 +110,10 @@ export default function FormDetailPage() {
       .then(({ submissions }) => setHistory(submissions.map(submissionToHistoryItem)))
       .catch(() => {/* DB not configured yet */})
   }, [])
+
+  const displayName = submission
+    ? ((submission.data?.facilityName as string | undefined) ?? submission.displayName)
+    : null
 
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
@@ -132,12 +146,7 @@ export default function FormDetailPage() {
               variant="subtitle1"
               sx={{ fontWeight: 500, color: loading ? 'text.disabled' : 'text.primary', letterSpacing: '-0.01em' }}
             >
-              {loading
-                ? '…'
-                : (submission?.data?.facilityName as string | undefined)
-                  ?? submission?.displayName
-                  ?? submission?.fileName
-                  ?? '—'}
+              {breadcrumbTitle(submission, loading)}
             </Typography>
           </Breadcrumbs>
 
@@ -161,20 +170,38 @@ export default function FormDetailPage() {
           <Typography color="text.secondary">Form not found.</Typography>
         </Box>
       ) : (
-        <Container maxWidth="md" sx={{ py: 4, flex: 1 }}>
-          <InspectionResults
-            data={submission.data as unknown as InspectionData}
-            onReset={() => router.push('/')}
-          />
-          <PdfSection
-            submissionId={submission.id}
-            initialPdfUrl={submission.pdfStorageKey}
-          />
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
-            <DeleteFormButton
-              submissionId={submission.id}
-              displayName={(submission.data?.facilityName as string | undefined) ?? submission.displayName}
-            />
+        <Container maxWidth="xl" sx={{ py: 4, flex: 1 }}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', lg: '1fr 420px' },
+              gap: 4,
+              alignItems: 'start',
+            }}
+          >
+            {/* Left: results + action buttons */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
+              <InspectionResults
+                data={submission.data as unknown as InspectionData}
+              />
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                <Button variant="outlined" onClick={() => router.push('/')}>
+                  Process another form
+                </Button>
+                <DeleteFormButton
+                  submissionId={submission.id}
+                  displayName={displayName}
+                />
+              </Box>
+            </Box>
+
+            {/* Right: PDF (sticky on large screens) */}
+            <Box sx={{ position: { lg: 'sticky' }, top: { lg: 16 } }}>
+              <PdfSection
+                submissionId={submission.id}
+                initialPdfUrl={submission.pdfStorageKey}
+              />
+            </Box>
           </Box>
         </Container>
       )}
