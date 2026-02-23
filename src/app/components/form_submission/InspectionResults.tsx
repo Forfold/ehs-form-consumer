@@ -23,6 +23,8 @@ import TextField from '@mui/material/TextField'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import Typography from '@mui/material/Typography'
+import AddIcon from '@mui/icons-material/Add'
+import Button from '@mui/material/Button'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CheckIcon from '@mui/icons-material/Check'
 import CloseIcon from '@mui/icons-material/Close'
@@ -188,6 +190,8 @@ export default function InspectionResults({ data, currentUserName, onEdit }: Pro
   // Track which checklist row / action is expanded for editing
   const [expandedItem, setExpandedItem]     = useState<number | null>(null)
   const [expandedAction, setExpandedAction] = useState<number | null>(null)
+  const [addingItem, setAddingItem]         = useState(false)
+  const [addingAction, setAddingAction]     = useState(false)
 
   function makeMeta(editType: EditMeta['editType']): EditMeta {
     return { editedBy: currentUserName ?? 'Unknown', editedAt: new Date().toISOString(), editType }
@@ -247,6 +251,105 @@ export default function InspectionResults({ data, currentUserName, onEdit }: Pro
             <Box sx={{ ml: 'auto', display: 'flex', gap: 0.5 }}>
               <IconButton size="small" onClick={() => setExpandedItem(null)}><CloseIcon fontSize="small" /></IconButton>
               <IconButton size="small" color="primary" onClick={save} disabled={!editType}>
+                <CheckIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+    )
+  }
+
+  // ── New checklist item ───────────────────────────────────────────────────────
+  function NewChecklistItemForm() {
+    const [desc, setDesc]         = useState('')
+    const [status, setStatus]     = useState<ChecklistStatus>('pass')
+    const [notes, setNotes]       = useState('')
+    const [editType, setEditType] = useState<EditMeta['editType'] | null>(null)
+
+    function save() {
+      if (!desc.trim() || !editType || !onEdit) return
+      onEdit({
+        ...data,
+        checklistItems: [...bmpItems, { description: desc, status, notes, editMeta: makeMeta(editType) }],
+      })
+      setAddingItem(false)
+    }
+
+    return (
+      <Box sx={{ p: 2, bgcolor: 'action.hover', borderRadius: 1, mt: 1 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          <TextField
+            label="Description" size="small" fullWidth multiline
+            value={desc} onChange={(e) => setDesc(e.target.value)} autoFocus
+            placeholder="Describe the inspection item"
+          />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="caption" color="text.secondary">Status:</Typography>
+            <ToggleButtonGroup
+              exclusive size="small" value={status}
+              onChange={(_, v) => { if (v) setStatus(v) }}
+            >
+              <ToggleButton value="pass" color="success" sx={{ px: 1.5 }}>Pass</ToggleButton>
+              <ToggleButton value="fail" color="error"   sx={{ px: 1.5 }}>Fail</ToggleButton>
+              <ToggleButton value="na"                   sx={{ px: 1.5 }}>N/A</ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
+          <TextField
+            label="Notes" size="small" fullWidth multiline
+            value={notes} onChange={(e) => setNotes(e.target.value)}
+          />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+            <EditTypeSelector value={editType} onChange={setEditType} />
+            <Box sx={{ ml: 'auto', display: 'flex', gap: 0.5 }}>
+              <IconButton size="small" onClick={() => setAddingItem(false)}><CloseIcon fontSize="small" /></IconButton>
+              <IconButton size="small" color="primary" onClick={save} disabled={!editType || !desc.trim()}>
+                <CheckIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+    )
+  }
+
+  // ── New corrective action ────────────────────────────────────────────────────
+  function NewActionForm() {
+    const [desc, setDesc]           = useState('')
+    const [dueDate, setDueDate]     = useState('')
+    const [completed, setCompleted] = useState(false)
+    const [editType, setEditType]   = useState<EditMeta['editType'] | null>(null)
+
+    function save() {
+      if (!desc.trim() || !editType || !onEdit) return
+      onEdit({
+        ...data,
+        correctiveActions: [...correctiveActions, { description: desc, dueDate, completed, editMeta: makeMeta(editType) }],
+      })
+      setAddingAction(false)
+    }
+
+    return (
+      <Box sx={{ px: 2, pb: 2, pt: 1.5, bgcolor: 'action.hover', borderRadius: 1, mt: 1 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          <TextField
+            label="Description" size="small" fullWidth multiline
+            value={desc} onChange={(e) => setDesc(e.target.value)} autoFocus
+            placeholder="Describe the corrective action"
+          />
+          <TextField
+            label="Due date" size="small"
+            value={dueDate} onChange={(e) => setDueDate(e.target.value)}
+          />
+          <FormControlLabel
+            label={<Typography variant="body2">Completed</Typography>}
+            control={<Checkbox size="small" checked={completed} onChange={(e) => setCompleted(e.target.checked)} />}
+          />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+            <EditTypeSelector value={editType} onChange={setEditType} />
+            <Box sx={{ ml: 'auto', display: 'flex', gap: 0.5 }}>
+              <IconButton size="small" onClick={() => setAddingAction(false)}><CloseIcon fontSize="small" /></IconButton>
+              <IconButton size="small" color="primary" onClick={save} disabled={!editType || !desc.trim()}>
                 <CheckIcon fontSize="small" />
               </IconButton>
             </Box>
@@ -342,7 +445,7 @@ export default function InspectionResults({ data, currentUserName, onEdit }: Pro
       )}
 
       {/* Corrective actions */}
-      {correctiveActions.length > 0 && (
+      {(correctiveActions.length > 0 || canEdit) && (
         <Paper variant="outlined" sx={{ p: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
             <SectionHeading>Corrective Actions</SectionHeading>
@@ -395,67 +498,101 @@ export default function InspectionResults({ data, currentUserName, onEdit }: Pro
               </Box>
             ))}
           </List>
+          {canEdit && (
+            <>
+              <Collapse in={addingAction} unmountOnExit>
+                <NewActionForm />
+              </Collapse>
+              {!addingAction && (
+                <Button
+                  size="small" startIcon={<AddIcon />}
+                  onClick={() => setAddingAction(true)}
+                  sx={{ mt: correctiveActions.length > 0 ? 1 : 0 }}
+                >
+                  Add corrective action
+                </Button>
+              )}
+            </>
+          )}
         </Paper>
       )}
 
       {/* BMP / checklist items */}
-      {bmpItems.length > 0 && (
+      {(bmpItems.length > 0 || canEdit) && (
         <Paper variant="outlined" sx={{ p: 2 }}>
           <SectionHeading>Inspection Items</SectionHeading>
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 600 }}>Description</TableCell>
-                  <TableCell sx={{ fontWeight: 600, width: 90 }}>Status</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Notes</TableCell>
-                  {canEdit && <TableCell sx={{ width: 40 }} />}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {bmpItems.map((item, i) => {
-                  const chip = bmpChipProps[item.status] ?? { label: item.status, color: 'default' as const }
-                  return (
-                    <>
-                      <TableRow
-                        key={`row-${i}`}
-                        sx={{ bgcolor: item.status === 'fail' ? 'error.50' : undefined }}
-                      >
-                        <TableCell>
-                          {item.description}
-                          {item.editMeta && <EditMetaBadge meta={item.editMeta} />}
-                        </TableCell>
-                        <TableCell>
-                          <Chip label={chip.label} color={chip.color} size="small" />
-                        </TableCell>
-                        <TableCell sx={{ color: 'text.secondary' }}>{item.notes || '—'}</TableCell>
-                        {canEdit && (
-                          <TableCell sx={{ p: 0.5 }}>
-                            <IconButton
-                              size="small"
-                              onClick={() => setExpandedItem(expandedItem === i ? null : i)}
-                              sx={{ opacity: 0.4, '&:hover': { opacity: 1 } }}
-                            >
-                              <EditIcon sx={{ fontSize: 14 }} />
-                            </IconButton>
+          {bmpItems.length > 0 && (
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 600 }}>Description</TableCell>
+                    <TableCell sx={{ fontWeight: 600, width: 90 }}>Status</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Notes</TableCell>
+                    {canEdit && <TableCell sx={{ width: 40 }} />}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {bmpItems.map((item, i) => {
+                    const chip = bmpChipProps[item.status] ?? { label: item.status, color: 'default' as const }
+                    return (
+                      <>
+                        <TableRow
+                          key={`row-${i}`}
+                          sx={{ bgcolor: item.status === 'fail' ? 'error.50' : undefined }}
+                        >
+                          <TableCell>
+                            {item.description}
+                            {item.editMeta && <EditMetaBadge meta={item.editMeta} />}
                           </TableCell>
-                        )}
-                      </TableRow>
-                      {canEdit && (
-                        <TableRow key={`edit-${i}`}>
-                          <TableCell colSpan={4} sx={{ p: 0, border: 0 }}>
-                            <Collapse in={expandedItem === i} unmountOnExit>
-                              <ChecklistEditRow index={i} />
-                            </Collapse>
+                          <TableCell>
+                            <Chip label={chip.label} color={chip.color} size="small" />
                           </TableCell>
+                          <TableCell sx={{ color: 'text.secondary' }}>{item.notes || '—'}</TableCell>
+                          {canEdit && (
+                            <TableCell sx={{ p: 0.5 }}>
+                              <IconButton
+                                size="small"
+                                onClick={() => setExpandedItem(expandedItem === i ? null : i)}
+                                sx={{ opacity: 0.4, '&:hover': { opacity: 1 } }}
+                              >
+                                <EditIcon sx={{ fontSize: 14 }} />
+                              </IconButton>
+                            </TableCell>
+                          )}
                         </TableRow>
-                      )}
-                    </>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                        {canEdit && (
+                          <TableRow key={`edit-${i}`}>
+                            <TableCell colSpan={4} sx={{ p: 0, border: 0 }}>
+                              <Collapse in={expandedItem === i} unmountOnExit>
+                                <ChecklistEditRow index={i} />
+                              </Collapse>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+          {canEdit && (
+            <>
+              <Collapse in={addingItem} unmountOnExit>
+                <NewChecklistItemForm />
+              </Collapse>
+              {!addingItem && (
+                <Button
+                  size="small" startIcon={<AddIcon />}
+                  onClick={() => setAddingItem(true)}
+                  sx={{ mt: bmpItems.length > 0 ? 1 : 0 }}
+                >
+                  Add inspection item
+                </Button>
+              )}
+            </>
+          )}
         </Paper>
       )}
 
