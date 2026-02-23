@@ -1,18 +1,18 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
-import PdfViewer from './PdfViewer'
-import PdfUploadButton from './PdfUploadButton'
+import { useState } from "react";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import PdfViewer from "./PdfViewer";
+import PdfUploadButton from "./PdfUploadButton";
 
 interface Props {
-  submissionId: string
-  initialPdfUrl: string | null
+  submissionId: string;
+  initialPdfUrl: string | null;
 }
 
 export default function PdfSection({ submissionId, initialPdfUrl }: Props) {
-  const [pdfUrl, setPdfUrl] = useState<string | null>(initialPdfUrl)
+  const [pdfUrl, setPdfUrl] = useState<string | null>(initialPdfUrl);
 
   return (
     <Box>
@@ -23,15 +23,20 @@ export default function PdfSection({ submissionId, initialPdfUrl }: Props) {
       {pdfUrl ? (
         <>
           <PdfViewer url={pdfUrl} />
-          <Box sx={{ mt: 1.5, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-            <PdfUploadButton submissionId={submissionId} onUploaded={setPdfUrl} replace />
+          <Box sx={{ mt: 1.5, display: "flex", flexDirection: "column", gap: 0.5 }}>
+            <PdfUploadButton
+              submissionId={submissionId}
+              onUploaded={setPdfUrl}
+              replace
+            />
             <Typography variant="caption" color="text.secondary">
-              Replacing the PDF will not re-process the form. Extracted data will be preserved.
+              Replacing the PDF will not re-process the form. Extracted data will be
+              preserved.
             </Typography>
           </Box>
         </>
       ) : (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Typography variant="body2" color="text.secondary">
             No original PDF attached.
           </Typography>
@@ -39,5 +44,5 @@ export default function PdfSection({ submissionId, initialPdfUrl }: Props) {
         </Box>
       )}
     </Box>
-  )
+  );
 }

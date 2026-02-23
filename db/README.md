@@ -10,8 +10,8 @@ Each file is applied once — they are **not idempotent** unless explicitly writ
 
 ### Applied
 
-| File | Date | Description |
-|------|------|-------------|
+| File                      | Date       | Description                                               |
+| ------------------------- | ---------- | --------------------------------------------------------- |
 | `0001_initial_schema.sql` | 2026-02-21 | Users, form submissions, field preferences, user settings |
 
 ### Adding a migration

@@ -1,5 +1,5 @@
-import Anthropic from '@anthropic-ai/sdk'
-import { NextRequest, NextResponse } from 'next/server'
+import Anthropic from "@anthropic-ai/sdk";
+import { NextRequest, NextResponse } from "next/server";
 
 const PROMPT = `This is an ISWGP (Industrial Stormwater General Permit) Monthly Inspection / Visual Evaluation Report. The pages are fully-rendered PDF images with ALL layers composited: base content, AcroForm field values, ink/e-drawing annotations, shape annotations, stamps, and free-text overlays. Every visible mark is present.
 
@@ -58,58 +58,78 @@ For overallStatus: if any bmpItem has status "fail", use "non-compliant"; if all
 
 Extract ALL checklist rows from every section of the form — list every BMP item as its own entry in checklistItems, even if no checkbox is marked (use "na" for unmarked rows). Never return an empty checklistItems array for a standard ISWGP form; the array should always reflect the full checklist structure. Put any text fields you cannot confidently assign to a field into "deadletter".
 
-Return only valid JSON, no markdown, no explanation.`
+Return only valid JSON, no markdown, no explanation.`;
 
-const HINTS_INTRO = `\nThe user has manually verified the following field values from the form — use them directly instead of re-extracting:\n`
+const HINTS_INTRO = `\nThe user has manually verified the following field values from the form — use them directly instead of re-extracting:\n`;
 
 export async function POST(request: NextRequest) {
   if (!process.env.ANTHROPIC_API_KEY) {
-    console.error('[extract] ANTHROPIC_API_KEY is not set')
-    return NextResponse.json({ error: 'Extraction service is not configured. Please contact support.' }, { status: 503 })
+    console.error("[extract] ANTHROPIC_API_KEY is not set");
+    return NextResponse.json(
+      { error: "Extraction service is not configured. Please contact support." },
+      { status: 503 },
+    );
   }
 
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
   try {
-    const { images, fieldHints } = await request.json() as { images: string[]; fieldHints?: Record<string, string> }
+    const { images, fieldHints } = (await request.json()) as {
+      images: string[];
+      fieldHints?: Record<string, string>;
+    };
 
     if (!images?.length) {
-      return NextResponse.json({ error: 'No images provided' }, { status: 400 })
+      return NextResponse.json({ error: "No images provided" }, { status: 400 });
     }
 
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
+      model: "claude-sonnet-4-6",
       max_tokens: 4096,
-      messages: [{
-        role: 'user',
-        content: [
-          // One image block per PDF page — Claude sees the fully rendered page
-          // including annotation/form-field layers where X marks live
-          ...images.map((img) => ({
-            type: 'image' as const,
-            source: { type: 'base64' as const, media_type: 'image/jpeg' as const, data: img },
-          })),
-          {
-            type: 'text' as const,
-            text: (() => {
-              const filled = Object.entries(fieldHints ?? {}).filter(([, v]) => v?.trim())
-              if (!filled.length) return PROMPT
-              // k = field name (e.g. "facilityName"), v = user-verified value
-              return PROMPT + HINTS_INTRO + filled.map(([k, v]) => `- ${k}: "${v}"`).join('\n')
-            })(),
-          },
-        ],
-      }],
-    })
+      messages: [
+        {
+          role: "user",
+          content: [
+            // One image block per PDF page — Claude sees the fully rendered page
+            // including annotation/form-field layers where X marks live
+            ...images.map((img) => ({
+              type: "image" as const,
+              source: {
+                type: "base64" as const,
+                media_type: "image/jpeg" as const,
+                data: img,
+              },
+            })),
+            {
+              type: "text" as const,
+              text: (() => {
+                const filled = Object.entries(fieldHints ?? {}).filter(([, v]) =>
+                  v?.trim(),
+                );
+                if (!filled.length) return PROMPT;
+                // k = field name (e.g. "facilityName"), v = user-verified value
+                return (
+                  PROMPT +
+                  HINTS_INTRO +
+                  filled.map(([k, v]) => `- ${k}: "${v}"`).join("\n")
+                );
+              })(),
+            },
+          ],
+        },
+      ],
+    });
 
-    const block = response.content[0]
-    if (block.type !== 'text') throw new Error('Unexpected response type')
-    const text = block.text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '')
-    const parsed = JSON.parse(text)
-    return NextResponse.json(parsed)
-
+    const block = response.content[0];
+    if (block.type !== "text") throw new Error("Unexpected response type");
+    const text = block.text
+      .trim()
+      .replace(/^```(?:json)?\s*/i, "")
+      .replace(/\s*```$/, "");
+    const parsed = JSON.parse(text);
+    return NextResponse.json(parsed);
   } catch (err) {
-    console.error('[extract] error:', err)
-    return NextResponse.json({ error: 'Extraction failed' }, { status: 500 })
+    console.error("[extract] error:", err);
+    return NextResponse.json({ error: "Extraction failed" }, { status: 500 });
   }
 }

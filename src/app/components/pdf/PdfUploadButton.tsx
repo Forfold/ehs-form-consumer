@@ -1,42 +1,46 @@
-'use client'
+"use client";
 
-import { useRef, useState } from 'react'
-import Button from '@mui/material/Button'
-import CircularProgress from '@mui/material/CircularProgress'
-import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined'
-import { uploadPdf } from '@/lib/uploadPdf'
-import { gqlFetch } from '@/lib/graphql/client'
+import { useRef, useState } from "react";
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
+import UploadFileOutlinedIcon from "@mui/icons-material/UploadFileOutlined";
+import { uploadPdf } from "@/lib/uploadPdf";
+import { gqlFetch } from "@/lib/graphql/client";
 
 const ATTACH_PDF_MUTATION = `
   mutation AttachPdf($id: ID!, $pdfStorageKey: String!) {
     attachPdfToSubmission(id: $id, pdfStorageKey: $pdfStorageKey) { id pdfStorageKey }
   }
-`
+`;
 
 interface Props {
-  submissionId: string
-  onUploaded: (url: string) => void
-  replace?: boolean
+  submissionId: string;
+  onUploaded: (url: string) => void;
+  replace?: boolean;
 }
 
-export default function PdfUploadButton({ submissionId, onUploaded, replace }: Props) {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const [loading, setLoading] = useState(false)
+export default function PdfUploadButton({
+  submissionId,
+  onUploaded,
+  replace,
+}: Props) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [loading, setLoading] = useState(false);
 
   async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const url = await uploadPdf(file, submissionId)
-      await gqlFetch(ATTACH_PDF_MUTATION, { id: submissionId, pdfStorageKey: url })
-      onUploaded(url)
+      const url = await uploadPdf(file, submissionId);
+      await gqlFetch(ATTACH_PDF_MUTATION, { id: submissionId, pdfStorageKey: url });
+      onUploaded(url);
     } catch {
       // upload failed; loading resets via finally
     } finally {
-      setLoading(false)
-      if (inputRef.current) inputRef.current.value = ''
+      setLoading(false);
+      if (inputRef.current) inputRef.current.value = "";
     }
   }
 
@@ -52,12 +56,14 @@ export default function PdfUploadButton({ submissionId, onUploaded, replace }: P
       <Button
         variant="outlined"
         size="small"
-        startIcon={loading ? <CircularProgress size={14} /> : <UploadFileOutlinedIcon />}
+        startIcon={
+          loading ? <CircularProgress size={14} /> : <UploadFileOutlinedIcon />
+        }
         disabled={loading}
         onClick={() => inputRef.current?.click()}
       >
-        {loading ? 'Uploading…' : replace ? 'Replace PDF' : 'Attach original PDF'}
+        {loading ? "Uploading…" : replace ? "Replace PDF" : "Attach original PDF"}
       </Button>
     </>
-  )
+  );
 }

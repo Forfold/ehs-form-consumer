@@ -1,95 +1,99 @@
-'use client'
+"use client";
 
-import { useEffect, useRef, useState } from 'react'
-import Box from '@mui/material/Box'
-import CircularProgress from '@mui/material/CircularProgress'
-import Dialog from '@mui/material/Dialog'
-import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
-import CloseIcon from '@mui/icons-material/Close'
+import { useEffect, useRef, useState } from "react";
+import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
+import Dialog from "@mui/material/Dialog";
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
+import CloseIcon from "@mui/icons-material/Close";
 
 interface Props {
-  url: string
+  url: string;
 }
 
 export default function PdfViewer({ url }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [zoomedImage, setZoomedImage] = useState<string | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false
+    let cancelled = false;
 
     async function render() {
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
 
       try {
-        const pdfjs = await import('pdfjs-dist')
+        const pdfjs = await import("pdfjs-dist");
         pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-          'pdfjs-dist/build/pdf.worker.min.mjs',
+          "pdfjs-dist/build/pdf.worker.min.mjs",
           import.meta.url,
-        ).href
+        ).href;
 
-        const res = await fetch(url)
-        const buffer = await res.arrayBuffer()
-        const pdf = await pdfjs.getDocument({ data: buffer }).promise
+        const res = await fetch(url);
+        const buffer = await res.arrayBuffer();
+        const pdf = await pdfjs.getDocument({ data: buffer }).promise;
 
-        if (cancelled || !containerRef.current) return
+        if (cancelled || !containerRef.current) return;
 
-        containerRef.current.innerHTML = ''
+        containerRef.current.innerHTML = "";
 
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-          if (cancelled) break
-          const page = await pdf.getPage(pageNum)
-          const viewport = page.getViewport({ scale: 1.5 })
+          if (cancelled) break;
+          const page = await pdf.getPage(pageNum);
+          const viewport = page.getViewport({ scale: 1.5 });
 
-          const canvas = document.createElement('canvas')
-          canvas.width = Math.floor(viewport.width)
-          canvas.height = Math.floor(viewport.height)
-          canvas.style.display = 'block'
-          canvas.style.width = '100%'
-          canvas.style.marginBottom = '8px'
-          canvas.style.borderRadius = '4px'
-          canvas.style.cursor = 'zoom-in'
-          canvas.title = 'Click to zoom'
-          canvas.addEventListener('click', () => setZoomedImage(canvas.toDataURL()))
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.floor(viewport.width);
+          canvas.height = Math.floor(viewport.height);
+          canvas.style.display = "block";
+          canvas.style.width = "100%";
+          canvas.style.marginBottom = "8px";
+          canvas.style.borderRadius = "4px";
+          canvas.style.cursor = "zoom-in";
+          canvas.title = "Click to zoom";
+          canvas.addEventListener("click", () => setZoomedImage(canvas.toDataURL()));
 
-          containerRef.current?.appendChild(canvas)
+          containerRef.current?.appendChild(canvas);
 
           await page.render({
             canvas,
-            canvasContext: canvas.getContext('2d')!,
+            canvasContext: canvas.getContext("2d")!,
             viewport,
             annotationMode: pdfjs.AnnotationMode.ENABLE_STORAGE,
-          }).promise
+          }).promise;
 
-          page.cleanup()
+          page.cleanup();
         }
 
-        await pdf.destroy()
+        await pdf.destroy();
       } catch {
-        if (!cancelled) setError('Failed to load PDF')
+        if (!cancelled) setError("Failed to load PDF");
       } finally {
-        if (!cancelled) setLoading(false)
+        if (!cancelled) setLoading(false);
       }
     }
 
-    render()
-    return () => { cancelled = true }
-  }, [url])
+    render();
+    return () => {
+      cancelled = true;
+    };
+  }, [url]);
 
   return (
     <>
       <Box>
         {loading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
             <CircularProgress size={28} />
           </Box>
         )}
         {error && (
-          <Typography color="error" variant="body2">{error}</Typography>
+          <Typography color="error" variant="body2">
+            {error}
+          </Typography>
         )}
         <Box ref={containerRef} />
       </Box>
@@ -99,13 +103,29 @@ export default function PdfViewer({ url }: Props) {
         open={!!zoomedImage}
         onClose={() => setZoomedImage(null)}
         maxWidth={false}
-        slotProps={{ paper: { sx: { m: 1, maxWidth: '95vw', maxHeight: '95vh', bgcolor: 'background.paper' } } }}
+        slotProps={{
+          paper: {
+            sx: {
+              m: 1,
+              maxWidth: "95vw",
+              maxHeight: "95vh",
+              bgcolor: "background.paper",
+            },
+          },
+        }}
       >
-        <Box sx={{ position: 'relative' }}>
+        <Box sx={{ position: "relative" }}>
           <IconButton
             onClick={() => setZoomedImage(null)}
             size="small"
-            sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1, bgcolor: 'background.paper', '&:hover': { bgcolor: 'action.hover' } }}
+            sx={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+              zIndex: 1,
+              bgcolor: "background.paper",
+              "&:hover": { bgcolor: "action.hover" },
+            }}
           >
             <CloseIcon fontSize="small" />
           </IconButton>
@@ -114,11 +134,16 @@ export default function PdfViewer({ url }: Props) {
             <img
               src={zoomedImage}
               alt="PDF page zoom"
-              style={{ display: 'block', maxWidth: '95vw', maxHeight: '95vh', objectFit: 'contain' }}
+              style={{
+                display: "block",
+                maxWidth: "95vw",
+                maxHeight: "95vh",
+                objectFit: "contain",
+              }}
             />
           )}
         </Box>
       </Dialog>
     </>
-  )
+  );
 }
