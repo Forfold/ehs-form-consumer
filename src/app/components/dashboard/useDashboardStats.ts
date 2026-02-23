@@ -38,7 +38,9 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
       bucketMap.set(monthKey(d), { month: monthLabel(d), compliant: 0, nonCompliant: 0, needsAttention: 0 })
     }
     for (const item of history) {
-      const key = monthKey(new Date(item.processedAt))
+      const d = item.data as Partial<InspectionDataSummary>
+      const dateStr = d.inspectionDate
+      const key = monthKey(dateStr ? new Date(dateStr) : new Date(item.processedAt))
       const bucket = bucketMap.get(key)
       if (!bucket) continue
       const status = (item.data as Partial<InspectionDataSummary>).overallStatus
