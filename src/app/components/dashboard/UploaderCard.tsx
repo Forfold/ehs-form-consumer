@@ -22,7 +22,7 @@ export default function UploaderCard({ onFile, loading, error }: Props) {
   return (
     <Paper
       variant="outlined"
-      sx={{ width: { xs: '100%', lg: 400 }, flexShrink: 0, p: { xs: 3, sm: 4 }, borderRadius: 3, alignSelf: 'flex-start' }}
+      sx={{ width: { xs: '100%', lg: 400 }, flexShrink: 0, p: { xs: 3, sm: 4 }, alignSelf: 'flex-start' }}
     >
       <Typography variant="h6" gutterBottom>
         Monthly Inspection Form

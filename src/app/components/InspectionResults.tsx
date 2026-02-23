@@ -114,7 +114,7 @@ export default function InspectionResults({ data, onReset }: Props) {
       </Alert>
 
       {/* Facility info */}
-      <Paper variant="outlined" sx={{ p: 3 }}>
+      <Paper variant="outlined" sx={{ p: 2 }}>
         <SectionHeading>Facility Information</SectionHeading>
         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
           {[
@@ -135,7 +135,7 @@ export default function InspectionResults({ data, onReset }: Props) {
 
       {/* Summary */}
       {data.summary && (
-        <Paper variant="outlined" sx={{ p: 3 }}>
+        <Paper variant="outlined" sx={{ p: 2 }}>
           <SectionHeading>Summary</SectionHeading>
           <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.7 }}>
             {data.summary}
@@ -145,7 +145,7 @@ export default function InspectionResults({ data, onReset }: Props) {
 
       {/* BMP items */}
       {bmpItems.length > 0 && (
-        <Paper variant="outlined" sx={{ p: 3 }}>
+        <Paper variant="outlined" sx={{ p: 2 }}>
           <SectionHeading>BMP Inspection Items</SectionHeading>
           <TableContainer>
             <Table size="small">
@@ -180,7 +180,7 @@ export default function InspectionResults({ data, onReset }: Props) {
 
       {/* Corrective actions */}
       {correctiveActions.length > 0 && (
-        <Paper variant="outlined" sx={{ p: 3 }}>
+        <Paper variant="outlined" sx={{ p: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
             <SectionHeading>Corrective Actions</SectionHeading>
             {pendingCount > 0 && (
@@ -220,7 +220,7 @@ export default function InspectionResults({ data, onReset }: Props) {
 
       {/* Deadletter */}
       {data.deadletter && Object.keys(data.deadletter).length > 0 && (
-        <Paper variant="outlined" sx={{ p: 3 }}>
+        <Paper variant="outlined" sx={{ p: 2 }}>
           <SectionHeading>Unprocessable Fields</SectionHeading>
           <Box
             component="pre"

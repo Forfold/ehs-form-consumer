@@ -28,7 +28,7 @@ export function DashboardGrid({ stats, windowLabel, historyLoading }: DashboardG
         display: 'grid',
         gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
         gridAutoRows: 'min-content',
-        gap: 2,
+        gap: 3,
         alignContent: 'start',
       }}
     >
