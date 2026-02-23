@@ -804,6 +804,50 @@ builder.mutationType({
       },
     }),
 
+    // Delete a submission (owner, or admin/owner of any team the submission belongs to)
+    deleteSubmission: t.field({
+      type:     'Boolean',
+      args:     { id: t.arg.id({ required: true }) },
+      resolve: async (_, { id }, ctx) => {
+        if (!ctx.userId) throw new Error('Not authenticated')
+        const subId = String(id)
+
+        // Check ownership first
+        const owned = await ctx.db
+          .select({ id: formSubmissions.id })
+          .from(formSubmissions)
+          .where(and(eq(formSubmissions.id, subId), eq(formSubmissions.userId, ctx.userId)))
+          .limit(1)
+
+        if (!owned[0]) {
+          // Not the owner — check if user is admin/owner of any team this submission belongs to
+          const teamRows = await ctx.db
+            .select({ teamId: formSubmissionTeams.teamId })
+            .from(formSubmissionTeams)
+            .where(eq(formSubmissionTeams.formSubmissionId, subId))
+
+          if (teamRows.length === 0) throw new Error('Submission not found or access denied')
+
+          const memberRows = await ctx.db
+            .select({ role: teamMembers.role })
+            .from(teamMembers)
+            .where(and(
+              inArray(teamMembers.teamId, teamRows.map((r) => r.teamId)),
+              eq(teamMembers.userId, ctx.userId),
+            ))
+            .limit(1)
+
+          const member = memberRows[0]
+          if (!member || ROLE_ORDER[member.role as Role] < ROLE_ORDER['admin']) {
+            throw new Error('Forbidden')
+          }
+        }
+
+        await ctx.db.delete(formSubmissions).where(eq(formSubmissions.id, subId))
+        return true
+      },
+    }),
+
   }),
 })
 

@@ -19,6 +19,7 @@ import InspectionResults from '@/app/components/InspectionResults'
 import HistorySidebar from '@/app/components/HistorySidebar'
 import PdfSection from '@/app/components/pdf/PdfSection'
 import UserMenu from '@/app/components/UserMenu'
+import DeleteFormButton from './DeleteFormButton'
 
 type OverallStatus = 'compliant' | 'non-compliant' | 'needs-attention'
 
@@ -169,6 +170,12 @@ export default function FormDetailPage() {
             submissionId={submission.id}
             initialPdfUrl={submission.pdfStorageKey}
           />
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
+            <DeleteFormButton
+              submissionId={submission.id}
+              displayName={(submission.data?.facilityName as string | undefined) ?? submission.displayName}
+            />
+          </Box>
         </Container>
       )}
     </Box>
