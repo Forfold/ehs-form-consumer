@@ -2,21 +2,20 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import PdfSection from '../PdfSection'
 
 // Mock heavy child components — their own tests cover their behavior.
-// Use require() inside each function body to avoid JSX-runtime hoisting issues.
 jest.mock('../PdfViewer', () => ({
   __esModule: true,
   default: function MockPdfViewer({ url }: { url: string }) {
-    return require('react').createElement('div', { 'data-testid': 'pdf-viewer', 'data-url': url })
+    return <div data-testid="pdf-viewer" data-url={url} />
   },
 }))
 
 jest.mock('../PdfUploadButton', () => ({
   __esModule: true,
   default: function MockPdfUploadButton({ onUploaded }: { onUploaded: (url: string) => void }) {
-    return require('react').createElement(
-      'button',
-      { 'data-testid': 'pdf-upload-button', onClick: () => onUploaded('https://blob.vercel.com/new.pdf') },
-      'Attach original PDF',
+    return (
+      <button data-testid="pdf-upload-button" onClick={() => onUploaded('https://blob.vercel.com/new.pdf')}>
+        Attach original PDF
+      </button>
     )
   },
 }))

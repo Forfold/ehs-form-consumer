@@ -52,7 +52,7 @@ export default function Home() {
       .finally(() => setHistoryLoading(false))
   }
 
-  useEffect(() => { loadHistory() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { loadHistory() }, [])  
 
   function handleSaved(submissionId: string) {
     setDialogFile(null)
