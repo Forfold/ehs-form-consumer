@@ -67,6 +67,14 @@ const SUBMISSIONS_QUERY = `
   }
 `
 
+const ME_QUERY = `query { me { name email } }`
+
+const UPDATE_DATA_MUTATION = `
+  mutation UpdateSubmissionData($id: ID!, $data: JSON!) {
+    updateSubmissionData(id: $id, data: $data) { id data }
+  }
+`
+
 function submissionToHistoryItem(s: GqlSubmission) {
   return {
     id: s.id,
@@ -98,6 +106,8 @@ export default function FormDetailPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [history, setHistory] = useState<ReturnType<typeof submissionToHistoryItem>[]>([])
   const [ncModalOpen, setNcModalOpen] = useState(false)
+  const [currentUserName, setCurrentUserName] = useState<string | undefined>(undefined)
+  const [editError, setEditError] = useState<string | null>(null)
 
   useEffect(() => {
     gqlFetch<{ submission: GqlSubmission | null }>(SUBMISSION_QUERY, { id })
@@ -114,6 +124,26 @@ export default function FormDetailPage() {
       .then(({ submissions }) => setHistory(submissions.map(submissionToHistoryItem)))
       .catch(() => {/* DB not configured yet */})
   }, [])
+
+  useEffect(() => {
+    gqlFetch<{ me: { name: string | null; email: string | null } | null }>(ME_QUERY)
+      .then(({ me }) => setCurrentUserName(me?.name ?? me?.email ?? undefined))
+      .catch(() => {/* optional */})
+  }, [])
+
+  async function handleEdit(updated: InspectionData) {
+    if (!submission) return
+    const prev = submission
+    // Optimistic update
+    setSubmission({ ...submission, data: updated as unknown as Record<string, unknown> })
+    setEditError(null)
+    try {
+      await gqlFetch(UPDATE_DATA_MUTATION, { id: submission.id, data: updated })
+    } catch (err) {
+      setSubmission(prev)
+      setEditError(err instanceof Error ? err.message : 'Failed to save edit')
+    }
+  }
 
   // Derived banner data
   const inspectionData = submission?.data as Partial<InspectionData> | undefined
@@ -196,6 +226,7 @@ export default function FormDetailPage() {
 
           {/* Full-width banners */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
+            {editError && <Alert severity="error" onClose={() => setEditError(null)}>{editError}</Alert>}
             {isBlankForm && (
               <Alert severity="info">
                 This appears to be an unfilled form template. Upload a completed inspection form to see extracted results.
@@ -255,6 +286,8 @@ export default function FormDetailPage() {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
               <InspectionResults
                 data={submission.data as unknown as InspectionData}
+                currentUserName={currentUserName}
+                onEdit={handleEdit}
               />
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                 <Button variant="outlined" onClick={() => router.push('/')}>
