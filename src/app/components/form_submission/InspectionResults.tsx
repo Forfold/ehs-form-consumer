@@ -15,33 +15,9 @@ import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
+import type { BmpStatus, InspectionData } from '@/lib/types/inspection'
 
-type BmpStatus = 'pass' | 'fail' | 'na'
-type OverallStatus = 'compliant' | 'non-compliant' | 'needs-attention'
-
-interface BmpItem {
-  description: string
-  status: BmpStatus
-  notes: string
-}
-
-interface CorrectiveAction {
-  description: string
-  dueDate: string
-  completed: boolean
-}
-
-export interface InspectionData {
-  facilityName: string
-  permitNumber: string
-  inspectionDate: string
-  inspectorName: string
-  overallStatus: OverallStatus
-  bmpItems: BmpItem[]
-  correctiveActions: CorrectiveAction[]
-  summary: string
-  deadletter?: Record<string, unknown>
-}
+export type { InspectionData }
 
 interface Props {
   data: InspectionData
