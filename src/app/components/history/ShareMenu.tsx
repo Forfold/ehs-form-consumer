@@ -35,10 +35,10 @@ interface GqlTeam {
 
 export function ShareMenu({
   item,
-  onTeamsChanged,
+  onTeamsChangedAction,
 }: {
   item: HistoryItem
-  onTeamsChanged: (teams: Array<{ id: string; name: string }>) => void
+  onTeamsChangedAction: (teams: Array<{ id: string; name: string }>) => void
 }) {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [userTeams, setUserTeams] = useState<GqlTeam[]>([])
@@ -65,7 +65,7 @@ export function ShareMenu({
         teamId: team.id,
       })
       const newTeams = [...(item.teams ?? []).filter((t) => t.id !== team.id), { id: team.id, name: team.name }]
-      onTeamsChanged(newTeams)
+      onTeamsChangedAction(newTeams)
     } finally {
       setSharingId(null)
       setAnchor(null)

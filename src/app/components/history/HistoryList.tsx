@@ -40,7 +40,7 @@ export function HistoryList({ items, onItemClick, onItemTeamsChanged }: HistoryL
             secondaryAction={
               <ShareMenu
                 item={item}
-                onTeamsChanged={(teams) => onItemTeamsChanged?.(item.id, teams)}
+                onTeamsChangedAction={(teams) => onItemTeamsChanged?.(item.id, teams)}
               />
             }
           >
