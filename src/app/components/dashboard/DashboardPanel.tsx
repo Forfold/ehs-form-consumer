@@ -36,7 +36,7 @@ export default function DashboardPanel({ history, historyLoading, onItemTeamsCha
     return Array.from(seen.entries()).map(([id, name]) => ({ id, name }))
   }, [history])
 
-  const submissionOptions = useMemo(
+  const filterBySubmissionOptions = useMemo(
     () => history.map(h => ({ id: h.id, label: submissionLabel(h) })),
     [history],
   )
@@ -61,7 +61,7 @@ export default function DashboardPanel({ history, historyLoading, onItemTeamsCha
         teams={teams}
         teamId={teamId}
         onTeamChange={setTeamId}
-        submissionOptions={submissionOptions}
+        filterBySubmissionOptions={filterBySubmissionOptions}
         selectedSubmissionId={resolvedSubmissionId}
         onSubmissionChange={setSelectedSubmissionId}
         history={history}

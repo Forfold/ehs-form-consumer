@@ -89,10 +89,9 @@ function submissionToHistoryItem(s: GqlSubmission) {
 function breadcrumbTitle(submission: GqlSubmission | null, loading: boolean): string {
   if (loading) return '…'
   if (!submission) return '—'
-  const data = submission.data as Partial<InspectionData>
-  const parts = [data.permitNumber, data.inspectionDate].filter(Boolean)
-  if (parts.length > 0) return parts.join(' · ')
-  return (data.facilityName ?? submission.displayName ?? submission.fileName ?? '—')
+  // todo: make ID and permitNumber always required on submission data
+  const data = submission.data as unknown as InspectionData
+  return data.permitNumber
 }
 
 export default function FormDetailPage() {

@@ -33,7 +33,7 @@ interface Props {
   teams: FilterTeam[]
   teamId: string
   onTeamChange: (teamId: string) => void
-  submissionOptions: SubmissionOption[]
+  filterBySubmissionOptions: SubmissionOption[]
   selectedSubmissionId: string
   onSubmissionChange: (id: string) => void
   history: HistoryItem[]
@@ -53,7 +53,7 @@ const TIME_OPTIONS: Array<{ value: TimeRange; label: string }> = [
 export default function DashboardFilterBar({
   timeRange, onTimeRangeChange,
   teams, teamId, onTeamChange,
-  submissionOptions, selectedSubmissionId, onSubmissionChange,
+  filterBySubmissionOptions, selectedSubmissionId, onSubmissionChange,
   history, onItemTeamsChanged,
 }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -88,9 +88,9 @@ export default function DashboardFilterBar({
             displayEmpty
             sx={{ fontSize: '0.75rem', minWidth: 200, maxWidth: 300, '& .MuiSelect-select': { py: '3px' } }}
           >
-            {submissionOptions.length === 0
+            {filterBySubmissionOptions.length === 0
               ? <MenuItem value="" disabled>No submissions</MenuItem>
-              : submissionOptions.map(s => (
+              : filterBySubmissionOptions.map(s => (
                   <MenuItem key={s.id} value={s.id}>{s.label}</MenuItem>
                 ))
             }
