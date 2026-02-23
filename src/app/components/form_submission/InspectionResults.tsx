@@ -192,6 +192,9 @@ export default function InspectionResults({ data, currentUserName, onEdit }: Pro
   const [expandedAction, setExpandedAction] = useState<number | null>(null)
   const [addingItem, setAddingItem]         = useState(false)
   const [addingAction, setAddingAction]     = useState(false)
+  const [resolvingKey, setResolvingKey]     = useState<string | null>(null)
+  const [resolveValue, setResolveValue]     = useState('')
+  const [resolveEditType, setResolveEditType] = useState<EditMeta['editType'] | null>(null)
 
   function makeMeta(editType: EditMeta['editType']): EditMeta {
     return { editedBy: currentUserName ?? 'Unknown', editedAt: new Date().toISOString(), editType }
@@ -597,24 +600,111 @@ export default function InspectionResults({ data, currentUserName, onEdit }: Pro
       )}
 
       {/* Deadletter */}
-      {deadletterCount > 0 && (
+      {(deadletterCount > 0 || (data.resolvedDeadletterFields?.length ?? 0) > 0) && (
         <Paper id="deadletter-section" variant="outlined" sx={{ p: 2 }}>
           <SectionHeading>Unprocessable Fields</SectionHeading>
-          <Box
-            component="pre"
-            sx={{
-              m: 0,
-              p: 2,
-              bgcolor: 'action.hover',
-              borderRadius: 1,
-              fontSize: 12,
-              color: 'text.secondary',
-              overflowX: 'auto',
-              fontFamily: 'var(--font-geist-mono), monospace',
-            }}
-          >
-            {JSON.stringify(data.deadletter, null, 2)}
-          </Box>
+
+          {/* Unresolved keys */}
+          {deadletterCount > 0 && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {Object.entries(data.deadletter ?? {}).map(([key, val]) => (
+                <Box key={key}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                    <Box
+                      component="pre"
+                      sx={{
+                        flex: 1, m: 0, p: 1.5,
+                        bgcolor: 'action.hover', borderRadius: 1,
+                        fontSize: 12, color: 'text.secondary', overflowX: 'auto',
+                        fontFamily: 'var(--font-geist-mono), monospace',
+                      }}
+                    >
+                      {key}: {JSON.stringify(val, null, 2)}
+                    </Box>
+                    {canEdit && resolvingKey !== key && (
+                      <Button
+                        size="small" variant="outlined"
+                        onClick={() => {
+                          setResolvingKey(key)
+                          setResolveValue(typeof val === 'string' ? val : '')
+                          setResolveEditType(null)
+                        }}
+                        sx={{ whiteSpace: 'nowrap', mt: 0.25 }}
+                      >
+                        Mark resolved
+                      </Button>
+                    )}
+                  </Box>
+                  <Collapse in={resolvingKey === key} unmountOnExit>
+                    <Box sx={{ mt: 1, p: 1.5, bgcolor: 'action.hover', borderRadius: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                      <TextField
+                        label="Resolved value" size="small" fullWidth
+                        value={resolveValue}
+                        onChange={(e) => setResolveValue(e.target.value)}
+                        autoFocus
+                      />
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                        <EditTypeSelector value={resolveEditType} onChange={setResolveEditType} />
+                        <Box sx={{ ml: 'auto', display: 'flex', gap: 0.5 }}>
+                          <IconButton size="small" onClick={() => setResolvingKey(null)}>
+                            <CloseIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton
+                            size="small" color="primary"
+                            disabled={!resolveEditType}
+                            onClick={() => {
+                              if (!resolveEditType || !onEdit) return
+                              const { [key]: _removed, ...remaining } = data.deadletter ?? {}
+                              onEdit({
+                                ...data,
+                                deadletter: Object.keys(remaining).length > 0 ? remaining : undefined,
+                                resolvedDeadletterFields: [
+                                  ...(data.resolvedDeadletterFields ?? []),
+                                  { key, value: resolveValue, ...makeMeta(resolveEditType) },
+                                ],
+                              })
+                              setResolvingKey(null)
+                            }}
+                          >
+                            <CheckIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      </Box>
+                    </Box>
+                  </Collapse>
+                </Box>
+              ))}
+            </Box>
+          )}
+
+          {/* Resolved fields */}
+          {(data.resolvedDeadletterFields?.length ?? 0) > 0 && (
+            <Box sx={{ mt: deadletterCount > 0 ? 2 : 0 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Resolved
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, mt: 0.75 }}>
+                {data.resolvedDeadletterFields!.map((f, i) => (
+                  <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                    <Box
+                      component="pre"
+                      sx={{
+                        flex: 1, m: 0, p: 1.5,
+                        bgcolor: 'success.50', borderRadius: 1,
+                        fontSize: 12, color: 'text.secondary', overflowX: 'auto',
+                        fontFamily: 'var(--font-geist-mono), monospace',
+                      }}
+                    >
+                      {f.key}: {f.value}
+                    </Box>
+                    <Box sx={{ pt: 0.5 }}>
+                      <EditMetaBadge meta={f} />
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          )}
         </Paper>
       )}
 
