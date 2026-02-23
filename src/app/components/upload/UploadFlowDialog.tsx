@@ -18,6 +18,7 @@ import { uploadPdf } from '@/lib/uploadPdf'
 import { gqlFetch } from '@/lib/graphql/client'
 import type { InspectionData, InspectionFieldHints } from '@/lib/types/inspection'
 import PostReviewStep from './PostReviewStep'
+import PreReviewStep from './PreReviewStep'
 
 const CREATE_SUBMISSION_MUTATION = `
   mutation CreateSubmission($input: CreateSubmissionInput!) {
@@ -125,16 +126,8 @@ export default function UploadFlowDialog({ open, file, onClose, onSaved }: Props
       <DialogContent dividers sx={{ minHeight: 300 }}>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-        {step === 'pre-review' && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 200, gap: 2 }}>
-            <Typography variant="body1">
-              Ready to analyze <strong>{file?.name}</strong>
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', maxWidth: 420 }}>
-              Field hints let you pre-fill known values so the AI focuses on checkbox detection.
-              You&apos;ll be able to review and edit all extracted data before saving.
-            </Typography>
-          </Box>
+        {step === 'pre-review' && file && (
+          <PreReviewStep file={file} hints={fieldHints} onChange={setFieldHints} />
         )}
 
         {step === 'processing' && (
