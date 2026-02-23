@@ -46,6 +46,7 @@ export default function UploadFlowDialog({ open, file, onClose, onSaved }: Props
   const [step, setStep] = useState<FlowStep>('pre-review')
   const [fieldHints, setFieldHints] = useState<Partial<InspectionFieldHints>>({})
   const [editedData, setEditedData] = useState<InspectionData>(EMPTY_DATA)
+  const [processed, setProcessed] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
@@ -55,6 +56,7 @@ export default function UploadFlowDialog({ open, file, onClose, onSaved }: Props
       setStep('pre-review')
       setFieldHints({})
       setEditedData(EMPTY_DATA)
+      setProcessed(false)
       setError(null)
       setSaving(false)
     }
@@ -70,6 +72,7 @@ export default function UploadFlowDialog({ open, file, onClose, onSaved }: Props
       .then((data: InspectionData) => {
         if (cancelled) return
         setEditedData(data)
+        setProcessed(true)
         setStep('post-review')
       })
       .catch((err: unknown) => {
@@ -117,8 +120,10 @@ export default function UploadFlowDialog({ open, file, onClose, onSaved }: Props
 
       <Box sx={{ px: 3, pb: 1 }}>
         <Stepper activeStep={STEP_INDEX[step]} alternativeLabel>
-          {STEP_LABELS.map(label => (
-            <Step key={label}><StepLabel>{label}</StepLabel></Step>
+          {STEP_LABELS.map((label, index) => (
+            <Step key={label} completed={processed && step === 'pre-review' && index === 1 ? true : undefined}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
           ))}
         </Stepper>
       </Box>
@@ -147,9 +152,15 @@ export default function UploadFlowDialog({ open, file, onClose, onSaved }: Props
           <>
             <Button onClick={onClose}>Cancel</Button>
             <Box sx={{ flex: 1 }} />
-            <Button variant="contained" onClick={() => setStep('processing')}>
-              Process PDF
-            </Button>
+            {processed ? (
+              <Button variant="contained" onClick={() => setStep('post-review')}>
+                Back to Results
+              </Button>
+            ) : (
+              <Button variant="contained" onClick={() => setStep('processing')}>
+                Process PDF
+              </Button>
+            )}
           </>
         )}
         {step === 'processing' && (
