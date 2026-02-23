@@ -9,10 +9,9 @@ import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutl
 
 interface DropZoneProps {
   onFileSelected: (file: File) => void
-  loading: boolean
 }
 
-export function DropZone({ onFileSelected, loading }: DropZoneProps) {
+export function DropZone({ onFileSelected }: DropZoneProps) {
   const [dragging, setDragging] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -37,9 +36,9 @@ export function DropZone({ onFileSelected, loading }: DropZoneProps) {
 
   return (
     <Box
-      onClick={() => !loading && inputRef.current?.click()}
+      onClick={() => inputRef.current?.click()}
       onDrop={handleDrop}
-      onDragOver={(e) => { e.preventDefault(); if (!loading) setDragging(true) }}
+      onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
       onDragLeave={() => setDragging(false)}
       sx={{
         border: '1.5px dashed',
@@ -52,11 +51,9 @@ export function DropZone({ onFileSelected, loading }: DropZoneProps) {
         alignItems: 'center',
         justifyContent: 'center',
         gap: 0.75,
-        cursor: loading ? 'default' : 'pointer',
+        cursor: 'pointer',
         bgcolor: selectedFile ? 'success.50' : dragging ? 'primary.50' : 'action.hover',
         transition: 'border-color 0.15s, background-color 0.15s',
-        pointerEvents: loading ? 'none' : undefined,
-        opacity: loading ? 0.6 : 1,
         '&:hover': {
           borderColor: selectedFile ? 'success.main' : 'primary.main',
           bgcolor: 'action.hover',
