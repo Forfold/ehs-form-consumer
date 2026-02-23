@@ -1,10 +1,10 @@
-export type BmpStatus = 'pass' | 'fail' | 'na'
+export type ChecklistStatus = 'pass' | 'fail' | 'na'
 export type OverallStatus = 'compliant' | 'non-compliant' | 'needs-attention'
 
-export interface BmpItem {
+export interface ChecklistItem {
   section?: string
   description: string
-  status: BmpStatus
+  status: ChecklistStatus
   notes: string
 }
 
@@ -22,7 +22,7 @@ export interface InspectionData {
   weatherConditions?: string
   rainEventDuringInspection?: boolean | null
   overallStatus: OverallStatus
-  bmpItems: BmpItem[]
+  checklistItems: ChecklistItem[]
   correctiveActions: CorrectiveAction[]
   summary: string
   deadletter?: Record<string, unknown>

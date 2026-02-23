@@ -22,12 +22,12 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
       history.length === 0 ? 100 : Math.round((compliant / history.length) * 100)
 
     // BMP totals across all history
-    const bmpTotals = { pass: 0, fail: 0, na: 0 }
+    const checklistTotals = { pass: 0, fail: 0, na: 0 }
     for (const item of history) {
-      for (const bmp of (item.data as Partial<InspectionDataSummary>).bmpItems ?? []) {
-        if (bmp.status === 'pass') bmpTotals.pass++
-        else if (bmp.status === 'fail') bmpTotals.fail++
-        else bmpTotals.na++
+      for (const bmp of (item.data as Partial<InspectionDataSummary>).checklistItems ?? []) {
+        if (bmp.status === 'pass') checklistTotals.pass++
+        else if (bmp.status === 'fail') checklistTotals.fail++
+        else checklistTotals.na++
       }
     }
 
@@ -64,7 +64,7 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
         }))
 
       // If no corrective actions were documented, surface each failed BMP item as a gap
-      const failedBmps = (d.bmpItems ?? []).filter(b => b.status === 'fail')
+      const failedBmps = (d.checklistItems ?? []).filter(b => b.status === 'fail')
       const gaps = documented.length === 0 && failedBmps.length > 0
         ? failedBmps.map(b => ({
             submissionId: item.id,
@@ -87,12 +87,12 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
           submissionId: item.id,
           facilityName: item.facilityName ?? item.fileName,
           inspectionDate: d.inspectionDate ?? null,
-          failedBmpItems: (d.bmpItems ?? [])
+          failedChecklistItems: (d.checklistItems ?? [])
             .filter(b => b.status === 'fail')
             .map(b => ({ section: b.section, description: b.description, notes: b.notes })),
         }
       })
 
-    return { compliancePercent, formCount: history.length, bmpTotals, monthlyBuckets, openActions, flaggedForms }
+    return { compliancePercent, formCount: history.length, checklistTotals, monthlyBuckets, openActions, flaggedForms }
   }, [history])
 }

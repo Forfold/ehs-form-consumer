@@ -36,7 +36,7 @@ Extract into this exact JSON shape:
   "weatherConditions": string or null,
   "rainEventDuringInspection": boolean or null,
   "overallStatus": "compliant" | "non-compliant" | "needs-attention",
-  "bmpItems": [
+  "checklistItems": [
     {
       "section": string,
       "description": string,
@@ -51,12 +51,12 @@ Extract into this exact JSON shape:
   "deadletter": {}
 }
 
-The "section" field in bmpItems must be one of:
+The "section" field in checklistItems must be one of:
 "SWPPP and Site Map" | "Vehicle/Equipment - Cleaning" | "Vehicle/Equipment - Fueling" | "Vehicle/Equipment - Maintenance" | "Good Housekeeping" | "Spill Response and Equipment" | "General Material Storage" | "Storm Water BMPs and Treatment Structures" | "Observation of Storm Water Discharges" | "Miscellaneous"
 
 For overallStatus: if any bmpItem has status "fail", use "non-compliant"; if all are "pass" or "na", use "compliant"; otherwise use "needs-attention".
 
-Extract ALL checklist rows from every section of the form — list every BMP item as its own entry in bmpItems, even if no checkbox is marked (use "na" for unmarked rows). Never return an empty bmpItems array for a standard ISWGP form; the array should always reflect the full checklist structure. Put any text fields you cannot confidently assign to a field into "deadletter".
+Extract ALL checklist rows from every section of the form — list every BMP item as its own entry in checklistItems, even if no checkbox is marked (use "na" for unmarked rows). Never return an empty checklistItems array for a standard ISWGP form; the array should always reflect the full checklist structure. Put any text fields you cannot confidently assign to a field into "deadletter".
 
 Return only valid JSON, no markdown, no explanation.`
 

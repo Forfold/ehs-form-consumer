@@ -119,7 +119,9 @@ export default function FormDetailPage() {
   const inspectionData = submission?.data as Partial<InspectionData> | undefined
   const overallStatus = inspectionData?.overallStatus
   const statusConfig = overallStatus ? STATUS_CONFIG[overallStatus] : null
-  const bmpItems = inspectionData?.bmpItems ?? []
+  // Fall back to legacy 'bmpItems' key for submissions saved before the rename
+  type ChecklistItemArr = NonNullable<InspectionData['checklistItems']>
+  const bmpItems: ChecklistItemArr = (inspectionData?.checklistItems ?? (inspectionData as unknown as Record<string, unknown>)?.bmpItems ?? []) as ChecklistItemArr
   const passCount = bmpItems.filter(i => i.status === 'pass').length
   const failCount = bmpItems.filter(i => i.status === 'fail').length
   const failedItems = bmpItems.filter(i => i.status === 'fail')

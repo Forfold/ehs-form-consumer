@@ -3,13 +3,13 @@
 import { useTheme } from '@mui/material/styles'
 import ReactECharts from 'echarts-for-react'
 import DashboardCard from './DashboardCard'
-import type { BmpTotals } from './types'
+import type { ChecklistTotals } from './types'
 
 interface Props {
-  bmpTotals: BmpTotals
+  checklistTotals: ChecklistTotals
 }
 
-export default function BmpCheckSummaryCard({ bmpTotals }: Props) {
+export default function BmpCheckSummaryCard({ checklistTotals }: Props) {
   const theme = useTheme()
 
   const option = {
@@ -26,9 +26,9 @@ export default function BmpCheckSummaryCard({ bmpTotals }: Props) {
     series: [{
       type: 'bar',
       data: [
-        { value: bmpTotals.pass,  itemStyle: { color: theme.palette.success.main, borderRadius: [0, 4, 4, 0] } },
-        { value: bmpTotals.fail,  itemStyle: { color: theme.palette.error.main,   borderRadius: [0, 4, 4, 0] } },
-        { value: bmpTotals.na,    itemStyle: { color: theme.palette.action.disabled, borderRadius: [0, 4, 4, 0] } },
+        { value: checklistTotals.pass,  itemStyle: { color: theme.palette.success.main, borderRadius: [0, 4, 4, 0] } },
+        { value: checklistTotals.fail,  itemStyle: { color: theme.palette.error.main,   borderRadius: [0, 4, 4, 0] } },
+        { value: checklistTotals.na,    itemStyle: { color: theme.palette.action.disabled, borderRadius: [0, 4, 4, 0] } },
       ],
       barMaxWidth: 28,
       label: { show: true, position: 'right', color: theme.palette.text.secondary, fontSize: 11 },
@@ -36,7 +36,7 @@ export default function BmpCheckSummaryCard({ bmpTotals }: Props) {
   }
 
   return (
-    <DashboardCard title="BMP Check Summary" subtitle="All-time pass / fail / N/A">
+    <DashboardCard title="Checklist Summary" subtitle="All-time pass / fail / N/A">
       <ReactECharts option={option} style={{ height: 140 }} notMerge />
     </DashboardCard>
   )
