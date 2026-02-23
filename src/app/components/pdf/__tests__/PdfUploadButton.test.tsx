@@ -7,7 +7,7 @@ jest.mock('@/lib/uploadPdf')
 jest.mock('@/lib/graphql/client')
 
 const mockUploadPdf = uploadPdf as jest.MockedFunction<typeof uploadPdf>
-const mockGqlFetch  = gqlFetch  as jest.MockedFunction<typeof gqlFetch>
+const mockGqlFetch = gqlFetch as jest.MockedFunction<typeof gqlFetch>
 
 function selectFile(file: File) {
   const input = document.querySelector('input[type="file"]') as HTMLInputElement
@@ -15,7 +15,7 @@ function selectFile(file: File) {
 }
 
 const PDF_FILE = new File(['%PDF-1.4'], 'form.pdf', { type: 'application/pdf' })
-const BLOB_URL  = 'https://blob.vercel.com/submissions/sub-1.pdf'
+const BLOB_URL = 'https://blob.vercel.com/submissions/sub-1.pdf'
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -68,7 +68,11 @@ describe('PdfUploadButton', () => {
 
   it('disables the button and shows loading text while uploading', async () => {
     let resolve!: (url: string) => void
-    mockUploadPdf.mockReturnValue(new Promise(r => { resolve = r }))
+    mockUploadPdf.mockReturnValue(
+      new Promise((r) => {
+        resolve = r
+      }),
+    )
     mockGqlFetch.mockResolvedValue({})
 
     render(<PdfUploadButton submissionId="sub-1" onUploaded={jest.fn()} />)
@@ -79,7 +83,9 @@ describe('PdfUploadButton', () => {
 
     resolve(BLOB_URL)
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /attach original pdf/i })).not.toBeDisabled(),
+      expect(
+        screen.getByRole('button', { name: /attach original pdf/i }),
+      ).not.toBeDisabled(),
     )
   })
 
@@ -90,7 +96,9 @@ describe('PdfUploadButton', () => {
     selectFile(PDF_FILE)
 
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /attach original pdf/i })).not.toBeDisabled(),
+      expect(
+        screen.getByRole('button', { name: /attach original pdf/i }),
+      ).not.toBeDisabled(),
     )
   })
 })

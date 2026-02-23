@@ -16,7 +16,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'A PDF file is required' }, { status: 400 })
   }
 
-  const key = submissionId ? `submissions/${submissionId}.pdf` : `submissions/${crypto.randomUUID()}.pdf`
+  const key = submissionId
+    ? `submissions/${submissionId}.pdf`
+    : `submissions/${crypto.randomUUID()}.pdf`
   const blob = await put(key, file, { access: 'public', allowOverwrite: true })
 
   return NextResponse.json({ url: blob.url })

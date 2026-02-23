@@ -8,8 +8,8 @@ import { POST } from './route'
 jest.mock('@/auth', () => ({ auth: jest.fn() }))
 jest.mock('@vercel/blob', () => ({ put: jest.fn() }))
 
-const { auth }  = jest.requireMock('@/auth')  as { auth: jest.Mock }
-const { put }   = jest.requireMock('@vercel/blob') as { put: jest.Mock }
+const { auth } = jest.requireMock('@/auth') as { auth: jest.Mock }
+const { put } = jest.requireMock('@vercel/blob') as { put: jest.Mock }
 
 const MOCK_UUID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
 
@@ -18,12 +18,17 @@ function makePdfFile(name = 'form.pdf') {
 }
 
 function makeRequest(formData: FormData) {
-  return new NextRequest('http://localhost/api/upload-pdf', { method: 'POST', body: formData })
+  return new NextRequest('http://localhost/api/upload-pdf', {
+    method: 'POST',
+    body: formData,
+  })
 }
 
 beforeEach(() => {
   jest.clearAllMocks()
-  jest.spyOn(globalThis.crypto, 'randomUUID').mockReturnValue(MOCK_UUID as ReturnType<typeof crypto.randomUUID>)
+  jest
+    .spyOn(globalThis.crypto, 'randomUUID')
+    .mockReturnValue(MOCK_UUID as ReturnType<typeof crypto.randomUUID>)
 })
 
 describe('POST /api/upload-pdf', () => {
@@ -47,7 +52,10 @@ describe('POST /api/upload-pdf', () => {
     auth.mockResolvedValue({ user: { id: 'user-1' } })
 
     const formData = new FormData()
-    formData.append('file', new File(['content'], 'notes.txt', { type: 'text/plain' }))
+    formData.append(
+      'file',
+      new File(['content'], 'notes.txt', { type: 'text/plain' }),
+    )
 
     const res = await POST(makeRequest(formData))
     expect(res.status).toBe(400)
@@ -70,12 +78,16 @@ describe('POST /api/upload-pdf', () => {
       expect.objectContaining({ access: 'public' }),
     )
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ url: 'https://blob.vercel.com/submissions/sub-123.pdf' })
+    expect(await res.json()).toEqual({
+      url: 'https://blob.vercel.com/submissions/sub-123.pdf',
+    })
   })
 
   it('uses a random UUID as the key when no submissionId is provided', async () => {
     auth.mockResolvedValue({ user: { id: 'user-1' } })
-    put.mockResolvedValue({ url: `https://blob.vercel.com/submissions/${MOCK_UUID}.pdf` })
+    put.mockResolvedValue({
+      url: `https://blob.vercel.com/submissions/${MOCK_UUID}.pdf`,
+    })
 
     const formData = new FormData()
     formData.append('file', makePdfFile())
@@ -98,6 +110,8 @@ describe('POST /api/upload-pdf', () => {
     formData.append('submissionId', 'sub-123')
 
     const res = await POST(makeRequest(formData))
-    expect(await res.json()).toEqual({ url: 'https://blob.vercel.com/submissions/sub-123.pdf' })
+    expect(await res.json()).toEqual({
+      url: 'https://blob.vercel.com/submissions/sub-123.pdf',
+    })
   })
 })

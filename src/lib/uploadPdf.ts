@@ -10,6 +10,6 @@ export async function uploadPdf(file: File, submissionId?: string): Promise<stri
   const res = await fetch('/api/upload-pdf', { method: 'POST', body: form })
   if (!res.ok) throw new Error('PDF upload failed')
 
-  const { url } = await res.json() as { url: string }
+  const { url } = (await res.json()) as { url: string }
   return url
 }

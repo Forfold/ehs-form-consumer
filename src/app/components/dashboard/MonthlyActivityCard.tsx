@@ -11,7 +11,7 @@ interface Props {
 
 export default function MonthlyActivityCard({ buckets }: Props) {
   const theme = useTheme()
-  const months = buckets.map(b => b.month)
+  const months = buckets.map((b) => b.month)
 
   const option = {
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
@@ -40,21 +40,21 @@ export default function MonthlyActivityCard({ buckets }: Props) {
         name: 'Compliant',
         type: 'bar',
         stack: 'total',
-        data: buckets.map(b => b.compliant),
+        data: buckets.map((b) => b.compliant),
         itemStyle: { color: theme.palette.success.main },
       },
       {
         name: 'Needs Attention',
         type: 'bar',
         stack: 'total',
-        data: buckets.map(b => b.needsAttention),
+        data: buckets.map((b) => b.needsAttention),
         itemStyle: { color: theme.palette.warning.main },
       },
       {
         name: 'Non-Compliant',
         type: 'bar',
         stack: 'total',
-        data: buckets.map(b => b.nonCompliant),
+        data: buckets.map((b) => b.nonCompliant),
         itemStyle: { color: theme.palette.error.main, borderRadius: [4, 4, 0, 0] },
         barMaxWidth: 40,
       },
@@ -62,7 +62,10 @@ export default function MonthlyActivityCard({ buckets }: Props) {
   }
 
   return (
-    <DashboardCard title="Monthly Activity" subtitle="Submissions by compliance status">
+    <DashboardCard
+      title="Monthly Activity"
+      subtitle="Submissions by compliance status"
+    >
       <ReactECharts option={option} style={{ height: 200 }} notMerge />
     </DashboardCard>
   )

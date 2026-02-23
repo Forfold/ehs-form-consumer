@@ -2,8 +2,8 @@ export type ChecklistStatus = 'pass' | 'fail' | 'na'
 export type OverallStatus = 'compliant' | 'non-compliant' | 'needs-attention'
 
 export interface EditMeta {
-  editedBy: string   // user display name
-  editedAt: string   // ISO timestamp
+  editedBy: string // user display name
+  editedAt: string // ISO timestamp
   editType: 'correction' | 'update'
 }
 

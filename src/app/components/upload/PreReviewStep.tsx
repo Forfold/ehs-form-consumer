@@ -22,10 +22,20 @@ interface Props {
 
 // Storing `file` inside state lets us derive the stale/loading condition at render
 // time instead of resetting state synchronously inside an effect.
-type PdfState = { file: File | null; pages: string[]; loading: boolean; currentPage: number }
+type PdfState = {
+  file: File | null
+  pages: string[]
+  loading: boolean
+  currentPage: number
+}
 
 export default function PreReviewStep({ file, hints, onChange }: Props) {
-  const [pdfState, setPdfState] = useState<PdfState>({ file: null, pages: [], loading: true, currentPage: 0 })
+  const [pdfState, setPdfState] = useState<PdfState>({
+    file: null,
+    pages: [],
+    loading: true,
+    currentPage: 0,
+  })
   const [zoomOpen, setZoomOpen] = useState(false)
 
   // While the effect hasn't resolved for the current file, treat as loading/empty
@@ -40,42 +50,66 @@ export default function PreReviewStep({ file, hints, onChange }: Props) {
     pdfToImages(file, 1.5)
       .then((images) => {
         if (cancelled) return
-        setPdfState({ file, pages: images.map(img => `data:image/jpeg;base64,${img}`), loading: false, currentPage: 0 })
+        setPdfState({
+          file,
+          pages: images.map((img) => `data:image/jpeg;base64,${img}`),
+          loading: false,
+          currentPage: 0,
+        })
       })
-      .catch(err => {
+      .catch((err) => {
         console.warn('[PreReviewStep] PDF render failed:', err)
-        setPdfState(prev => ({ ...prev, file, loading: false }))
+        setPdfState((prev) => ({ ...prev, file, loading: false }))
       })
 
     // Auto-extract AcroForm fields silently for AI hints
     extractPdfFields(file)
       .then(({ hints: extracted, anyPrefilled }) => {
         if (cancelled) return
-        const userHasTyped = Object.values(hints).some(v => v?.trim())
+        const userHasTyped = Object.values(hints).some((v) => v?.trim())
         if (!userHasTyped && anyPrefilled) onChange(extracted)
       })
       .catch(() => {})
 
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [file]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const pageCount = pages.length
   const currentSrc = pages[currentPage]
 
-  function goPrev() { setPdfState(prev => ({ ...prev, currentPage: Math.max(0, prev.currentPage - 1) })) }
-  function goNext() { setPdfState(prev => ({ ...prev, currentPage: Math.min(prev.pages.length - 1, prev.currentPage + 1) })) }
+  function goPrev() {
+    setPdfState((prev) => ({
+      ...prev,
+      currentPage: Math.max(0, prev.currentPage - 1),
+    }))
+  }
+  function goNext() {
+    setPdfState((prev) => ({
+      ...prev,
+      currentPage: Math.min(prev.pages.length - 1, prev.currentPage + 1),
+    }))
+  }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-
+    <Box
+      sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}
+    >
       {/* PDF page preview */}
       <Box sx={{ position: 'relative', width: '100%', maxWidth: 600, mx: 'auto' }}>
         {loading ? (
-          <Box sx={{
-            width: '100%', aspectRatio: '8.5 / 11',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            bgcolor: 'action.hover', borderRadius: 1,
-          }}>
+          <Box
+            sx={{
+              width: '100%',
+              aspectRatio: '8.5 / 11',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              bgcolor: 'action.hover',
+              borderRadius: 1,
+            }}
+          >
             <CircularProgress size={32} />
           </Box>
         ) : currentSrc ? (
@@ -99,8 +133,11 @@ export default function PreReviewStep({ file, hints, onChange }: Props) {
               size="small"
               onClick={() => setZoomOpen(true)}
               sx={{
-                position: 'absolute', top: 8, right: 8,
-                bgcolor: 'rgba(0,0,0,0.45)', color: 'white',
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                bgcolor: 'rgba(0,0,0,0.45)',
+                color: 'white',
                 '&:hover': { bgcolor: 'rgba(0,0,0,0.65)' },
               }}
             >
@@ -108,7 +145,11 @@ export default function PreReviewStep({ file, hints, onChange }: Props) {
             </IconButton>
           </Box>
         ) : (
-          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ textAlign: 'center', py: 4 }}
+          >
             Could not render PDF preview.
           </Typography>
         )}
@@ -120,10 +161,18 @@ export default function PreReviewStep({ file, hints, onChange }: Props) {
           <IconButton size="small" onClick={goPrev} disabled={currentPage === 0}>
             <ChevronLeftIcon />
           </IconButton>
-          <Typography variant="body2" color="text.secondary" sx={{ minWidth: 56, textAlign: 'center' }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ minWidth: 56, textAlign: 'center' }}
+          >
             {currentPage + 1} / {pageCount}
           </Typography>
-          <IconButton size="small" onClick={goNext} disabled={currentPage === pageCount - 1}>
+          <IconButton
+            size="small"
+            onClick={goNext}
+            disabled={currentPage === pageCount - 1}
+          >
             <ChevronRightIcon />
           </IconButton>
         </Box>
@@ -140,7 +189,15 @@ export default function PreReviewStep({ file, hints, onChange }: Props) {
         <Box sx={{ position: 'relative' }}>
           <IconButton
             onClick={() => setZoomOpen(false)}
-            sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1, bgcolor: 'rgba(0,0,0,0.45)', color: 'white', '&:hover': { bgcolor: 'rgba(0,0,0,0.65)' } }}
+            sx={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              zIndex: 1,
+              bgcolor: 'rgba(0,0,0,0.45)',
+              color: 'white',
+              '&:hover': { bgcolor: 'rgba(0,0,0,0.65)' },
+            }}
           >
             <CloseIcon fontSize="small" />
           </IconButton>
@@ -155,26 +212,43 @@ export default function PreReviewStep({ file, hints, onChange }: Props) {
           )}
 
           {pageCount > 1 && (
-            <Box sx={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1,
-              position: 'sticky', bottom: 0,
-              bgcolor: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
-              py: 1,
-            }}>
-              <IconButton onClick={goPrev} disabled={currentPage === 0} sx={{ color: 'white' }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 1,
+                position: 'sticky',
+                bottom: 0,
+                bgcolor: 'rgba(0,0,0,0.55)',
+                backdropFilter: 'blur(4px)',
+                py: 1,
+              }}
+            >
+              <IconButton
+                onClick={goPrev}
+                disabled={currentPage === 0}
+                sx={{ color: 'white' }}
+              >
                 <ChevronLeftIcon />
               </IconButton>
-              <Typography variant="body2" sx={{ color: 'white', minWidth: 56, textAlign: 'center' }}>
+              <Typography
+                variant="body2"
+                sx={{ color: 'white', minWidth: 56, textAlign: 'center' }}
+              >
                 {currentPage + 1} / {pageCount}
               </Typography>
-              <IconButton onClick={goNext} disabled={currentPage === pageCount - 1} sx={{ color: 'white' }}>
+              <IconButton
+                onClick={goNext}
+                disabled={currentPage === pageCount - 1}
+                sx={{ color: 'white' }}
+              >
                 <ChevronRightIcon />
               </IconButton>
             </Box>
           )}
         </Box>
       </Dialog>
-
     </Box>
   )
 }

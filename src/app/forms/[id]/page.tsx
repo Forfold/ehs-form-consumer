@@ -34,8 +34,8 @@ import UserMenu from '@/app/components/main/UserMenu'
 import DeleteFormButton from './DeleteFormButton'
 
 const STATUS_CONFIG = {
-  compliant:         { label: 'Compliant',       severity: 'success' as const },
-  'non-compliant':   { label: 'Non-Compliant',   severity: 'error'   as const },
+  compliant: { label: 'Compliant', severity: 'success' as const },
+  'non-compliant': { label: 'Non-Compliant', severity: 'error' as const },
   'needs-attention': { label: 'Needs Attention', severity: 'warning' as const },
 }
 
@@ -80,7 +80,8 @@ function submissionToHistoryItem(s: GqlSubmission) {
     id: s.id,
     processedAt: s.processedAt,
     permitNumber: (s.data?.permitNumber as string | undefined) ?? '',
-    facilityName: (s.data?.facilityName as string | undefined) ?? s.displayName ?? null,
+    facilityName:
+      (s.data?.facilityName as string | undefined) ?? s.displayName ?? null,
     data: s.data,
     teams: s.teams,
   }
@@ -103,9 +104,13 @@ export default function FormDetailPage() {
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [history, setHistory] = useState<ReturnType<typeof submissionToHistoryItem>[]>([])
+  const [history, setHistory] = useState<
+    ReturnType<typeof submissionToHistoryItem>[]
+  >([])
   const [ncModalOpen, setNcModalOpen] = useState(false)
-  const [currentUserName, setCurrentUserName] = useState<string | undefined>(undefined)
+  const [currentUserName, setCurrentUserName] = useState<string | undefined>(
+    undefined,
+  )
   const [editError, setEditError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -121,20 +126,27 @@ export default function FormDetailPage() {
   useEffect(() => {
     gqlFetch<{ submissions: GqlSubmission[] }>(SUBMISSIONS_QUERY)
       .then(({ submissions }) => setHistory(submissions.map(submissionToHistoryItem)))
-      .catch(() => {/* DB not configured yet */})
+      .catch(() => {
+        /* DB not configured yet */
+      })
   }, [])
 
   useEffect(() => {
     gqlFetch<{ me: { name: string | null; email: string | null } | null }>(ME_QUERY)
       .then(({ me }) => setCurrentUserName(me?.name ?? me?.email ?? undefined))
-      .catch(() => {/* optional */})
+      .catch(() => {
+        /* optional */
+      })
   }, [])
 
   async function handleEdit(updated: InspectionData) {
     if (!submission) return
     const prev = submission
     // Optimistic update
-    setSubmission({ ...submission, data: updated as unknown as Record<string, unknown> })
+    setSubmission({
+      ...submission,
+      data: updated as unknown as Record<string, unknown>,
+    })
     setEditError(null)
     try {
       await gqlFetch(UPDATE_DATA_MUTATION, { id: submission.id, data: updated })
@@ -150,57 +162,96 @@ export default function FormDetailPage() {
   const statusConfig = overallStatus ? STATUS_CONFIG[overallStatus] : null
   // Fall back to legacy 'bmpItems' key for submissions saved before the rename
   type ChecklistItemArr = NonNullable<InspectionData['checklistItems']>
-  const bmpItems: ChecklistItemArr = (inspectionData?.checklistItems ?? (inspectionData as unknown as Record<string, unknown>)?.bmpItems ?? []) as ChecklistItemArr
-  const passCount = bmpItems.filter(i => i.status === 'pass').length
-  const failCount = bmpItems.filter(i => i.status === 'fail').length
-  const failedItems = bmpItems.filter(i => i.status === 'fail')
-  const deadletterCount = inspectionData?.deadletter ? Object.keys(inspectionData.deadletter).length : 0
+  const bmpItems: ChecklistItemArr = (inspectionData?.checklistItems ??
+    (inspectionData as unknown as Record<string, unknown>)?.bmpItems ??
+    []) as ChecklistItemArr
+  const passCount = bmpItems.filter((i) => i.status === 'pass').length
+  const failCount = bmpItems.filter((i) => i.status === 'fail').length
+  const failedItems = bmpItems.filter((i) => i.status === 'fail')
+  const deadletterCount = inspectionData?.deadletter
+    ? Object.keys(inspectionData.deadletter).length
+    : 0
   const isBlankForm =
     !inspectionData?.facilityName &&
     !inspectionData?.permitNumber &&
     !inspectionData?.inspectionDate &&
-    (bmpItems.length === 0 || bmpItems.every(i => i.status === 'na'))
-  const isNonCompliantClickable = overallStatus === 'non-compliant' && failedItems.length > 0
+    (bmpItems.length === 0 || bmpItems.every((i) => i.status === 'na'))
+  const isNonCompliantClickable =
+    overallStatus === 'non-compliant' && failedItems.length > 0
 
   const displayName = submission
-    ? ((submission.data?.facilityName as string | undefined) ?? submission.displayName)
+    ? ((submission.data?.facilityName as string | undefined) ??
+      submission.displayName)
     : null
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
-
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        bgcolor: 'background.default',
+      }}
+    >
       <AppBar position="static">
         <Toolbar sx={{ gap: 1 }}>
           <Breadcrumbs
-            sx={{ flexGrow: 1, '& .MuiBreadcrumbs-separator': { color: 'text.disabled' } }}
+            sx={{
+              flexGrow: 1,
+              '& .MuiBreadcrumbs-separator': { color: 'text.disabled' },
+            }}
           >
             <Box
               component={Link}
               href="/"
-              sx={{ display: 'flex', alignItems: 'center', gap: 0.75, textDecoration: 'none', '&:hover': { opacity: 0.8 } }}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.75,
+                textDecoration: 'none',
+                '&:hover': { opacity: 0.8 },
+              }}
             >
               <AssignmentOutlinedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, letterSpacing: '-0.01em', color: 'text.primary' }}>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  fontWeight: 700,
+                  letterSpacing: '-0.01em',
+                  color: 'text.primary',
+                }}
+              >
                 FormVis
               </Typography>
             </Box>
             <Typography
               variant="subtitle1"
-              sx={{ fontWeight: 500, color: loading ? 'text.disabled' : 'text.primary', letterSpacing: '-0.01em' }}
+              sx={{
+                fontWeight: 500,
+                color: loading ? 'text.disabled' : 'text.primary',
+                letterSpacing: '-0.01em',
+              }}
             >
               {breadcrumbTitle(submission, loading)}
             </Typography>
           </Breadcrumbs>
 
           <IconButton
-            size="small" edge="start"
+            size="small"
+            edge="start"
             onClick={() => setSidebarOpen(true)}
             sx={{ color: 'text.secondary', mr: 0.5 }}
             aria-label="open history"
           >
             <HistoryIcon fontSize="small" />
           </IconButton>
-          <Chip label="Beta" size="small" variant="outlined" color="primary" sx={{ borderRadius: 1, fontSize: '0.7rem', height: 22 }} />
+          <Chip
+            label="Beta"
+            size="small"
+            variant="outlined"
+            color="primary"
+            sx={{ borderRadius: 1, fontSize: '0.7rem', height: 22 }}
+          />
           <UserMenu />
         </Toolbar>
       </AppBar>
@@ -212,27 +263,47 @@ export default function FormDetailPage() {
       />
 
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            flex: 1,
+          }}
+        >
           <CircularProgress />
         </Box>
       ) : notFound || !submission ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            flex: 1,
+          }}
+        >
           <Typography color="text.secondary">Form not found.</Typography>
         </Box>
       ) : (
         <Container maxWidth="xl" sx={{ py: 4, flex: 1 }}>
-
           {/* Full-width banners */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
-            {editError && <Alert severity="error" onClose={() => setEditError(null)}>{editError}</Alert>}
+            {editError && (
+              <Alert severity="error" onClose={() => setEditError(null)}>
+                {editError}
+              </Alert>
+            )}
             {isBlankForm && (
               <Alert severity="info">
-                This appears to be an unfilled form template. Upload a completed inspection form to see extracted results.
+                This appears to be an unfilled form template. Upload a completed
+                inspection form to see extracted results.
               </Alert>
             )}
             {statusConfig && (
               <Box
-                onClick={isNonCompliantClickable ? () => setNcModalOpen(true) : undefined}
+                onClick={
+                  isNonCompliantClickable ? () => setNcModalOpen(true) : undefined
+                }
                 sx={isNonCompliantClickable ? { cursor: 'pointer' } : undefined}
               >
                 <Alert
@@ -240,10 +311,19 @@ export default function FormDetailPage() {
                   sx={{ alignItems: 'center', pointerEvents: 'none' }}
                   action={
                     bmpItems.length > 0 ? (
-                      <Typography variant="body2" sx={{ whiteSpace: 'nowrap', opacity: 0.85, pr: 1 }}>
-                        {passCount} pass &middot; {failCount} fail &middot; {bmpItems.length} items
+                      <Typography
+                        variant="body2"
+                        sx={{ whiteSpace: 'nowrap', opacity: 0.85, pr: 1 }}
+                      >
+                        {passCount} pass &middot; {failCount} fail &middot;{' '}
+                        {bmpItems.length} items
                         {isNonCompliantClickable && (
-                          <Box component="span" sx={{ ml: 1, opacity: 0.7, fontSize: '0.75rem' }}>· tap to view</Box>
+                          <Box
+                            component="span"
+                            sx={{ ml: 1, opacity: 0.7, fontSize: '0.75rem' }}
+                          >
+                            · tap to view
+                          </Box>
                         )}
                       </Typography>
                     ) : undefined
@@ -260,13 +340,18 @@ export default function FormDetailPage() {
                   <Button
                     size="small"
                     color="inherit"
-                    onClick={() => document.getElementById('deadletter-section')?.scrollIntoView({ behavior: 'smooth' })}
+                    onClick={() =>
+                      document
+                        .getElementById('deadletter-section')
+                        ?.scrollIntoView({ behavior: 'smooth' })
+                    }
                   >
                     View
                   </Button>
                 }
               >
-                {deadletterCount} field{deadletterCount !== 1 ? 's' : ''} could not be processed — review below.
+                {deadletterCount} field{deadletterCount !== 1 ? 's' : ''} could not be
+                processed — review below.
               </Alert>
             )}
           </Box>
@@ -281,7 +366,9 @@ export default function FormDetailPage() {
             }}
           >
             {/* Left: results + action buttons */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
+            <Box
+              sx={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}
+            >
               <InspectionResults
                 data={submission.data as unknown as InspectionData}
                 currentUserName={currentUserName}
@@ -308,7 +395,12 @@ export default function FormDetailPage() {
           </Box>
 
           {/* Non-compliant items modal */}
-          <Dialog open={ncModalOpen} onClose={() => setNcModalOpen(false)} maxWidth="sm" fullWidth>
+          <Dialog
+            open={ncModalOpen}
+            onClose={() => setNcModalOpen(false)}
+            maxWidth="sm"
+            fullWidth
+          >
             <DialogTitle>Non-Compliant Items</DialogTitle>
             <DialogContent>
               <List disablePadding>
@@ -333,7 +425,6 @@ export default function FormDetailPage() {
               </List>
             </DialogContent>
           </Dialog>
-
         </Container>
       )}
     </Box>

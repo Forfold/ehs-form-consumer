@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState } from 'react'
@@ -81,12 +80,22 @@ export function UserRow({
         {/* Content */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
           {/* Name + badges */}
-          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.75, mb: 0.25 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 0.75,
+              mb: 0.25,
+            }}
+          >
             <Typography variant="subtitle2" fontWeight={600}>
               {user.name ?? user.email}
             </Typography>
             {isSelf && (
-              <Typography component="span" variant="caption" color="text.disabled">(you)</Typography>
+              <Typography component="span" variant="caption" color="text.disabled">
+                (you)
+              </Typography>
             )}
             {user.isAdmin && (
               <Chip
@@ -108,14 +117,25 @@ export function UserRow({
 
           {/* Email (only if name was shown above) */}
           {user.name && (
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75 }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: 'block', mb: 0.75 }}
+            >
               {user.email}
             </Typography>
           )}
 
           {/* Team membership chips */}
           {user.teamMemberships.length > 0 ? (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: user.name ? 0 : 0.5 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 0.5,
+                mt: user.name ? 0 : 0.5,
+              }}
+            >
               {user.teamMemberships.map((m) => {
                 const memberKey = `${user.id}:${m.teamId}`
                 const isRemoving = busyMemberships.has(memberKey)
@@ -126,11 +146,15 @@ export function UserRow({
                     size="small"
                     variant="outlined"
                     disabled={isRemoving}
-                    onDelete={isSelf ? undefined : () => onRemoveFromTeam(user.id, m.teamId)}
+                    onDelete={
+                      isSelf ? undefined : () => onRemoveFromTeam(user.id, m.teamId)
+                    }
                     deleteIcon={
-                      isRemoving
-                        ? <CircularProgress size={10} />
-                        : <CloseIcon sx={{ fontSize: '12px !important' }} />
+                      isRemoving ? (
+                        <CircularProgress size={10} />
+                      ) : (
+                        <CloseIcon sx={{ fontSize: '12px !important' }} />
+                      )
                     }
                     sx={{ fontSize: '0.6875rem' }}
                   />
@@ -138,7 +162,11 @@ export function UserRow({
               })}
             </Box>
           ) : (
-            <Typography variant="caption" color="text.disabled" sx={{ mt: user.name ? 0 : 0.5, display: 'block' }}>
+            <Typography
+              variant="caption"
+              color="text.disabled"
+              sx={{ mt: user.name ? 0 : 0.5, display: 'block' }}
+            >
               No teams
             </Typography>
           )}
@@ -151,20 +179,18 @@ export function UserRow({
           disabled={isBusy}
           sx={{ flexShrink: 0, mt: 0.25 }}
         >
-          {isBusy ? <CircularProgress size={16} /> : <MoreVertIcon fontSize="small" />}
+          {isBusy ? (
+            <CircularProgress size={16} />
+          ) : (
+            <MoreVertIcon fontSize="small" />
+          )}
         </IconButton>
       </Box>
       <Menu anchorEl={menuAnchor} open={!!menuAnchor} onClose={closeMenu}>
-        <MenuItem
-          onClick={handleToggleAdmin}
-          disabled={isSelf}
-        >
+        <MenuItem onClick={handleToggleAdmin} disabled={isSelf}>
           {user.isAdmin ? 'Remove Site Admin' : 'Make Site Admin'}
         </MenuItem>
-        <MenuItem
-          onClick={handleAddTeam}
-          disabled={allTeams.length === 0}
-        >
+        <MenuItem onClick={handleAddTeam} disabled={allTeams.length === 0}>
           Add to Team
         </MenuItem>
         <MenuItem

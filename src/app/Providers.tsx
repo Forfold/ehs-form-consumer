@@ -66,7 +66,9 @@ export default function Providers({
 
   // After mount: sync with DB preference (and keep cookie up to date)
   useEffect(() => {
-    gqlFetch<{ settings: { preferences: Record<string, unknown> } | null }>(SETTINGS_QUERY)
+    gqlFetch<{ settings: { preferences: Record<string, unknown> } | null }>(
+      SETTINGS_QUERY,
+    )
       .then(({ settings }) => {
         const dbMode = settings?.preferences?.theme as ThemeMode | undefined
         if (dbMode === 'light' || dbMode === 'dark' || dbMode === 'system') {
@@ -74,14 +76,19 @@ export default function Providers({
           setCookie(dbMode)
         }
       })
-      .catch(() => {/* db not configured */})
+      .catch(() => {
+        /* db not configured */
+      })
   }, [])
 
   function setMode(m: ThemeMode) {
     setModeState(m)
     setCookie(m)
-    gqlFetch(UPDATE_SETTINGS_MUTATION, { input: { preferences: { theme: m } } })
-      .catch(() => {/* db not configured */})
+    gqlFetch(UPDATE_SETTINGS_MUTATION, {
+      input: { preferences: { theme: m } },
+    }).catch(() => {
+      /* db not configured */
+    })
   }
 
   const theme = useMemo(() => makeTheme(resolvedMode), [resolvedMode])

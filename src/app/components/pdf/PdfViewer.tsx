@@ -77,7 +77,9 @@ export default function PdfViewer({ url }: Props) {
     }
 
     render()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [url])
 
   return (
@@ -89,7 +91,9 @@ export default function PdfViewer({ url }: Props) {
           </Box>
         )}
         {error && (
-          <Typography color="error" variant="body2">{error}</Typography>
+          <Typography color="error" variant="body2">
+            {error}
+          </Typography>
         )}
         <Box ref={containerRef} />
       </Box>
@@ -99,13 +103,29 @@ export default function PdfViewer({ url }: Props) {
         open={!!zoomedImage}
         onClose={() => setZoomedImage(null)}
         maxWidth={false}
-        slotProps={{ paper: { sx: { m: 1, maxWidth: '95vw', maxHeight: '95vh', bgcolor: 'background.paper' } } }}
+        slotProps={{
+          paper: {
+            sx: {
+              m: 1,
+              maxWidth: '95vw',
+              maxHeight: '95vh',
+              bgcolor: 'background.paper',
+            },
+          },
+        }}
       >
         <Box sx={{ position: 'relative' }}>
           <IconButton
             onClick={() => setZoomedImage(null)}
             size="small"
-            sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1, bgcolor: 'background.paper', '&:hover': { bgcolor: 'action.hover' } }}
+            sx={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              zIndex: 1,
+              bgcolor: 'background.paper',
+              '&:hover': { bgcolor: 'action.hover' },
+            }}
           >
             <CloseIcon fontSize="small" />
           </IconButton>
@@ -114,7 +134,12 @@ export default function PdfViewer({ url }: Props) {
             <img
               src={zoomedImage}
               alt="PDF page zoom"
-              style={{ display: 'block', maxWidth: '95vw', maxHeight: '95vh', objectFit: 'contain' }}
+              style={{
+                display: 'block',
+                maxWidth: '95vw',
+                maxHeight: '95vh',
+                objectFit: 'contain',
+              }}
             />
           )}
         </Box>

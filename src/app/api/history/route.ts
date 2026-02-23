@@ -9,6 +9,6 @@ export async function GET() {
 export async function POST() {
   return NextResponse.json(
     { error: 'Use GraphQL mutation createSubmission instead' },
-    { status: 410 }
+    { status: 410 },
   )
 }

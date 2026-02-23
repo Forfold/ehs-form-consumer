@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useRef, useState } from 'react'
@@ -99,11 +98,16 @@ export function UserAvatar({ user, size = 32 }: { user: GqlUser; size?: number }
 }
 
 function RoleChip({ role }: { role: string }) {
-  const color =
-    role === 'owner' ? 'error' :
-    role === 'admin' ? 'warning' :
-    'default'
-  return <Chip component="span" label={role} size="small" color={color as 'error' | 'warning' | 'default'} variant="outlined" />
+  const color = role === 'owner' ? 'error' : role === 'admin' ? 'warning' : 'default'
+  return (
+    <Chip
+      component="span"
+      label={role}
+      size="small"
+      color={color as 'error' | 'warning' | 'default'}
+      variant="outlined"
+    />
+  )
 }
 
 // ── Team card ─────────────────────────────────────────────────────────────────
@@ -118,13 +122,24 @@ interface TeamCardProps {
   onMemberRoleChanged: (teamId: string, member: GqlTeamMember) => void
 }
 
-export function TeamCard({ team, currentUserId, onDeleted, onRenamed, onMemberAdded, onMemberRemoved, onMemberRoleChanged }: TeamCardProps) {
+export function TeamCard({
+  team,
+  currentUserId,
+  onDeleted,
+  onRenamed,
+  onMemberAdded,
+  onMemberRemoved,
+  onMemberRoleChanged,
+}: TeamCardProps) {
   const [addOpen, setAddOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [removingId, setRemovingId] = useState<string | null>(null)
   const [changingRoleId, setChangingRoleId] = useState<string | null>(null)
-  const [menuAnchor, setMenuAnchor] = useState<{ el: HTMLElement; userId: string } | null>(null)
+  const [menuAnchor, setMenuAnchor] = useState<{
+    el: HTMLElement
+    userId: string
+  } | null>(null)
   const [editingName, setEditingName] = useState(false)
   const [nameValue, setNameValue] = useState(team.name)
   const [renaming, setRenaming] = useState(false)
@@ -136,7 +151,10 @@ export function TeamCard({ team, currentUserId, onDeleted, onRenamed, onMemberAd
 
   async function handleRename() {
     const trimmed = nameValue.trim()
-    if (!trimmed || trimmed === team.name) { setEditingName(false); return }
+    if (!trimmed || trimmed === team.name) {
+      setEditingName(false)
+      return
+    }
     setRenaming(true)
     try {
       await gqlFetch(RENAME_TEAM_MUTATION, { id: team.id, name: trimmed })
@@ -173,10 +191,9 @@ export function TeamCard({ team, currentUserId, onDeleted, onRenamed, onMemberAd
     setMenuAnchor(null)
     setChangingRoleId(userId)
     try {
-      const { changeTeamMemberRole } = await gqlFetch<{ changeTeamMemberRole: GqlTeamMember }>(
-        CHANGE_ROLE_MUTATION,
-        { teamId: team.id, userId, role },
-      )
+      const { changeTeamMemberRole } = await gqlFetch<{
+        changeTeamMemberRole: GqlTeamMember
+      }>(CHANGE_ROLE_MUTATION, { teamId: team.id, userId, role })
       onMemberRoleChanged(team.id, changeTeamMemberRole)
     } finally {
       setChangingRoleId(null)
@@ -187,9 +204,11 @@ export function TeamCard({ team, currentUserId, onDeleted, onRenamed, onMemberAd
   const menuUserIdRef = useRef<string | null>(null)
   if (menuAnchor) menuUserIdRef.current = menuAnchor.userId
 
-  const menuTargetMember = team.members.find((m) => m.userId === menuUserIdRef.current) ?? null
-  const roleOptions = (['member', 'admin', ...(isOwner ? ['owner'] : [])] as string[])
-    .filter((r) => r !== menuTargetMember?.role)
+  const menuTargetMember =
+    team.members.find((m) => m.userId === menuUserIdRef.current) ?? null
+  const roleOptions = (
+    ['member', 'admin', ...(isOwner ? ['owner'] : [])] as string[]
+  ).filter((r) => r !== menuTargetMember?.role)
 
   return (
     <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
@@ -202,20 +221,38 @@ export function TeamCard({ team, currentUserId, onDeleted, onRenamed, onMemberAd
               onChange={(e) => setNameValue(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleRename()
-                if (e.key === 'Escape') { setNameValue(team.name); setEditingName(false) }
+                if (e.key === 'Escape') {
+                  setNameValue(team.name)
+                  setEditingName(false)
+                }
               }}
               autoFocus
               sx={{ flex: 1, fontWeight: 700, fontSize: '0.875rem' }}
             />
             <Tooltip title="Save">
               <span>
-                <IconButton size="small" color="primary" onClick={handleRename} disabled={renaming}>
-                  {renaming ? <CircularProgress size={16} /> : <CheckIcon fontSize="small" />}
+                <IconButton
+                  size="small"
+                  color="primary"
+                  onClick={handleRename}
+                  disabled={renaming}
+                >
+                  {renaming ? (
+                    <CircularProgress size={16} />
+                  ) : (
+                    <CheckIcon fontSize="small" />
+                  )}
                 </IconButton>
               </span>
             </Tooltip>
             <Tooltip title="Cancel">
-              <IconButton size="small" onClick={() => { setNameValue(team.name); setEditingName(false) }}>
+              <IconButton
+                size="small"
+                onClick={() => {
+                  setNameValue(team.name)
+                  setEditingName(false)
+                }}
+              >
                 <CloseIcon fontSize="small" />
               </IconButton>
             </Tooltip>
@@ -228,7 +265,13 @@ export function TeamCard({ team, currentUserId, onDeleted, onRenamed, onMemberAd
             <RoleChip role={myRole} />
             {isOwner && (
               <Tooltip title="Rename team">
-                <IconButton size="small" onClick={() => { setNameValue(team.name); setEditingName(true) }}>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setNameValue(team.name)
+                    setEditingName(true)
+                  }}
+                >
                   <DriveFileRenameOutlineIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
@@ -242,7 +285,11 @@ export function TeamCard({ team, currentUserId, onDeleted, onRenamed, onMemberAd
             )}
             {isOwner && (
               <Tooltip title="Delete team">
-                <IconButton size="small" color="error" onClick={() => setDeleteOpen(true)}>
+                <IconButton
+                  size="small"
+                  color="error"
+                  onClick={() => setDeleteOpen(true)}
+                >
                   <DeleteOutlineIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
@@ -264,12 +311,19 @@ export function TeamCard({ team, currentUserId, onDeleted, onRenamed, onMemberAd
                   <IconButton
                     size="small"
                     edge="end"
-                    onClick={(e) => setMenuAnchor({ el: e.currentTarget, userId: member.userId })}
-                    disabled={removingId === member.userId || changingRoleId === member.userId}
+                    onClick={(e) =>
+                      setMenuAnchor({ el: e.currentTarget, userId: member.userId })
+                    }
+                    disabled={
+                      removingId === member.userId || changingRoleId === member.userId
+                    }
                   >
-                    {removingId === member.userId || changingRoleId === member.userId
-                      ? <CircularProgress size={16} />
-                      : <MoreVertIcon fontSize="small" />}
+                    {removingId === member.userId ||
+                    changingRoleId === member.userId ? (
+                      <CircularProgress size={16} />
+                    ) : (
+                      <MoreVertIcon fontSize="small" />
+                    )}
                   </IconButton>
                 </span>
               ) : undefined
@@ -281,10 +335,15 @@ export function TeamCard({ team, currentUserId, onDeleted, onRenamed, onMemberAd
             <ListItemText
               primary={member.user.name ?? member.user.email ?? member.userId}
               secondary={
-                <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Box
+                  component="span"
+                  sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+                >
                   <RoleChip role={member.role} />
                   {member.user.name && (
-                    <Typography variant="caption" color="text.secondary">{member.user.email}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {member.user.email}
+                    </Typography>
                   )}
                 </Box>
               }
@@ -328,13 +387,20 @@ export function TeamCard({ team, currentUserId, onDeleted, onRenamed, onMemberAd
         <DialogTitle>Delete &ldquo;{team.name}&rdquo;?</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary">
-            This will remove the team and all its members. Submissions shared with this team
-            will no longer be visible to members through the team.
+            This will remove the team and all its members. Submissions shared with
+            this team will no longer be visible to members through the team.
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteOpen(false)} disabled={deleting}>Cancel</Button>
-          <Button variant="contained" color="error" onClick={handleDelete} disabled={deleting}>
+          <Button onClick={() => setDeleteOpen(false)} disabled={deleting}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleDelete}
+            disabled={deleting}
+          >
             {deleting ? <CircularProgress size={18} /> : 'Delete'}
           </Button>
         </DialogActions>

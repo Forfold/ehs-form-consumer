@@ -23,10 +23,18 @@ interface Props {
   open: boolean
   onClose: () => void
   items: HistoryItem[]
-  onItemTeamsChanged?: (itemId: string, teams: Array<{ id: string; name: string }>) => void
+  onItemTeamsChanged?: (
+    itemId: string,
+    teams: Array<{ id: string; name: string }>,
+  ) => void
 }
 
-export default function HistorySidebar({ open, onClose, items, onItemTeamsChanged }: Props) {
+export default function HistorySidebar({
+  open,
+  onClose,
+  items,
+  onItemTeamsChanged,
+}: Props) {
   const router = useRouter()
 
   function handleSelect(item: HistoryItem) {

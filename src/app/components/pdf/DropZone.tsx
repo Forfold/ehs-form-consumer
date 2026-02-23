@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
@@ -16,15 +15,18 @@ export function DropZone({ onFileSelected }: DropZoneProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setDragging(false)
-    const file = e.dataTransfer.files[0]
-    if (file?.type === 'application/pdf') {
-      setSelectedFile(file)
-      onFileSelected(file)
-    }
-  }, [onFileSelected])
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      setDragging(false)
+      const file = e.dataTransfer.files[0]
+      if (file?.type === 'application/pdf') {
+        setSelectedFile(file)
+        onFileSelected(file)
+      }
+    },
+    [onFileSelected],
+  )
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -38,11 +40,18 @@ export function DropZone({ onFileSelected }: DropZoneProps) {
     <Box
       onClick={() => inputRef.current?.click()}
       onDrop={handleDrop}
-      onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+      onDragOver={(e) => {
+        e.preventDefault()
+        setDragging(true)
+      }}
       onDragLeave={() => setDragging(false)}
       sx={{
         border: '1.5px dashed',
-        borderColor: selectedFile ? 'success.main' : dragging ? 'primary.main' : 'divider',
+        borderColor: selectedFile
+          ? 'success.main'
+          : dragging
+            ? 'primary.main'
+            : 'divider',
         borderRadius: 2,
         py: 5,
         px: 3,
@@ -52,7 +61,11 @@ export function DropZone({ onFileSelected }: DropZoneProps) {
         justifyContent: 'center',
         gap: 0.75,
         cursor: 'pointer',
-        bgcolor: selectedFile ? 'success.50' : dragging ? 'primary.50' : 'action.hover',
+        bgcolor: selectedFile
+          ? 'success.50'
+          : dragging
+            ? 'primary.50'
+            : 'action.hover',
         transition: 'border-color 0.15s, background-color 0.15s',
         '&:hover': {
           borderColor: selectedFile ? 'success.main' : 'primary.main',

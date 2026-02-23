@@ -19,7 +19,10 @@ describe('uploadPdf', () => {
     const file = new File(['content'], 'test.pdf', { type: 'application/pdf' })
     const result = await uploadPdf(file)
 
-    expect(mockFetch).toHaveBeenCalledWith('/api/upload-pdf', expect.objectContaining({ method: 'POST' }))
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/upload-pdf',
+      expect.objectContaining({ method: 'POST' }),
+    )
     expect(result).toBe('https://blob.vercel.com/test.pdf')
   })
 

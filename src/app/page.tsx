@@ -25,17 +25,22 @@ const SUBMISSIONS_QUERY = `
 `
 
 interface GqlSubmission {
-  id: string; processedAt: string
-  displayName: string | null; data: Record<string, unknown>
+  id: string
+  processedAt: string
+  displayName: string | null
+  data: Record<string, unknown>
   teams: Array<{ id: string; name: string }>
 }
 
 function submissionToHistoryItem(s: GqlSubmission): HistoryItem {
   return {
-    id: s.id, processedAt: s.processedAt,
+    id: s.id,
+    processedAt: s.processedAt,
     permitNumber: (s.data?.permitNumber as string | undefined) ?? '',
-    facilityName: (s.data?.facilityName as string | undefined) ?? s.displayName ?? null,
-    data: s.data, teams: s.teams,
+    facilityName:
+      (s.data?.facilityName as string | undefined) ?? s.displayName ?? null,
+    data: s.data,
+    teams: s.teams,
   }
 }
 
@@ -48,11 +53,15 @@ export default function Home() {
   function loadHistory() {
     gqlFetch<{ submissions: GqlSubmission[] }>(SUBMISSIONS_QUERY)
       .then(({ submissions }) => setHistory(submissions.map(submissionToHistoryItem)))
-      .catch(() => {/* DB not configured yet */})
+      .catch(() => {
+        /* DB not configured yet */
+      })
       .finally(() => setHistoryLoading(false))
   }
 
-  useEffect(() => { loadHistory() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    loadHistory()
+  }, [])
 
   function handleSaved(submissionId: string) {
     setDialogFile(null)
@@ -60,29 +69,65 @@ export default function Home() {
     router.push(`/forms/${submissionId}`)
   }
 
-  function handleItemTeamsChanged(itemId: string, teams: Array<{ id: string; name: string }>) {
-    setHistory(prev => prev.map(h => h.id === itemId ? { ...h, teams } : h))
+  function handleItemTeamsChanged(
+    itemId: string,
+    teams: Array<{ id: string; name: string }>,
+  ) {
+    setHistory((prev) => prev.map((h) => (h.id === itemId ? { ...h, teams } : h)))
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        bgcolor: 'background.default',
+      }}
+    >
       <AppBar position="static">
         <Toolbar sx={{ gap: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexGrow: 1 }}>
             <AssignmentOutlinedIcon sx={{ color: 'primary.main', fontSize: 22 }} />
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, letterSpacing: '-0.01em', color: 'text.primary' }}>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                fontWeight: 700,
+                letterSpacing: '-0.01em',
+                color: 'text.primary',
+              }}
+            >
               FormVis
             </Typography>
           </Box>
 
-          <Chip label="Beta" size="small" variant="outlined" color="primary" sx={{ borderRadius: 1, fontSize: '0.7rem', height: 22 }} />
+          <Chip
+            label="Beta"
+            size="small"
+            variant="outlined"
+            color="primary"
+            sx={{ borderRadius: 1, fontSize: '0.7rem', height: 22 }}
+          />
           <UserMenu />
         </Toolbar>
       </AppBar>
 
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 3, p: 3, overflow: 'auto' }}>
+      <Box
+        sx={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: { xs: 'column', lg: 'row' },
+          gap: 3,
+          p: 3,
+          overflow: 'auto',
+        }}
+      >
         <UploaderCard onFile={setDialogFile} />
-        <DashboardPanel history={history} historyLoading={historyLoading} onItemTeamsChanged={handleItemTeamsChanged} />
+        <DashboardPanel
+          history={history}
+          historyLoading={historyLoading}
+          onItemTeamsChanged={handleItemTeamsChanged}
+        />
       </Box>
 
       <UploadFlowDialog

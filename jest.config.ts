@@ -20,9 +20,7 @@ const getJestConfig = async (): Promise<Config> => {
       ...(nextConfig.moduleNameMapper as Record<string, string> | undefined),
     },
     // Transform @mui and @emotion packages (MUI v7 ships ESM; Jest needs CJS)
-    transformIgnorePatterns: [
-      'node_modules/(?!(@mui|@emotion)/)',
-    ],
+    transformIgnorePatterns: ['node_modules/(?!(@mui|@emotion)/)'],
   }
 }
 

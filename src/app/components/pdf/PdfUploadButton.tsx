@@ -19,7 +19,11 @@ interface Props {
   replace?: boolean
 }
 
-export default function PdfUploadButton({ submissionId, onUploaded, replace }: Props) {
+export default function PdfUploadButton({
+  submissionId,
+  onUploaded,
+  replace,
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(false)
 
@@ -52,7 +56,9 @@ export default function PdfUploadButton({ submissionId, onUploaded, replace }: P
       <Button
         variant="outlined"
         size="small"
-        startIcon={loading ? <CircularProgress size={14} /> : <UploadFileOutlinedIcon />}
+        startIcon={
+          loading ? <CircularProgress size={14} /> : <UploadFileOutlinedIcon />
+        }
         disabled={loading}
         onClick={() => inputRef.current?.click()}
       >

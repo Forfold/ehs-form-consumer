@@ -1,4 +1,3 @@
-
 'use client'
 
 import Button from '@mui/material/Button'
@@ -40,7 +39,14 @@ export function AddUserToTeamDialog({
   return (
     <Dialog open={true} onClose={onClose} maxWidth="xs" fullWidth>
       <DialogTitle>Add to Team</DialogTitle>
-      <DialogContent sx={{ pt: '12px !important', display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <DialogContent
+        sx={{
+          pt: '12px !important',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+        }}
+      >
         <FormControl size="small" fullWidth>
           <InputLabel>Team</InputLabel>
           <Select
@@ -49,17 +55,15 @@ export function AddUserToTeamDialog({
             onChange={(e) => setTeamId(e.target.value)}
           >
             {teams.map((t) => (
-              <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>
+              <MenuItem key={t.id} value={t.id}>
+                {t.name}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>
         <FormControl size="small" fullWidth>
           <InputLabel>Role</InputLabel>
-          <Select
-            value={role}
-            label="Role"
-            onChange={(e) => setRole(e.target.value)}
-          >
+          <Select value={role} label="Role" onChange={(e) => setRole(e.target.value)}>
             <MenuItem value="member">Member</MenuItem>
             <MenuItem value="admin">Admin</MenuItem>
             <MenuItem value="owner">Owner</MenuItem>

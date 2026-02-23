@@ -15,18 +15,43 @@ export default function TeamsPage() {
     <>
       <AppBar position="static">
         <Toolbar sx={{ gap: 1 }}>
-          <Breadcrumbs sx={{ flexGrow: 1, '& .MuiBreadcrumbs-separator': { color: 'text.disabled' } }}>
+          <Breadcrumbs
+            sx={{
+              flexGrow: 1,
+              '& .MuiBreadcrumbs-separator': { color: 'text.disabled' },
+            }}
+          >
             <Box
               component={Link}
               href="/"
-              sx={{ display: 'flex', alignItems: 'center', gap: 0.75, textDecoration: 'none', '&:hover': { opacity: 0.8 } }}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.75,
+                textDecoration: 'none',
+                '&:hover': { opacity: 0.8 },
+              }}
             >
               <AssignmentOutlinedIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, letterSpacing: '-0.01em', color: 'text.primary' }}>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  fontWeight: 700,
+                  letterSpacing: '-0.01em',
+                  color: 'text.primary',
+                }}
+              >
                 FormVis
               </Typography>
             </Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 500, letterSpacing: '-0.01em', color: 'text.primary' }}>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                fontWeight: 500,
+                letterSpacing: '-0.01em',
+                color: 'text.primary',
+              }}
+            >
               Teams
             </Typography>
           </Breadcrumbs>

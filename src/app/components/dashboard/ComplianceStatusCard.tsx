@@ -18,7 +18,14 @@ interface Props {
   loading?: boolean
 }
 
-export default function ComplianceStatusCard({ percent, formCount, windowLabel, flaggedForms, onSelectForm, loading }: Props) {
+export default function ComplianceStatusCard({
+  percent,
+  formCount,
+  windowLabel,
+  flaggedForms,
+  onSelectForm,
+  loading,
+}: Props) {
   const theme = useTheme()
   const [modalOpen, setModalOpen] = useState(false)
   const passing = percent === 100
@@ -27,7 +34,11 @@ export default function ComplianceStatusCard({ percent, formCount, windowLabel, 
   return (
     <DashboardCard
       title="Compliance Status"
-      subtitle={loading ? windowLabel : `${windowLabel} · ${formCount} form${formCount !== 1 ? 's' : ''}`}
+      subtitle={
+        loading
+          ? windowLabel
+          : `${windowLabel} · ${formCount} form${formCount !== 1 ? 's' : ''}`
+      }
     >
       {loading ? (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 0.5 }}>
@@ -35,7 +46,9 @@ export default function ComplianceStatusCard({ percent, formCount, windowLabel, 
         </Box>
       ) : formCount === 0 ? (
         <Box sx={{ py: 0.5 }}>
-          <Typography variant="body2" color="text.secondary">No forms submitted yet.</Typography>
+          <Typography variant="body2" color="text.secondary">
+            No forms submitted yet.
+          </Typography>
         </Box>
       ) : (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 0.5 }}>

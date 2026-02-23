@@ -1,4 +1,3 @@
-
 'use client'
 
 import Button from '@mui/material/Button'
@@ -16,7 +15,12 @@ interface DeleteUserDialogProps {
   busyUserIds: Set<string>
 }
 
-export function DeleteUserDialog({ user, onClose, onDelete, busyUserIds }: DeleteUserDialogProps) {
+export function DeleteUserDialog({
+  user,
+  onClose,
+  onDelete,
+  busyUserIds,
+}: DeleteUserDialogProps) {
   if (!user) return null
 
   return (
@@ -25,8 +29,8 @@ export function DeleteUserDialog({ user, onClose, onDelete, busyUserIds }: Delet
       <DialogContent>
         <Typography variant="body2">
           Are you sure you want to delete{' '}
-          <strong>{user.name ?? user.email ?? 'this user'}</strong>?
-          {' '}This will permanently remove their account and all associated data.
+          <strong>{user.name ?? user.email ?? 'this user'}</strong>? This will
+          permanently remove their account and all associated data.
         </Typography>
       </DialogContent>
       <DialogActions>

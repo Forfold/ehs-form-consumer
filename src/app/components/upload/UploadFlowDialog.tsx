@@ -29,12 +29,22 @@ const CREATE_SUBMISSION_MUTATION = `
 
 type FlowStep = 'pre-review' | 'processing' | 'post-review'
 const STEP_LABELS = ['Preview PDF', 'Processing', 'Review Results']
-const STEP_INDEX: Record<FlowStep, number> = { 'pre-review': 0, 'processing': 1, 'post-review': 2 }
+const STEP_INDEX: Record<FlowStep, number> = {
+  'pre-review': 0,
+  processing: 1,
+  'post-review': 2,
+}
 const INDEX_TO_STEP: FlowStep[] = ['pre-review', 'processing', 'post-review']
 
 const EMPTY_DATA: InspectionData = {
-  facilityName: '', permitNumber: '', inspectionDate: '', inspectorName: '',
-  overallStatus: 'compliant', checklistItems: [], correctiveActions: [], summary: '',
+  facilityName: '',
+  permitNumber: '',
+  inspectionDate: '',
+  inspectorName: '',
+  overallStatus: 'compliant',
+  checklistItems: [],
+  correctiveActions: [],
+  summary: '',
 }
 
 // All transient flow state in one object so a single setFlow() resets everything.
@@ -81,7 +91,7 @@ export default function UploadFlowDialog({ open, file, onClose, onSaved }: Props
   // Stable functional patcher — safe to call from inside effect closures because
   // it uses the `prev =>` updater form of setFlow.
   function patch(update: Partial<FlowState>) {
-    setFlow(prev => ({ ...prev, ...update }))
+    setFlow((prev) => ({ ...prev, ...update }))
   }
 
   // Auto-run extraction when step enters 'processing' — skipped if already processed.
@@ -93,7 +103,12 @@ export default function UploadFlowDialog({ open, file, onClose, onSaved }: Props
     extractInspection(file, fieldHints)
       .then((data: InspectionData) => {
         if (cancelled) return
-        patch({ editedData: data, processed: true, step: 'post-review', error: null })
+        patch({
+          editedData: data,
+          processed: true,
+          step: 'post-review',
+          error: null,
+        })
       })
       .catch((err: unknown) => {
         if (cancelled) return
@@ -103,7 +118,9 @@ export default function UploadFlowDialog({ open, file, onClose, onSaved }: Props
         })
       })
 
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [step]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function navigateToStep(index: number) {
@@ -130,18 +147,17 @@ export default function UploadFlowDialog({ open, file, onClose, onSaved }: Props
     patch({ saving: true, error: null })
     try {
       const pdfStorageKey = await uploadPdf(file).catch(() => null)
-      const { createSubmission } = await gqlFetch<{ createSubmission: { id: string } }>(
-        CREATE_SUBMISSION_MUTATION,
-        {
-          input: {
-            fileName: file.name,
-            displayName: editedData.facilityName || null,
-            formType: 'iswgp',
-            pdfStorageKey,
-            data: editedData,
-          },
+      const { createSubmission } = await gqlFetch<{
+        createSubmission: { id: string }
+      }>(CREATE_SUBMISSION_MUTATION, {
+        input: {
+          fileName: file.name,
+          displayName: editedData.facilityName || null,
+          formType: 'iswgp',
+          pdfStorageKey,
+          data: editedData,
         },
-      )
+      })
       onSaved(createSubmission.id)
     } catch (err) {
       patch({
@@ -154,11 +170,20 @@ export default function UploadFlowDialog({ open, file, onClose, onSaved }: Props
   const isActivelyProcessing = step === 'processing' && !processed
 
   return (
-    <Dialog open={open} onClose={isActivelyProcessing ? undefined : onClose} maxWidth="md" fullWidth>
+    <Dialog
+      open={open}
+      onClose={isActivelyProcessing ? undefined : onClose}
+      maxWidth="md"
+      fullWidth
+    >
       <DialogTitle component="div" sx={{ pb: 1 }}>
-        <Typography variant="h6" fontWeight={700}>Review Form Submission</Typography>
+        <Typography variant="h6" fontWeight={700}>
+          Review Form Submission
+        </Typography>
         {file && (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{file.name}</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            {file.name}
+          </Typography>
         )}
       </DialogTitle>
 
@@ -166,7 +191,10 @@ export default function UploadFlowDialog({ open, file, onClose, onSaved }: Props
         <Stepper activeStep={STEP_INDEX[step]} alternativeLabel nonLinear>
           {STEP_LABELS.map((label, index) => (
             <Step key={label} completed={isStepCompleted(index)}>
-              <StepButton onClick={() => navigateToStep(index)} disabled={!isStepEnabled(index)}>
+              <StepButton
+                onClick={() => navigateToStep(index)}
+                disabled={!isStepEnabled(index)}
+              >
                 {label}
               </StepButton>
             </Step>
@@ -176,7 +204,11 @@ export default function UploadFlowDialog({ open, file, onClose, onSaved }: Props
 
       <DialogContent dividers sx={{ minHeight: 300 }}>
         {/* Hide stale errors while actively processing */}
-        {error && !isActivelyProcessing && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {error && !isActivelyProcessing && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
 
         {step === 'pre-review' && file && (
           <PreReviewStep
@@ -187,7 +219,16 @@ export default function UploadFlowDialog({ open, file, onClose, onSaved }: Props
         )}
 
         {step === 'processing' && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 260, gap: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: 260,
+              gap: 2,
+            }}
+          >
             {/* <Box
               component="img"
               src="/visua_mascot.png"
@@ -204,14 +245,19 @@ export default function UploadFlowDialog({ open, file, onClose, onSaved }: Props
             ) : (
               <>
                 <CircularProgress size={32} />
-                <Typography variant="body2" color="text.secondary">Analyzing PDF…</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Analyzing PDF…
+                </Typography>
               </>
             )}
           </Box>
         )}
 
         {step === 'post-review' && (
-          <PostReviewStep data={editedData} onChange={(data) => patch({ editedData: data })} />
+          <PostReviewStep
+            data={editedData}
+            onChange={(data) => patch({ editedData: data })}
+          />
         )}
       </DialogContent>
 
@@ -221,37 +267,48 @@ export default function UploadFlowDialog({ open, file, onClose, onSaved }: Props
             <Button onClick={onClose}>Cancel</Button>
             <Box sx={{ flex: 1 }} />
             {processed ? (
-              <Button variant="contained" onClick={() => patch({ step: 'post-review' })}>
+              <Button
+                variant="contained"
+                onClick={() => patch({ step: 'post-review' })}
+              >
                 Back to Results
               </Button>
             ) : (
-              <Button variant="contained" onClick={() => patch({ step: 'processing' })}>
+              <Button
+                variant="contained"
+                onClick={() => patch({ step: 'processing' })}
+              >
                 Process PDF
               </Button>
             )}
           </>
         )}
-        {step === 'processing' && !processed && (
-          <Button disabled>Processing…</Button>
-        )}
+        {step === 'processing' && !processed && <Button disabled>Processing…</Button>}
         {step === 'processing' && processed && (
           <>
             <Button onClick={onClose}>Cancel</Button>
             <Box sx={{ flex: 1 }} />
-            <Button variant="contained" onClick={() => patch({ step: 'post-review' })}>
+            <Button
+              variant="contained"
+              onClick={() => patch({ step: 'post-review' })}
+            >
               Review Results
             </Button>
           </>
         )}
         {step === 'post-review' && (
           <>
-            <Button onClick={() => patch({ step: 'pre-review' })} disabled={saving}>Back</Button>
+            <Button onClick={() => patch({ step: 'pre-review' })} disabled={saving}>
+              Back
+            </Button>
             <Box sx={{ flex: 1 }} />
             <Button
               variant="contained"
               onClick={handleSave}
               disabled={saving}
-              startIcon={saving ? <CircularProgress size={16} color="inherit" /> : undefined}
+              startIcon={
+                saving ? <CircularProgress size={16} color="inherit" /> : undefined
+              }
             >
               {saving ? 'Saving…' : 'Save'}
             </Button>

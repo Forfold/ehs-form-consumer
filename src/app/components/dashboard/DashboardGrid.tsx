@@ -1,4 +1,3 @@
-
 'use client'
 
 import Box from '@mui/material/Box'
@@ -15,7 +14,11 @@ interface DashboardGridProps {
   historyLoading?: boolean
 }
 
-export function DashboardGrid({ stats, windowLabel, historyLoading }: DashboardGridProps) {
+export function DashboardGrid({
+  stats,
+  windowLabel,
+  historyLoading,
+}: DashboardGridProps) {
   const router = useRouter()
 
   function handleSelectSubmission(id: string) {
@@ -38,13 +41,17 @@ export function DashboardGrid({ stats, windowLabel, historyLoading }: DashboardG
           formCount={stats.formCount}
           windowLabel={windowLabel}
           flaggedForms={stats.flaggedForms}
-          onSelectForm={id => router.push(`/forms/${id}`)}
+          onSelectForm={(id) => router.push(`/forms/${id}`)}
           loading={historyLoading}
         />
       </Box>
 
-      <Box sx={{ minWidth: 0 }}><BmpCheckSummaryCard checklistTotals={stats.checklistTotals} /></Box>
-      <Box sx={{ minWidth: 0 }}><MonthlyActivityCard buckets={stats.monthlyBuckets} /></Box>
+      <Box sx={{ minWidth: 0 }}>
+        <BmpCheckSummaryCard checklistTotals={stats.checklistTotals} />
+      </Box>
+      <Box sx={{ minWidth: 0 }}>
+        <MonthlyActivityCard buckets={stats.monthlyBuckets} />
+      </Box>
 
       <Box sx={{ gridColumn: { xs: '1', md: '1 / -1' }, minWidth: 0 }}>
         <CorrectiveActionsCard

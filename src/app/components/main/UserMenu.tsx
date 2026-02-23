@@ -67,7 +67,14 @@ export default function UserMenu() {
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
         {user && (
-          <MenuItem disabled sx={{ flexDirection: 'column', alignItems: 'flex-start', opacity: '1 !important' }}>
+          <MenuItem
+            disabled
+            sx={{
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              opacity: '1 !important',
+            }}
+          >
             <Typography variant="body2" fontWeight={600} noWrap>
               {user.name ?? user.email}
             </Typography>
@@ -88,28 +95,62 @@ export default function UserMenu() {
 
         <Divider />
 
-        <MenuItem disableRipple sx={{ display: 'flex', flexDirection: 'column', alignItems: 'baseline', gap: 0.5, cursor: 'default', '&:hover': { bgcolor: 'transparent' } }}>
-          <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+        <MenuItem
+          disableRipple
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'baseline',
+            gap: 0.5,
+            cursor: 'default',
+            '&:hover': { bgcolor: 'transparent' },
+          }}
+        >
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            fontWeight={600}
+            sx={{ textTransform: 'uppercase', letterSpacing: '0.06em' }}
+          >
             Theme
           </Typography>
           <Box onClick={(e) => e.stopPropagation()}>
             <ToggleButtonGroup
               value={mode}
               exclusive
-              onChange={(_, v: ThemeMode | null) => { if (v) setMode(v) }}
+              onChange={(_, v: ThemeMode | null) => {
+                if (v) setMode(v)
+              }}
               aria-label="theme mode"
-              sx={{ '& .MuiToggleButton-root': { px: 1.25, py: 0.25, fontWeight: 600, textTransform: 'none', lineHeight: 1.6 } }}
+              sx={{
+                '& .MuiToggleButton-root': {
+                  px: 1.25,
+                  py: 0.25,
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  lineHeight: 1.6,
+                },
+              }}
             >
-              <ToggleButton value="light" aria-label="light">Light</ToggleButton>
-              <ToggleButton value="system" aria-label="system">System</ToggleButton>
-              <ToggleButton value="dark" aria-label="dark">Dark</ToggleButton>
+              <ToggleButton value="light" aria-label="light">
+                Light
+              </ToggleButton>
+              <ToggleButton value="system" aria-label="system">
+                System
+              </ToggleButton>
+              <ToggleButton value="dark" aria-label="dark">
+                Dark
+              </ToggleButton>
             </ToggleButtonGroup>
           </Box>
         </MenuItem>
 
         <Divider />
-        <MenuItem onClick={() => signOut()} sx={(theme) => ({ color:  theme.palette.error.main})}>
-          <LogoutIcon color='error' fontSize="small" sx={{ mr: 1.25 }} />
+        <MenuItem
+          onClick={() => signOut()}
+          sx={(theme) => ({ color: theme.palette.error.main })}
+        >
+          <LogoutIcon color="error" fontSize="small" sx={{ mr: 1.25 }} />
           Sign Out
         </MenuItem>
       </Menu>

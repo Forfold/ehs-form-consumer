@@ -19,7 +19,11 @@ export async function buildContext(): Promise<Context> {
 
   let isAdmin = false
   if (userId) {
-    const rows = await db.select({ isAdmin: users.isAdmin }).from(users).where(eq(users.id, userId)).limit(1)
+    const rows = await db
+      .select({ isAdmin: users.isAdmin })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1)
     isAdmin = rows[0]?.isAdmin ?? false
   }
 
@@ -37,8 +41,8 @@ export const builder = new SchemaBuilder<{
 
 // JSON scalar — passes JSONB values through as-is
 builder.scalarType('JSON', {
-  serialize:    (v) => v,
-  parseValue:   (v) => v,
+  serialize: (v) => v,
+  parseValue: (v) => v,
   parseLiteral: (ast) => {
     if (ast.kind === 'StringValue') return JSON.parse(ast.value)
     return null

@@ -1,7 +1,16 @@
 export interface InspectionDataSummary {
   overallStatus: 'compliant' | 'non-compliant' | 'needs-attention'
-  checklistItems: Array<{ section?: string; description: string; status: 'pass' | 'fail' | 'na'; notes: string }>
-  correctiveActions: Array<{ description: string; dueDate: string; completed: boolean }>
+  checklistItems: Array<{
+    section?: string
+    description: string
+    status: 'pass' | 'fail' | 'na'
+    notes: string
+  }>
+  correctiveActions: Array<{
+    description: string
+    dueDate: string
+    completed: boolean
+  }>
   facilityName: string | null
   inspectionDate: string | null
 }
@@ -23,7 +32,11 @@ export interface FlaggedForm {
   submissionId: string
   facilityName: string
   inspectionDate: string | null
-  failedChecklistItems: Array<{ section?: string; description: string; notes: string }>
+  failedChecklistItems: Array<{
+    section?: string
+    description: string
+    notes: string
+  }>
 }
 
 export interface OpenCorrectiveAction {

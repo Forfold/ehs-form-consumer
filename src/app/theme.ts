@@ -9,7 +9,7 @@ export function makeTheme(mode: ThemeMode) {
   return createTheme({
     typography: {
       fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
-      h6:       { fontWeight: 700, letterSpacing: '-0.01em' },
+      h6: { fontWeight: 700, letterSpacing: '-0.01em' },
       subtitle1: { fontWeight: 600 },
     },
     shape: {

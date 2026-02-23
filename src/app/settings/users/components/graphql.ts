@@ -1,4 +1,3 @@
-
 // ── GraphQL ───────────────────────────────────────────────────────────────────
 
 export const ME_QUERY = `query { me { id isAdmin } }`
@@ -45,32 +44,42 @@ export const REMOVE_USER_FROM_TEAM_MUTATION = `
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface UserTeamMembership {
-  teamId:   string
+  teamId: string
   teamName: string
-  role:     string
+  role: string
 }
 
 export interface AdminUser {
-  id:              string
-  name:            string | null
-  email:           string | null
-  image:           string | null
-  isAdmin:         boolean
+  id: string
+  name: string | null
+  email: string | null
+  image: string | null
+  isAdmin: boolean
   teamMemberships: UserTeamMembership[]
-  formCount:       number
+  formCount: number
 }
 
 export interface SlimTeam {
-  id:   string
+  id: string
   name: string
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 export function userInitials(user: AdminUser): string {
-  if (user.name) return user.name.split(' ').map((s) => s[0]).slice(0, 2).join('').toUpperCase()
+  if (user.name)
+    return user.name
+      .split(' ')
+      .map((s) => s[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase()
   if (user.email) return user.email[0].toUpperCase()
   return '?'
 }
 
-export const ROLE_LABELS: Record<string, string> = { owner: 'Owner', admin: 'Admin', member: 'Member' }
+export const ROLE_LABELS: Record<string, string> = {
+  owner: 'Owner',
+  admin: 'Admin',
+  member: 'Member',
+}

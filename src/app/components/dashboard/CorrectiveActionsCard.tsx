@@ -20,11 +20,19 @@ function isOverdue(dueDate: string) {
   return dueDate && new Date(dueDate) < new Date()
 }
 
-export default function CorrectiveActionsCard({ actions, onSelectSubmission, loading }: Props) {
+export default function CorrectiveActionsCard({
+  actions,
+  onSelectSubmission,
+  loading,
+}: Props) {
   return (
     <DashboardCard
       title="Open Corrective Actions"
-      subtitle={!loading && actions.length > 0 ? `${actions.length} pending across all forms` : undefined}
+      subtitle={
+        !loading && actions.length > 0
+          ? `${actions.length} pending across all forms`
+          : undefined
+      }
     >
       {loading ? (
         <Box sx={{ py: 2, textAlign: 'center' }}>
@@ -41,9 +49,15 @@ export default function CorrectiveActionsCard({ actions, onSelectSubmission, loa
           <Table size="small" stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Facility</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Action</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Due</TableCell>
+                <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
+                  Facility
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
+                  Action
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
+                  Due
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -54,17 +68,47 @@ export default function CorrectiveActionsCard({ actions, onSelectSubmission, loa
                   sx={{
                     cursor: 'pointer',
                     '&:hover': { bgcolor: 'action.hover' },
-                    ...(a.source === 'gap' && { bgcolor: 'warning.50', opacity: 0.85 }),
+                    ...(a.source === 'gap' && {
+                      bgcolor: 'warning.50',
+                      opacity: 0.85,
+                    }),
                   }}
                 >
-                  <TableCell sx={{ fontSize: '0.75rem', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <TableCell
+                    sx={{
+                      fontSize: '0.75rem',
+                      maxWidth: 120,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
                     {a.facilityName}
                   </TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <TableCell
+                    sx={{
+                      fontSize: '0.75rem',
+                      maxWidth: 200,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
                     {a.description}
                   </TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem', whiteSpace: 'nowrap', color: a.source === 'gap' ? 'warning.main' : isOverdue(a.dueDate) ? 'error.main' : 'text.primary' }}>
-                    {a.source === 'gap' ? 'Undocumented' : (a.dueDate || '—')}
+                  <TableCell
+                    sx={{
+                      fontSize: '0.75rem',
+                      whiteSpace: 'nowrap',
+                      color:
+                        a.source === 'gap'
+                          ? 'warning.main'
+                          : isOverdue(a.dueDate)
+                            ? 'error.main'
+                            : 'text.primary',
+                    }}
+                  >
+                    {a.source === 'gap' ? 'Undocumented' : a.dueDate || '—'}
                   </TableCell>
                 </TableRow>
               ))}

@@ -22,7 +22,12 @@ import CheckIcon from '@mui/icons-material/Check'
 import CloseIcon from '@mui/icons-material/Close'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import RemoveIcon from '@mui/icons-material/Remove'
-import type { ChecklistItem, CorrectiveAction, InspectionData, OverallStatus } from '@/lib/types/inspection'
+import type {
+  ChecklistItem,
+  CorrectiveAction,
+  InspectionData,
+  OverallStatus,
+} from '@/lib/types/inspection'
 
 interface Props {
   data: InspectionData
@@ -30,8 +35,8 @@ interface Props {
 }
 
 function deriveOverallStatus(items: ChecklistItem[]): OverallStatus {
-  if (items.some(i => i.status === 'fail')) return 'non-compliant'
-  if (items.every(i => i.status === 'pass' || i.status === 'na')) return 'compliant'
+  if (items.some((i) => i.status === 'fail')) return 'non-compliant'
+  if (items.every((i) => i.status === 'pass' || i.status === 'na')) return 'compliant'
   return 'needs-attention'
 }
 
@@ -40,64 +45,139 @@ function uniqueSections(items: ChecklistItem[]): string[] {
   const result: string[] = []
   for (const item of items) {
     const s = item.section?.trim()
-    if (s && !seen.has(s)) { seen.add(s); result.push(s) }
+    if (s && !seen.has(s)) {
+      seen.add(s)
+      result.push(s)
+    }
   }
   return result
 }
 
 export default function PostReviewStep({ data, onChange }: Props) {
-  const [sections, setSections] = useState<string[]>(() => uniqueSections(data.checklistItems))
+  const [sections, setSections] = useState<string[]>(() =>
+    uniqueSections(data.checklistItems),
+  )
   const [newSection, setNewSection] = useState('')
 
-  function setField<K extends keyof InspectionData>(key: K, value: InspectionData[K]) {
+  function setField<K extends keyof InspectionData>(
+    key: K,
+    value: InspectionData[K],
+  ) {
     onChange({ ...data, [key]: value })
   }
 
   // Section management
   function commitNewSection() {
     const trimmed = newSection.trim()
-    if (trimmed && !sections.includes(trimmed)) setSections(prev => [...prev, trimmed])
+    if (trimmed && !sections.includes(trimmed))
+      setSections((prev) => [...prev, trimmed])
     setNewSection('')
   }
 
   // Checklist items
   function setChecklistItem(index: number, patch: Partial<ChecklistItem>) {
-    const updated = data.checklistItems.map((item, i) => i === index ? { ...item, ...patch } : item)
-    onChange({ ...data, checklistItems: updated, overallStatus: deriveOverallStatus(updated) })
+    const updated = data.checklistItems.map((item, i) =>
+      i === index ? { ...item, ...patch } : item,
+    )
+    onChange({
+      ...data,
+      checklistItems: updated,
+      overallStatus: deriveOverallStatus(updated),
+    })
   }
   function addChecklistItem() {
-    const updated = [...data.checklistItems, { section: sections[0] ?? '', description: '', status: 'na' as const, notes: '' }]
-    onChange({ ...data, checklistItems: updated, overallStatus: deriveOverallStatus(updated) })
+    const updated = [
+      ...data.checklistItems,
+      {
+        section: sections[0] ?? '',
+        description: '',
+        status: 'na' as const,
+        notes: '',
+      },
+    ]
+    onChange({
+      ...data,
+      checklistItems: updated,
+      overallStatus: deriveOverallStatus(updated),
+    })
   }
   function removeChecklistItem(index: number) {
     const updated = data.checklistItems.filter((_, i) => i !== index)
-    onChange({ ...data, checklistItems: updated, overallStatus: deriveOverallStatus(updated) })
+    onChange({
+      ...data,
+      checklistItems: updated,
+      overallStatus: deriveOverallStatus(updated),
+    })
   }
 
   // Corrective actions
   function setAction(index: number, patch: Partial<CorrectiveAction>) {
-    onChange({ ...data, correctiveActions: data.correctiveActions.map((a, i) => i === index ? { ...a, ...patch } : a) })
+    onChange({
+      ...data,
+      correctiveActions: data.correctiveActions.map((a, i) =>
+        i === index ? { ...a, ...patch } : a,
+      ),
+    })
   }
   function addAction() {
-    onChange({ ...data, correctiveActions: [...data.correctiveActions, { description: '', dueDate: '', completed: false }] })
+    onChange({
+      ...data,
+      correctiveActions: [
+        ...data.correctiveActions,
+        { description: '', dueDate: '', completed: false },
+      ],
+    })
   }
   function removeAction(index: number) {
-    onChange({ ...data, correctiveActions: data.correctiveActions.filter((_, i) => i !== index) })
+    onChange({
+      ...data,
+      correctiveActions: data.correctiveActions.filter((_, i) => i !== index),
+    })
   }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-
       {/* Facility info */}
       <Box>
-        <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: '0.08em' }}>
+        <Typography
+          variant="overline"
+          color="text.secondary"
+          sx={{ fontWeight: 600, letterSpacing: '0.08em' }}
+        >
           Facility Information
         </Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mt: 1 }}>
-          <TextField label="Facility Name"   size="small" value={data.facilityName   ?? ''} onChange={e => setField('facilityName',   e.target.value)} />
-          <TextField label="Permit Number"   size="small" value={data.permitNumber   ?? ''} onChange={e => setField('permitNumber',   e.target.value)} />
-          <TextField label="Inspection Date" size="small" value={data.inspectionDate ?? ''} onChange={e => setField('inspectionDate', e.target.value)} />
-          <TextField label="Inspector"       size="small" value={data.inspectorName  ?? ''} onChange={e => setField('inspectorName',  e.target.value)} />
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+            gap: 2,
+            mt: 1,
+          }}
+        >
+          <TextField
+            label="Facility Name"
+            size="small"
+            value={data.facilityName ?? ''}
+            onChange={(e) => setField('facilityName', e.target.value)}
+          />
+          <TextField
+            label="Permit Number"
+            size="small"
+            value={data.permitNumber ?? ''}
+            onChange={(e) => setField('permitNumber', e.target.value)}
+          />
+          <TextField
+            label="Inspection Date"
+            size="small"
+            value={data.inspectionDate ?? ''}
+            onChange={(e) => setField('inspectionDate', e.target.value)}
+          />
+          <TextField
+            label="Inspector"
+            size="small"
+            value={data.inspectorName ?? ''}
+            onChange={(e) => setField('inspectorName', e.target.value)}
+          />
         </Box>
       </Box>
 
@@ -110,7 +190,9 @@ export default function PostReviewStep({ data, onChange }: Props) {
           <Select
             label="Overall Status"
             value={data.overallStatus}
-            onChange={e => setField('overallStatus', e.target.value as OverallStatus)}
+            onChange={(e) =>
+              setField('overallStatus', e.target.value as OverallStatus)
+            }
           >
             <MenuItem value="compliant">Compliant</MenuItem>
             <MenuItem value="non-compliant">Non-Compliant</MenuItem>
@@ -123,7 +205,7 @@ export default function PostReviewStep({ data, onChange }: Props) {
           minRows={2}
           size="small"
           value={data.summary ?? ''}
-          onChange={e => setField('summary', e.target.value)}
+          onChange={(e) => setField('summary', e.target.value)}
         />
       </Box>
 
@@ -131,32 +213,55 @@ export default function PostReviewStep({ data, onChange }: Props) {
 
       {/* Checklist items */}
       <Box>
-        <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: '0.08em' }}>
+        <Typography
+          variant="overline"
+          color="text.secondary"
+          sx={{ fontWeight: 600, letterSpacing: '0.08em' }}
+        >
           Inspection Items
         </Typography>
 
         {/* Section master list */}
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1, mb: 2, alignItems: 'center' }}>
-          {sections.map(s => (
+        <Box
+          sx={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 1,
+            mt: 1,
+            mb: 2,
+            alignItems: 'center',
+          }}
+        >
+          {sections.map((s) => (
             <Chip
               key={s}
               label={s}
               size="small"
-              onDelete={() => setSections(prev => prev.filter(x => x !== s))}
+              onDelete={() => setSections((prev) => prev.filter((x) => x !== s))}
             />
           ))}
           <TextField
             size="small"
             placeholder="Add section…"
             value={newSection}
-            onChange={e => setNewSection(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); commitNewSection() } }}
+            onChange={(e) => setNewSection(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                commitNewSection()
+              }
+            }}
             sx={{ width: 180 }}
             slotProps={{
               input: {
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton size="small" edge="end" onClick={commitNewSection} disabled={!newSection.trim()}>
+                    <IconButton
+                      size="small"
+                      edge="end"
+                      onClick={commitNewSection}
+                      disabled={!newSection.trim()}
+                    >
                       <AddIcon fontSize="small" />
                     </IconButton>
                   </InputAdornment>
@@ -171,9 +276,10 @@ export default function PostReviewStep({ data, onChange }: Props) {
           {data.checklistItems.map((item, i) => {
             // Include item's current section even if removed from master list
             const currentSection = item.section?.trim() ?? ''
-            const sectionOptions = currentSection && !sections.includes(currentSection)
-              ? [...sections, currentSection]
-              : sections
+            const sectionOptions =
+              currentSection && !sections.includes(currentSection)
+                ? [...sections, currentSection]
+                : sections
 
             return (
               <Box
@@ -196,14 +302,22 @@ export default function PostReviewStep({ data, onChange }: Props) {
                     <Select
                       label="Section"
                       value={currentSection}
-                      onChange={e => setChecklistItem(i, { section: e.target.value })}
+                      onChange={(e) =>
+                        setChecklistItem(i, { section: e.target.value })
+                      }
                     >
-                      {sectionOptions.map(s => (
-                        <MenuItem key={s} value={s}>{s}</MenuItem>
+                      {sectionOptions.map((s) => (
+                        <MenuItem key={s} value={s}>
+                          {s}
+                        </MenuItem>
                       ))}
                     </Select>
                   </FormControl>
-                  <IconButton size="small" onClick={() => removeChecklistItem(i)} sx={{ flexShrink: 0, color: 'text.secondary' }}>
+                  <IconButton
+                    size="small"
+                    onClick={() => removeChecklistItem(i)}
+                    sx={{ flexShrink: 0, color: 'text.secondary' }}
+                  >
                     <DeleteOutlineIcon fontSize="small" />
                   </IconButton>
                 </Box>
@@ -213,14 +327,19 @@ export default function PostReviewStep({ data, onChange }: Props) {
                   label="Description"
                   size="small"
                   value={item.description}
-                  onChange={e => setChecklistItem(i, { description: e.target.value })}
+                  onChange={(e) =>
+                    setChecklistItem(i, { description: e.target.value })
+                  }
                 />
 
                 {/* Status toggle */}
                 <ToggleButtonGroup
                   value={item.status}
                   exclusive
-                  onChange={(_, val) => { if (val !== null) setChecklistItem(i, { status: val as ChecklistItem['status'] }) }}
+                  onChange={(_, val) => {
+                    if (val !== null)
+                      setChecklistItem(i, { status: val as ChecklistItem['status'] })
+                  }}
                   size="small"
                   fullWidth
                 >
@@ -263,13 +382,18 @@ export default function PostReviewStep({ data, onChange }: Props) {
                   label="Notes"
                   size="small"
                   value={item.notes}
-                  onChange={e => setChecklistItem(i, { notes: e.target.value })}
+                  onChange={(e) => setChecklistItem(i, { notes: e.target.value })}
                 />
               </Box>
             )
           })}
         </Box>
-        <Button size="small" startIcon={<AddIcon />} onClick={addChecklistItem} sx={{ mt: 1.5 }}>
+        <Button
+          size="small"
+          startIcon={<AddIcon />}
+          onClick={addChecklistItem}
+          sx={{ mt: 1.5 }}
+        >
           Add Item
         </Button>
       </Box>
@@ -278,45 +402,70 @@ export default function PostReviewStep({ data, onChange }: Props) {
 
       {/* Corrective actions */}
       <Box>
-        <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: '0.08em' }}>
+        <Typography
+          variant="overline"
+          color="text.secondary"
+          sx={{ fontWeight: 600, letterSpacing: '0.08em' }}
+        >
           Corrective Actions
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 1 }}>
           {data.correctiveActions.map((action, i) => (
             <Fragment key={i}>
               {i > 0 && <Divider />}
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 1,
+                  alignItems: 'center',
+                }}
+              >
                 <TextField
                   label="Description"
                   size="small"
                   value={action.description}
-                  onChange={e => setAction(i, { description: e.target.value })}
+                  onChange={(e) => setAction(i, { description: e.target.value })}
                   sx={{ flex: '1 1 180px', minWidth: 0 }}
                 />
                 <TextField
                   label="Due Date"
                   size="small"
                   value={action.dueDate}
-                  onChange={e => setAction(i, { dueDate: e.target.value })}
+                  onChange={(e) => setAction(i, { dueDate: e.target.value })}
                   sx={{ width: 140, flexShrink: 0 }}
                 />
                 <FormControlLabel
-                  control={<Checkbox size="small" checked={action.completed} onChange={e => setAction(i, { completed: e.target.checked })} />}
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={action.completed}
+                      onChange={(e) => setAction(i, { completed: e.target.checked })}
+                    />
+                  }
                   label={<Typography variant="body2">Done</Typography>}
                   sx={{ mx: 0 }}
                 />
-                <IconButton size="small" onClick={() => removeAction(i)} sx={{ color: 'text.secondary' }}>
+                <IconButton
+                  size="small"
+                  onClick={() => removeAction(i)}
+                  sx={{ color: 'text.secondary' }}
+                >
                   <DeleteOutlineIcon fontSize="small" />
                 </IconButton>
               </Box>
             </Fragment>
           ))}
         </Box>
-        <Button size="small" startIcon={<AddIcon />} onClick={addAction} sx={{ mt: 1.5 }}>
+        <Button
+          size="small"
+          startIcon={<AddIcon />}
+          onClick={addAction}
+          sx={{ mt: 1.5 }}
+        >
           Add Action
         </Button>
       </Box>
-
     </Box>
   )
 }

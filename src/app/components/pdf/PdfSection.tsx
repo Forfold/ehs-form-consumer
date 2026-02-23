@@ -24,9 +24,14 @@ export default function PdfSection({ submissionId, initialPdfUrl }: Props) {
         <>
           <PdfViewer url={pdfUrl} />
           <Box sx={{ mt: 1.5, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-            <PdfUploadButton submissionId={submissionId} onUploaded={setPdfUrl} replace />
+            <PdfUploadButton
+              submissionId={submissionId}
+              onUploaded={setPdfUrl}
+              replace
+            />
             <Typography variant="caption" color="text.secondary">
-              Replacing the PDF will not re-process the form. Extracted data will be preserved.
+              Replacing the PDF will not re-process the form. Extracted data will be
+              preserved.
             </Typography>
           </Box>
         </>

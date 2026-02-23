@@ -2,21 +2,27 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import PdfSection from '../PdfSection'
 
 // Mock heavy child components — their own tests cover their behavior.
-// Use require() inside each function body to avoid JSX-runtime hoisting issues.
 jest.mock('../PdfViewer', () => ({
   __esModule: true,
   default: function MockPdfViewer({ url }: { url: string }) {
-    return require('react').createElement('div', { 'data-testid': 'pdf-viewer', 'data-url': url })
+    return <div data-testid="pdf-viewer" data-url={url} />
   },
 }))
 
 jest.mock('../PdfUploadButton', () => ({
   __esModule: true,
-  default: function MockPdfUploadButton({ onUploaded }: { onUploaded: (url: string) => void }) {
-    return require('react').createElement(
-      'button',
-      { 'data-testid': 'pdf-upload-button', onClick: () => onUploaded('https://blob.vercel.com/new.pdf') },
-      'Attach original PDF',
+  default: function MockPdfUploadButton({
+    onUploaded,
+  }: {
+    onUploaded: (url: string) => void
+  }) {
+    return (
+      <button
+        data-testid="pdf-upload-button"
+        onClick={() => onUploaded('https://blob.vercel.com/new.pdf')}
+      >
+        Attach original PDF
+      </button>
     )
   },
 }))
@@ -36,15 +42,28 @@ describe('PdfSection', () => {
   })
 
   it('renders the PDF viewer when an initial URL is provided', () => {
-    render(<PdfSection submissionId="sub-1" initialPdfUrl="https://blob.vercel.com/form.pdf" />)
+    render(
+      <PdfSection
+        submissionId="sub-1"
+        initialPdfUrl="https://blob.vercel.com/form.pdf"
+      />,
+    )
 
     expect(screen.getByTestId('pdf-viewer')).toBeInTheDocument()
-    expect(screen.getByTestId('pdf-viewer')).toHaveAttribute('data-url', 'https://blob.vercel.com/form.pdf')
+    expect(screen.getByTestId('pdf-viewer')).toHaveAttribute(
+      'data-url',
+      'https://blob.vercel.com/form.pdf',
+    )
     expect(screen.queryByText('No original PDF attached.')).not.toBeInTheDocument()
   })
 
   it('shows the replace button alongside the viewer when a PDF is present', () => {
-    render(<PdfSection submissionId="sub-1" initialPdfUrl="https://blob.vercel.com/form.pdf" />)
+    render(
+      <PdfSection
+        submissionId="sub-1"
+        initialPdfUrl="https://blob.vercel.com/form.pdf"
+      />,
+    )
 
     expect(screen.getByTestId('pdf-upload-button')).toBeInTheDocument()
     expect(screen.getByTestId('pdf-viewer')).toBeInTheDocument()
@@ -58,14 +77,25 @@ describe('PdfSection', () => {
     fireEvent.click(screen.getByTestId('pdf-upload-button'))
 
     expect(await screen.findByTestId('pdf-viewer')).toBeInTheDocument()
-    expect(screen.getByTestId('pdf-viewer')).toHaveAttribute('data-url', 'https://blob.vercel.com/new.pdf')
+    expect(screen.getByTestId('pdf-viewer')).toHaveAttribute(
+      'data-url',
+      'https://blob.vercel.com/new.pdf',
+    )
   })
 
   it('updates the viewer URL when a replacement PDF is uploaded', async () => {
-    render(<PdfSection submissionId="sub-1" initialPdfUrl="https://blob.vercel.com/old.pdf" />)
+    render(
+      <PdfSection
+        submissionId="sub-1"
+        initialPdfUrl="https://blob.vercel.com/old.pdf"
+      />,
+    )
 
     fireEvent.click(screen.getByTestId('pdf-upload-button'))
 
-    expect(await screen.findByTestId('pdf-viewer')).toHaveAttribute('data-url', 'https://blob.vercel.com/new.pdf')
+    expect(await screen.findByTestId('pdf-viewer')).toHaveAttribute(
+      'data-url',
+      'https://blob.vercel.com/new.pdf',
+    )
   })
 })

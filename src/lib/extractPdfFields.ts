@@ -8,9 +8,11 @@ let workerReady = false
 // Field names vary widely across form vendors, so we use loose regex matching.
 function matchHintKey(fieldName: string): keyof InspectionFieldHints | null {
   const n = fieldName.toLowerCase()
-  if (/facility|site.?name|company|organization|property/.test(n)) return 'facilityName'
+  if (/facility|site.?name|company|organization|property/.test(n))
+    return 'facilityName'
   if (/permit|authorization/.test(n)) return 'permitNumber'
-  if (/inspec.+date|date.+inspec|\binspection\b.*\bdate\b|\bdate\b/.test(n)) return 'inspectionDate'
+  if (/inspec.+date|date.+inspec|\binspection\b.*\bdate\b|\bdate\b/.test(n))
+    return 'inspectionDate'
   if (/inspector|performed.by|inspected.by/.test(n)) return 'inspectorName'
   if (/weather|condition/.test(n)) return 'weatherConditions'
   return null
@@ -43,11 +45,15 @@ export async function extractPdfFields(file: File): Promise<ExtractedPdfFields> 
   const arrayBuffer = await file.arrayBuffer()
   const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise
 
-  let fieldObjects: Record<string, Array<{ type: string; value: unknown }>> | null = null
+  let fieldObjects: Record<string, Array<{ type: string; value: unknown }>> | null =
+    null
   try {
     fieldObjects = (await pdf.getFieldObjects()) as unknown as typeof fieldObjects
   } catch (err) {
-    console.warn('[extractPdfFields] getFieldObjects failed (PDF likely has no AcroForm):', err)
+    console.warn(
+      '[extractPdfFields] getFieldObjects failed (PDF likely has no AcroForm):',
+      err,
+    )
   }
 
   await pdf.destroy()
@@ -59,7 +65,9 @@ export async function extractPdfFields(file: File): Promise<ExtractedPdfFields> 
   const hints: Partial<InspectionFieldHints> = {}
 
   type FieldEntry = { type: string; value: unknown }
-  for (const [name, fields] of Object.entries(fieldObjects) as Array<[string, FieldEntry[]]>) {
+  for (const [name, fields] of Object.entries(fieldObjects) as Array<
+    [string, FieldEntry[]]
+  >) {
     const key = matchHintKey(name)
     if (!key || hints[key]) continue // skip if no match or slot already filled
 

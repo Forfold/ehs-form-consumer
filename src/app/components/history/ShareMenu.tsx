@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState } from 'react'
@@ -64,7 +63,10 @@ export function ShareMenu({
         submissionId: item.id,
         teamId: team.id,
       })
-      const newTeams = [...(item.teams ?? []).filter((t) => t.id !== team.id), { id: team.id, name: team.name }]
+      const newTeams = [
+        ...(item.teams ?? []).filter((t) => t.id !== team.id),
+        { id: team.id, name: team.name },
+      ]
       onTeamsChangedAction(newTeams)
     } finally {
       setSharingId(null)
@@ -100,7 +102,9 @@ export function ShareMenu({
         )}
         {!loadingTeams && available.length === 0 && (
           <MenuItem disabled>
-            {userTeams.length === 0 ? 'No teams — create one in Settings' : 'Already shared with all teams'}
+            {userTeams.length === 0
+              ? 'No teams — create one in Settings'
+              : 'Already shared with all teams'}
           </MenuItem>
         )}
         {available.map((team) => (
@@ -109,7 +113,9 @@ export function ShareMenu({
             onClick={() => handleShare(team)}
             disabled={sharingId === team.id}
           >
-            {sharingId === team.id ? <CircularProgress size={14} sx={{ mr: 1 }} /> : null}
+            {sharingId === team.id ? (
+              <CircularProgress size={14} sx={{ mr: 1 }} />
+            ) : null}
             {team.name}
           </MenuItem>
         ))}

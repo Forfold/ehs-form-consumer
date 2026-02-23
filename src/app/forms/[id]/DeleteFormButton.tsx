@@ -23,7 +23,10 @@ interface DeleteFormButtonProps {
   displayName: string | null
 }
 
-export default function DeleteFormButton({ submissionId, displayName }: DeleteFormButtonProps) {
+export default function DeleteFormButton({
+  submissionId,
+  displayName,
+}: DeleteFormButtonProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -50,12 +53,18 @@ export default function DeleteFormButton({ submissionId, displayName }: DeleteFo
         Delete Form
       </Button>
 
-      <Dialog open={open} onClose={() => !deleting && setOpen(false)} maxWidth="xs" fullWidth>
+      <Dialog
+        open={open}
+        onClose={() => !deleting && setOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
         <DialogTitle>Delete Form</DialogTitle>
         <DialogContent>
           <Typography variant="body2">
             Are you sure you want to permanently delete{' '}
-            <strong>{displayName ?? 'this form'}</strong>? This action cannot be undone.
+            <strong>{displayName ?? 'this form'}</strong>? This action cannot be
+            undone.
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -67,7 +76,9 @@ export default function DeleteFormButton({ submissionId, displayName }: DeleteFo
             variant="contained"
             onClick={handleDelete}
             disabled={deleting}
-            startIcon={deleting ? <CircularProgress size={14} color="inherit" /> : null}
+            startIcon={
+              deleting ? <CircularProgress size={14} color="inherit" /> : null
+            }
           >
             {deleting ? 'Deleting…' : 'Delete'}
           </Button>

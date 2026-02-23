@@ -12,8 +12,25 @@ interface Props {
 
 export default function DashboardCard({ title, subtitle, action, children }: Props) {
   return (
-    <Paper variant="outlined" sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1.5, height: '100%', boxSizing: 'border-box' }}>
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1 }}>
+    <Paper
+      variant="outlined"
+      sx={{
+        p: 2,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 1.5,
+        height: '100%',
+        boxSizing: 'border-box',
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: 1,
+        }}
+      >
         <Box>
           <Typography variant="subtitle2" fontWeight={700} lineHeight={1.2}>
             {title}

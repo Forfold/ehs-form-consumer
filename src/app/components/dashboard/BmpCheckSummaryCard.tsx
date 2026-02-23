@@ -23,16 +23,41 @@ export default function BmpCheckSummaryCard({ checklistTotals }: Props) {
       axisLine: { show: false },
       axisTick: { show: false },
     },
-    series: [{
-      type: 'bar',
-      data: [
-        { value: checklistTotals.pass,  itemStyle: { color: theme.palette.success.main, borderRadius: [0, 4, 4, 0] } },
-        { value: checklistTotals.fail,  itemStyle: { color: theme.palette.error.main,   borderRadius: [0, 4, 4, 0] } },
-        { value: checklistTotals.na,    itemStyle: { color: theme.palette.action.disabled, borderRadius: [0, 4, 4, 0] } },
-      ],
-      barMaxWidth: 28,
-      label: { show: true, position: 'right', color: theme.palette.text.secondary, fontSize: 11 },
-    }],
+    series: [
+      {
+        type: 'bar',
+        data: [
+          {
+            value: checklistTotals.pass,
+            itemStyle: {
+              color: theme.palette.success.main,
+              borderRadius: [0, 4, 4, 0],
+            },
+          },
+          {
+            value: checklistTotals.fail,
+            itemStyle: {
+              color: theme.palette.error.main,
+              borderRadius: [0, 4, 4, 0],
+            },
+          },
+          {
+            value: checklistTotals.na,
+            itemStyle: {
+              color: theme.palette.action.disabled,
+              borderRadius: [0, 4, 4, 0],
+            },
+          },
+        ],
+        barMaxWidth: 28,
+        label: {
+          show: true,
+          position: 'right',
+          color: theme.palette.text.secondary,
+          fontSize: 11,
+        },
+      },
+    ],
   }
 
   return (

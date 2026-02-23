@@ -17,12 +17,26 @@ interface Props {
   onSelectForm: (submissionId: string) => void
 }
 
-export default function FlaggedItemsModal({ open, onClose, forms, onSelectForm }: Props) {
+export default function FlaggedItemsModal({
+  open,
+  onClose,
+  forms,
+  onSelectForm,
+}: Props) {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pr: 1 }}>
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          pr: 1,
+        }}
+      >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <Typography variant="h6" fontWeight={700}>Flagged Forms</Typography>
+          <Typography variant="h6" fontWeight={700}>
+            Flagged Forms
+          </Typography>
           <Chip label={forms.length} size="small" color="error" />
         </Box>
         <IconButton size="small" onClick={onClose} aria-label="close">
@@ -32,38 +46,76 @@ export default function FlaggedItemsModal({ open, onClose, forms, onSelectForm }
 
       <DialogContent dividers sx={{ p: 0 }}>
         {forms.length === 0 ? (
-          <Typography color="text.secondary" sx={{ p: 3 }}>No flagged forms in this window.</Typography>
+          <Typography color="text.secondary" sx={{ p: 3 }}>
+            No flagged forms in this window.
+          </Typography>
         ) : (
           forms.map((form, i) => (
             <Box key={form.submissionId}>
               {i > 0 && <Divider />}
               <Box sx={{ px: 3, py: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', mb: 1 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    justifyContent: 'space-between',
+                    mb: 1,
+                  }}
+                >
                   <Link
                     component="button"
                     variant="subtitle2"
                     fontWeight={700}
                     underline="hover"
-                    onClick={() => { onSelectForm(form.submissionId); onClose() }}
+                    onClick={() => {
+                      onSelectForm(form.submissionId)
+                      onClose()
+                    }}
                     sx={{ textAlign: 'left' }}
                   >
                     {form.facilityName}
                   </Link>
                   {form.inspectionDate && (
-                    <Typography variant="caption" color="text.secondary" sx={{ ml: 2, flexShrink: 0 }}>
-                      {new Date(form.inspectionDate).toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ ml: 2, flexShrink: 0 }}
+                    >
+                      {new Date(form.inspectionDate).toLocaleDateString('default', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
                     </Typography>
                   )}
                 </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
                   {form.failedChecklistItems.map((item, j) => (
-                    <Box key={j} sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+                    <Box
+                      key={j}
+                      sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}
+                    >
                       <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                        <Chip label="Fail" size="small" color="error" variant="outlined" sx={{ height: 18, fontSize: '0.65rem', mt: 0.25, flexShrink: 0 }} />
+                        <Chip
+                          label="Fail"
+                          size="small"
+                          color="error"
+                          variant="outlined"
+                          sx={{
+                            height: 18,
+                            fontSize: '0.65rem',
+                            mt: 0.25,
+                            flexShrink: 0,
+                          }}
+                        />
                         <Typography variant="body2">{item.description}</Typography>
                       </Box>
                       {item.notes && (
-                        <Typography variant="caption" color="text.secondary" sx={{ pl: 4.5 }}>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ pl: 4.5 }}
+                        >
                           {item.notes}
                         </Typography>
                       )}

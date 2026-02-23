@@ -45,7 +45,7 @@ export async function pdfToImages(file: File, scale = 2.0): Promise<string[]> {
     const ctx = canvas.getContext('2d')!
 
     await page.render({
-      canvas,          // required in pdfjs-dist v5
+      canvas, // required in pdfjs-dist v5
       canvasContext: ctx,
       viewport,
       // ENABLE_STORAGE = 3: composites form-field values AND all annotation

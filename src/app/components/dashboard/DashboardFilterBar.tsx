@@ -38,7 +38,10 @@ interface Props {
   onSubmissionChange: (id: string) => void
   history: HistoryItem[]
   historyLoading?: boolean
-  onItemTeamsChanged?: (itemId: string, teams: Array<{ id: string; name: string }>) => void
+  onItemTeamsChanged?: (
+    itemId: string,
+    teams: Array<{ id: string; name: string }>,
+  ) => void
 }
 
 const TIME_OPTIONS: Array<{ value: TimeRange; label: string }> = [
@@ -51,17 +54,40 @@ const TIME_OPTIONS: Array<{ value: TimeRange; label: string }> = [
 ]
 
 export default function DashboardFilterBar({
-  timeRange, onTimeRangeChange,
-  teams, teamId, onTeamChange,
-  filterBySubmissionOptions, selectedSubmissionId, onSubmissionChange,
-  history, onItemTeamsChanged,
+  timeRange,
+  onTimeRangeChange,
+  teams,
+  teamId,
+  onTeamChange,
+  filterBySubmissionOptions,
+  selectedSubmissionId,
+  onSubmissionChange,
+  history,
+  onItemTeamsChanged,
 }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const router = useRouter()
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', mb: 1.5 }}>
-      <Typography variant="caption" color="text.disabled" sx={{ fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', mr: 0.5 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1.5,
+        flexWrap: 'wrap',
+        mb: 1.5,
+      }}
+    >
+      <Typography
+        variant="caption"
+        color="text.disabled"
+        sx={{
+          fontWeight: 600,
+          letterSpacing: '0.06em',
+          textTransform: 'uppercase',
+          mr: 0.5,
+        }}
+      >
         Showing
       </Typography>
 
@@ -69,10 +95,21 @@ export default function DashboardFilterBar({
         value={timeRange}
         exclusive
         size="small"
-        onChange={(_, v) => { if (v) onTimeRangeChange(v as TimeRange) }}
-        sx={{ '& .MuiToggleButton-root': { py: 0.25, px: 1.25, fontSize: '0.72rem', lineHeight: 1.6, border: '1px solid', borderColor: 'divider' } }}
+        onChange={(_, v) => {
+          if (v) onTimeRangeChange(v as TimeRange)
+        }}
+        sx={{
+          '& .MuiToggleButton-root': {
+            py: 0.25,
+            px: 1.25,
+            fontSize: '0.72rem',
+            lineHeight: 1.6,
+            border: '1px solid',
+            borderColor: 'divider',
+          },
+        }}
       >
-        {TIME_OPTIONS.map(opt => (
+        {TIME_OPTIONS.map((opt) => (
           <ToggleButton key={opt.value} value={opt.value}>
             {opt.label}
           </ToggleButton>
@@ -83,17 +120,27 @@ export default function DashboardFilterBar({
         <>
           <Select
             value={selectedSubmissionId}
-            onChange={e => onSubmissionChange(e.target.value)}
+            onChange={(e) => onSubmissionChange(e.target.value)}
             size="small"
             displayEmpty
-            sx={{ fontSize: '0.75rem', minWidth: 200, maxWidth: 300, '& .MuiSelect-select': { py: '3px' } }}
+            sx={{
+              fontSize: '0.75rem',
+              minWidth: 200,
+              maxWidth: 300,
+              '& .MuiSelect-select': { py: '3px' },
+            }}
           >
-            {filterBySubmissionOptions.length === 0
-              ? <MenuItem value="" disabled>No submissions</MenuItem>
-              : filterBySubmissionOptions.map(s => (
-                  <MenuItem key={s.id} value={s.id}>{s.label}</MenuItem>
-                ))
-            }
+            {filterBySubmissionOptions.length === 0 ? (
+              <MenuItem value="" disabled>
+                No submissions
+              </MenuItem>
+            ) : (
+              filterBySubmissionOptions.map((s) => (
+                <MenuItem key={s.id} value={s.id}>
+                  {s.label}
+                </MenuItem>
+              ))
+            )}
           </Select>
           {selectedSubmissionId && (
             <Button
@@ -101,7 +148,13 @@ export default function DashboardFilterBar({
               variant="outlined"
               endIcon={<OpenInNewIcon fontSize="inherit" />}
               onClick={() => router.push(`/forms/${selectedSubmissionId}`)}
-              sx={{ fontSize: '0.72rem', py: 0.25, px: 1.25, textTransform: 'none', whiteSpace: 'nowrap' }}
+              sx={{
+                fontSize: '0.72rem',
+                py: 0.25,
+                px: 1.25,
+                textTransform: 'none',
+                whiteSpace: 'nowrap',
+              }}
             >
               See all details
             </Button>
@@ -111,28 +164,34 @@ export default function DashboardFilterBar({
         teams.length > 0 && (
           <Select
             value={teamId}
-            onChange={e => onTeamChange(e.target.value)}
+            onChange={(e) => onTeamChange(e.target.value)}
             size="small"
-            sx={{ fontSize: '0.75rem', minWidth: 130, '& .MuiSelect-select': { py: '3px' } }}
+            sx={{
+              fontSize: '0.75rem',
+              minWidth: 130,
+              '& .MuiSelect-select': { py: '3px' },
+            }}
           >
             <MenuItem value="all">All teams</MenuItem>
             <MenuItem value="personal">Personal only</MenuItem>
-            {teams.map(t => (
-              <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>
+            {teams.map((t) => (
+              <MenuItem key={t.id} value={t.id}>
+                {t.name}
+              </MenuItem>
             ))}
           </Select>
         )
       )}
 
-      <Tooltip title='Show processed forms history'>
+      <Tooltip title="Show processed forms history">
         <IconButton
-        size="small"
-        onClick={() => setSidebarOpen(true)}
-        sx={{ color: 'text.secondary', mr: 0.5 }}
-        aria-label="open history"
-      >
-        <HistoryIcon fontSize="small" />
-      </IconButton>
+          size="small"
+          onClick={() => setSidebarOpen(true)}
+          sx={{ color: 'text.secondary', mr: 0.5 }}
+          aria-label="open history"
+        >
+          <HistoryIcon fontSize="small" />
+        </IconButton>
       </Tooltip>
 
       <HistorySidebar

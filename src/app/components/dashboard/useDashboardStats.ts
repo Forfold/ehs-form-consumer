@@ -1,6 +1,11 @@
 import { useMemo } from 'react'
 import type { HistoryItem } from '../history/HistorySidebar'
-import type { DashboardStats, FlaggedForm, InspectionDataSummary, MonthBucket } from './types'
+import type {
+  DashboardStats,
+  FlaggedForm,
+  InspectionDataSummary,
+  MonthBucket,
+} from './types'
 
 function monthKey(d: Date) {
   return `${d.getFullYear()}-${d.getMonth()}`
@@ -16,7 +21,8 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
 
     // Compliance across the (already-filtered) history
     const compliant = history.filter(
-      item => (item.data as Partial<InspectionDataSummary>).overallStatus === 'compliant'
+      (item) =>
+        (item.data as Partial<InspectionDataSummary>).overallStatus === 'compliant',
     ).length
     const compliancePercent =
       history.length === 0 ? 100 : Math.round((compliant / history.length) * 100)
@@ -24,7 +30,8 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
     // BMP totals across all history
     const checklistTotals = { pass: 0, fail: 0, na: 0 }
     for (const item of history) {
-      for (const bmp of (item.data as Partial<InspectionDataSummary>).checklistItems ?? []) {
+      for (const bmp of (item.data as Partial<InspectionDataSummary>)
+        .checklistItems ?? []) {
         if (bmp.status === 'pass') checklistTotals.pass++
         else if (bmp.status === 'fail') checklistTotals.fail++
         else checklistTotals.na++
@@ -35,7 +42,12 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
     const bucketMap = new Map<string, MonthBucket>()
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-      bucketMap.set(monthKey(d), { month: monthLabel(d), compliant: 0, nonCompliant: 0, needsAttention: 0 })
+      bucketMap.set(monthKey(d), {
+        month: monthLabel(d),
+        compliant: 0,
+        nonCompliant: 0,
+        needsAttention: 0,
+      })
     }
     for (const item of history) {
       const d = item.data as Partial<InspectionDataSummary>
@@ -51,11 +63,11 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
     const monthlyBuckets = Array.from(bucketMap.values())
 
     // Open corrective actions (documented) + BMP failures with no documented action (gaps)
-    const openActions = history.flatMap(item => {
+    const openActions = history.flatMap((item) => {
       const d = item.data as Partial<InspectionDataSummary>
       const documented = (d.correctiveActions ?? [])
-        .filter(a => !a.completed)
-        .map(a => ({
+        .filter((a) => !a.completed)
+        .map((a) => ({
           submissionId: item.id,
           facilityName: item?.facilityName ?? 'unknown',
           description: a.description,
@@ -64,35 +76,51 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
         }))
 
       // If no corrective actions were documented, surface each failed BMP item as a gap
-      const failedBmps = (d.checklistItems ?? []).filter(b => b.status === 'fail')
-      const gaps = documented.length === 0 && failedBmps.length > 0
-        ? failedBmps.map(b => ({
-            submissionId: item.id,
-            facilityName: item?.facilityName ?? 'unknown',
-            description: b.description,
-            dueDate: '',
-            source: 'gap' as const,
-          }))
-        : []
+      const failedBmps = (d.checklistItems ?? []).filter((b) => b.status === 'fail')
+      const gaps =
+        documented.length === 0 && failedBmps.length > 0
+          ? failedBmps.map((b) => ({
+              submissionId: item.id,
+              facilityName: item?.facilityName ?? 'unknown',
+              description: b.description,
+              dueDate: '',
+              source: 'gap' as const,
+            }))
+          : []
 
       return [...documented, ...gaps]
     })
 
     // Flagged forms — non-compliant items with their failed BMP checks
     const flaggedForms: FlaggedForm[] = history
-      .filter(item => (item.data as Partial<InspectionDataSummary>).overallStatus === 'non-compliant')
-      .map(item => {
+      .filter(
+        (item) =>
+          (item.data as Partial<InspectionDataSummary>).overallStatus ===
+          'non-compliant',
+      )
+      .map((item) => {
         const d = item.data as Partial<InspectionDataSummary>
         return {
           submissionId: item.id,
           facilityName: item?.facilityName ?? 'unknown',
           inspectionDate: d.inspectionDate ?? null,
           failedChecklistItems: (d.checklistItems ?? [])
-            .filter(b => b.status === 'fail')
-            .map(b => ({ section: b.section, description: b.description, notes: b.notes })),
+            .filter((b) => b.status === 'fail')
+            .map((b) => ({
+              section: b.section,
+              description: b.description,
+              notes: b.notes,
+            })),
         }
       })
 
-    return { compliancePercent, formCount: history.length, checklistTotals, monthlyBuckets, openActions, flaggedForms }
+    return {
+      compliancePercent,
+      formCount: history.length,
+      checklistTotals,
+      monthlyBuckets,
+      openActions,
+      flaggedForms,
+    }
   }, [history])
 }

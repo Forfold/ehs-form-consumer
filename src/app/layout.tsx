@@ -29,16 +29,15 @@ export default async function RootLayout({
 }>) {
   const cookieStore = await cookies()
   const cookieTheme = cookieStore.get('theme')?.value
-  const initialMode: ThemeMode = cookieTheme === 'dark' ? 'dark' : cookieTheme === 'system' ? 'system' : 'light'
+  const initialMode: ThemeMode =
+    cookieTheme === 'dark' ? 'dark' : cookieTheme === 'system' ? 'system' : 'light'
 
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
           <Providers initialMode={initialMode}>
-            <AuthGate>
-              {children}
-            </AuthGate>
+            <AuthGate>{children}</AuthGate>
           </Providers>
         </AppRouterCacheProvider>
       </body>

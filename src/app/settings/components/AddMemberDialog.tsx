@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -52,13 +51,18 @@ interface AddMemberDialogProps {
   onAdded: (member: GqlTeamMember) => void
 }
 
-export function AddMemberDialog({ teamId, open, onClose, onAdded }: AddMemberDialogProps) {
-  const [allUsers, setAllUsers]       = useState<GqlUser[]>([])
-  const [filter, setFilter]           = useState('')
+export function AddMemberDialog({
+  teamId,
+  open,
+  onClose,
+  onAdded,
+}: AddMemberDialogProps) {
+  const [allUsers, setAllUsers] = useState<GqlUser[]>([])
+  const [filter, setFilter] = useState('')
   const [selectedUser, setSelectedUser] = useState<GqlUser | null>(null)
-  const [role, setRole]               = useState('member')
-  const [loading, setLoading]         = useState(false)
-  const [fetching, setFetching]       = useState(false)
+  const [role, setRole] = useState('member')
+  const [loading, setLoading] = useState(false)
+  const [fetching, setFetching] = useState(false)
 
   useEffect(() => {
     if (!open) {
@@ -98,8 +102,14 @@ export function AddMemberDialog({ teamId, open, onClose, onAdded }: AddMemberDia
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
       <DialogTitle>Add team member</DialogTitle>
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: '12px !important' }}>
-
+      <DialogContent
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1.5,
+          pt: '12px !important',
+        }}
+      >
         {/* Filter input */}
         <TextField
           size="small"
@@ -133,7 +143,11 @@ export function AddMemberDialog({ teamId, open, onClose, onAdded }: AddMemberDia
               <CircularProgress size={24} />
             </Box>
           ) : filtered.length === 0 ? (
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', py: 3 }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: 'block', textAlign: 'center', py: 3 }}
+            >
               {filter ? 'No users match your filter.' : 'No users found.'}
             </Typography>
           ) : (
@@ -150,11 +164,17 @@ export function AddMemberDialog({ teamId, open, onClose, onAdded }: AddMemberDia
                       <UserAvatar user={user} size={30} />
                     </ListItemAvatar>
                     <ListItemText
-                      primary={<Typography variant="body2" noWrap>{user.name ?? user.email}</Typography>}
+                      primary={
+                        <Typography variant="body2" noWrap>
+                          {user.name ?? user.email}
+                        </Typography>
+                      }
                       secondary={
-                        user.name
-                          ? <Typography variant="caption" color="text.secondary" noWrap>{user.email}</Typography>
-                          : undefined
+                        user.name ? (
+                          <Typography variant="caption" color="text.secondary" noWrap>
+                            {user.email}
+                          </Typography>
+                        ) : undefined
                       }
                     />
                   </ListItemButton>
@@ -173,10 +193,11 @@ export function AddMemberDialog({ teamId, open, onClose, onAdded }: AddMemberDia
             <MenuItem value="owner">Owner</MenuItem>
           </Select>
         </FormControl>
-
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={loading}>Cancel</Button>
+        <Button onClick={onClose} disabled={loading}>
+          Cancel
+        </Button>
         <Button
           variant="contained"
           disabled={!selectedUser || loading}
