@@ -1,75 +1,75 @@
-"use client";
+'use client'
 
-import { useCallback, useRef, useState } from "react";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import InsertDriveFileOutlinedIcon from "@mui/icons-material/InsertDriveFileOutlined";
+import { useCallback, useRef, useState } from 'react'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import CloudUploadIcon from '@mui/icons-material/CloudUpload'
+import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined'
 
 interface DropZoneProps {
-  onFileSelected: (file: File) => void;
+  onFileSelected: (file: File) => void
 }
 
 export function DropZone({ onFileSelected }: DropZoneProps) {
-  const [dragging, setDragging] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [dragging, setDragging] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
-      e.preventDefault();
-      setDragging(false);
-      const file = e.dataTransfer.files[0];
-      if (file?.type === "application/pdf") {
-        setSelectedFile(file);
-        onFileSelected(file);
+      e.preventDefault()
+      setDragging(false)
+      const file = e.dataTransfer.files[0]
+      if (file?.type === 'application/pdf') {
+        setSelectedFile(file)
+        onFileSelected(file)
       }
     },
     [onFileSelected],
-  );
+  )
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]
     if (file) {
-      setSelectedFile(file);
-      onFileSelected(file);
+      setSelectedFile(file)
+      onFileSelected(file)
     }
-  };
+  }
 
   return (
     <Box
       onClick={() => inputRef.current?.click()}
       onDrop={handleDrop}
       onDragOver={(e) => {
-        e.preventDefault();
-        setDragging(true);
+        e.preventDefault()
+        setDragging(true)
       }}
       onDragLeave={() => setDragging(false)}
       sx={{
-        border: "1.5px dashed",
+        border: '1.5px dashed',
         borderColor: selectedFile
-          ? "success.main"
+          ? 'success.main'
           : dragging
-            ? "primary.main"
-            : "divider",
+            ? 'primary.main'
+            : 'divider',
         borderRadius: 2,
         py: 5,
         px: 3,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
         gap: 0.75,
-        cursor: "pointer",
+        cursor: 'pointer',
         bgcolor: selectedFile
-          ? "success.50"
+          ? 'success.50'
           : dragging
-            ? "primary.50"
-            : "action.hover",
-        transition: "border-color 0.15s, background-color 0.15s",
-        "&:hover": {
-          borderColor: selectedFile ? "success.main" : "primary.main",
-          bgcolor: "action.hover",
+            ? 'primary.50'
+            : 'action.hover',
+        transition: 'border-color 0.15s, background-color 0.15s',
+        '&:hover': {
+          borderColor: selectedFile ? 'success.main' : 'primary.main',
+          bgcolor: 'action.hover',
         },
       }}
     >
@@ -82,9 +82,9 @@ export function DropZone({ onFileSelected }: DropZoneProps) {
       />
 
       {selectedFile ? (
-        <InsertDriveFileOutlinedIcon sx={{ fontSize: 36, color: "success.main" }} />
+        <InsertDriveFileOutlinedIcon sx={{ fontSize: 36, color: 'success.main' }} />
       ) : (
-        <CloudUploadIcon sx={{ fontSize: 36, color: "text.disabled" }} />
+        <CloudUploadIcon sx={{ fontSize: 36, color: 'text.disabled' }} />
       )}
 
       {selectedFile ? (
@@ -107,5 +107,5 @@ export function DropZone({ onFileSelected }: DropZoneProps) {
         </>
       )}
     </Box>
-  );
+  )
 }

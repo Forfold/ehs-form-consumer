@@ -1,17 +1,17 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
-import Container from "@mui/material/Container";
-import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
-import AddIcon from "@mui/icons-material/Add";
-import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
-import Link from "next/link";
-import { gqlFetch } from "@/lib/graphql/client";
-import { GqlTeam, GqlTeamMember, TeamCard } from "./TeamCard";
+import { useEffect, useState } from 'react'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import CircularProgress from '@mui/material/CircularProgress'
+import Container from '@mui/material/Container'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
+import AddIcon from '@mui/icons-material/Add'
+import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline'
+import Link from 'next/link'
+import { gqlFetch } from '@/lib/graphql/client'
+import { GqlTeam, GqlTeamMember, TeamCard } from './TeamCard'
 
 // ── GraphQL fragments ─────────────────────────────────────────────────────────
 
@@ -28,7 +28,7 @@ const TEAMS_QUERY = `
       }
     }
   }
-`;
+`
 
 const CREATE_TEAM_MUTATION = `
   mutation CreateTeam($name: String!) {
@@ -37,58 +37,58 @@ const CREATE_TEAM_MUTATION = `
       members { userId role joinedAt user { id name email image } }
     }
   }
-`;
+`
 
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function TeamManager() {
-  const [teams, setTeams] = useState<GqlTeam[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [createName, setCreateName] = useState("");
-  const [creating, setCreating] = useState(false);
+  const [teams, setTeams] = useState<GqlTeam[]>([])
+  const [loading, setLoading] = useState(true)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [createName, setCreateName] = useState('')
+  const [creating, setCreating] = useState(false)
 
   useEffect(() => {
     Promise.all([
       gqlFetch<{ teams: GqlTeam[] }>(TEAMS_QUERY),
       gqlFetch<{ me: { id: string; isAdmin: boolean } | null }>(
-        "query { me { id isAdmin } }",
+        'query { me { id isAdmin } }',
       ),
     ])
       .then(([{ teams }, { me }]) => {
-        setTeams(teams);
-        setCurrentUserId(me?.id ?? null);
-        setIsAdmin(!!me?.isAdmin);
+        setTeams(teams)
+        setCurrentUserId(me?.id ?? null)
+        setIsAdmin(!!me?.isAdmin)
       })
       .catch(() => {
         /* db not configured */
       })
-      .finally(() => setLoading(false));
-  }, []);
+      .finally(() => setLoading(false))
+  }, [])
 
   async function handleCreateTeam(e: React.FormEvent) {
-    e.preventDefault();
-    if (!createName.trim()) return;
-    setCreating(true);
+    e.preventDefault()
+    if (!createName.trim()) return
+    setCreating(true)
     try {
       const { createTeam } = await gqlFetch<{ createTeam: GqlTeam }>(
         CREATE_TEAM_MUTATION,
         { name: createName.trim() },
-      );
-      setTeams((prev) => [createTeam, ...prev]);
-      setCreateName("");
+      )
+      setTeams((prev) => [createTeam, ...prev])
+      setCreateName('')
     } finally {
-      setCreating(false);
+      setCreating(false)
     }
   }
 
   function handleTeamDeleted(id: string) {
-    setTeams((prev) => prev.filter((t) => t.id !== id));
+    setTeams((prev) => prev.filter((t) => t.id !== id))
   }
 
   function handleTeamRenamed(teamId: string, name: string) {
-    setTeams((prev) => prev.map((t) => (t.id === teamId ? { ...t, name } : t)));
+    setTeams((prev) => prev.map((t) => (t.id === teamId ? { ...t, name } : t)))
   }
 
   function handleMemberAdded(teamId: string, member: GqlTeamMember) {
@@ -104,7 +104,7 @@ export default function TeamManager() {
             }
           : t,
       ),
-    );
+    )
   }
 
   function handleMemberRemoved(teamId: string, userId: string) {
@@ -114,7 +114,7 @@ export default function TeamManager() {
           ? { ...t, members: t.members.filter((m) => m.userId !== userId) }
           : t,
       ),
-    );
+    )
   }
 
   function handleMemberRoleChanged(teamId: string, member: GqlTeamMember) {
@@ -129,16 +129,16 @@ export default function TeamManager() {
             }
           : t,
       ),
-    );
+    )
   }
 
   return (
     <Container maxWidth="md" sx={{ py: 4, flex: 1 }}>
       <Box
         sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
           mb: 0.5,
         }}
       >
@@ -164,7 +164,7 @@ export default function TeamManager() {
       <Box
         component="form"
         onSubmit={handleCreateTeam}
-        sx={{ display: "flex", gap: 1, mb: 3 }}
+        sx={{ display: 'flex', gap: 1, mb: 3 }}
       >
         <TextField
           size="small"
@@ -187,19 +187,19 @@ export default function TeamManager() {
 
       {/* Team list */}
       {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
           <CircularProgress />
         </Box>
       ) : teams.length === 0 ? (
         <Typography
           variant="body2"
           color="text.secondary"
-          sx={{ textAlign: "center", py: 6 }}
+          sx={{ textAlign: 'center', py: 6 }}
         >
           No teams yet. Create one above.
         </Typography>
       ) : (
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {teams.map((team) => (
             <TeamCard
               key={team.id}
@@ -215,5 +215,5 @@ export default function TeamManager() {
         </Box>
       )}
     </Container>
-  );
+  )
 }

@@ -1,32 +1,32 @@
-"use client";
+'use client'
 
-import { useRouter } from "next/navigation";
-import Box from "@mui/material/Box";
-import Divider from "@mui/material/Divider";
-import Drawer from "@mui/material/Drawer";
-import IconButton from "@mui/material/IconButton";
-import Typography from "@mui/material/Typography";
-import CloseIcon from "@mui/icons-material/Close";
-import HistoryIcon from "@mui/icons-material/History";
-import { HistoryList } from "./HistoryList";
+import { useRouter } from 'next/navigation'
+import Box from '@mui/material/Box'
+import Divider from '@mui/material/Divider'
+import Drawer from '@mui/material/Drawer'
+import IconButton from '@mui/material/IconButton'
+import Typography from '@mui/material/Typography'
+import CloseIcon from '@mui/icons-material/Close'
+import HistoryIcon from '@mui/icons-material/History'
+import { HistoryList } from './HistoryList'
 
 export interface HistoryItem {
-  id: string;
-  facilityName: string | null;
-  permitNumber: string;
-  processedAt: string;
-  data: Record<string, unknown>;
-  teams?: Array<{ id: string; name: string }>;
+  id: string
+  facilityName: string | null
+  permitNumber: string
+  processedAt: string
+  data: Record<string, unknown>
+  teams?: Array<{ id: string; name: string }>
 }
 
 interface Props {
-  open: boolean;
-  onClose: () => void;
-  items: HistoryItem[];
+  open: boolean
+  onClose: () => void
+  items: HistoryItem[]
   onItemTeamsChanged?: (
     itemId: string,
     teams: Array<{ id: string; name: string }>,
-  ) => void;
+  ) => void
 }
 
 export default function HistorySidebar({
@@ -35,11 +35,11 @@ export default function HistorySidebar({
   items,
   onItemTeamsChanged,
 }: Props) {
-  const router = useRouter();
+  const router = useRouter()
 
   function handleSelect(item: HistoryItem) {
-    router.push(`/forms/${item.id}`);
-    onClose();
+    router.push(`/forms/${item.id}`)
+    onClose()
   }
 
   return (
@@ -49,8 +49,8 @@ export default function HistorySidebar({
       onClose={onClose}
       PaperProps={{ sx: { width: 300 } }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", px: 2, py: 1.5, gap: 1 }}>
-        <HistoryIcon sx={{ color: "text.secondary", fontSize: 20 }} />
+      <Box sx={{ display: 'flex', alignItems: 'center', px: 2, py: 1.5, gap: 1 }}>
+        <HistoryIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
         <Typography variant="subtitle2" fontWeight={700} sx={{ flex: 1 }}>
           Processed Forms
         </Typography>
@@ -67,5 +67,5 @@ export default function HistorySidebar({
         onItemTeamsChanged={onItemTeamsChanged!}
       />
     </Drawer>
-  );
+  )
 }

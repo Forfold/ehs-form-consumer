@@ -1,17 +1,17 @@
-"use client";
+'use client'
 
-import Box from "@mui/material/Box";
-import { useRouter } from "next/navigation";
-import ComplianceStatusCard from "./ComplianceStatusCard";
-import BmpCheckSummaryCard from "./BmpCheckSummaryCard";
-import MonthlyActivityCard from "./MonthlyActivityCard";
-import CorrectiveActionsCard from "./CorrectiveActionsCard";
-import { DashboardStats } from "./types";
+import Box from '@mui/material/Box'
+import { useRouter } from 'next/navigation'
+import ComplianceStatusCard from './ComplianceStatusCard'
+import BmpCheckSummaryCard from './BmpCheckSummaryCard'
+import MonthlyActivityCard from './MonthlyActivityCard'
+import CorrectiveActionsCard from './CorrectiveActionsCard'
+import { DashboardStats } from './types'
 
 interface DashboardGridProps {
-  stats: DashboardStats;
-  windowLabel: string;
-  historyLoading?: boolean;
+  stats: DashboardStats
+  windowLabel: string
+  historyLoading?: boolean
 }
 
 export function DashboardGrid({
@@ -19,23 +19,23 @@ export function DashboardGrid({
   windowLabel,
   historyLoading,
 }: DashboardGridProps) {
-  const router = useRouter();
+  const router = useRouter()
 
   function handleSelectSubmission(id: string) {
-    router.push(`/forms/${id}`);
+    router.push(`/forms/${id}`)
   }
 
   return (
     <Box
       sx={{
-        display: "grid",
-        gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
-        gridAutoRows: "min-content",
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+        gridAutoRows: 'min-content',
         gap: 3,
-        alignContent: "start",
+        alignContent: 'start',
       }}
     >
-      <Box sx={{ gridColumn: { xs: "1", md: "1 / -1" }, minWidth: 0 }}>
+      <Box sx={{ gridColumn: { xs: '1', md: '1 / -1' }, minWidth: 0 }}>
         <ComplianceStatusCard
           percent={stats.compliancePercent}
           formCount={stats.formCount}
@@ -53,7 +53,7 @@ export function DashboardGrid({
         <MonthlyActivityCard buckets={stats.monthlyBuckets} />
       </Box>
 
-      <Box sx={{ gridColumn: { xs: "1", md: "1 / -1" }, minWidth: 0 }}>
+      <Box sx={{ gridColumn: { xs: '1', md: '1 / -1' }, minWidth: 0 }}>
         <CorrectiveActionsCard
           actions={stats.openActions}
           onSelectSubmission={handleSelectSubmission}
@@ -61,5 +61,5 @@ export function DashboardGrid({
         />
       </Box>
     </Box>
-  );
+  )
 }

@@ -1,14 +1,14 @@
-"use client";
+'use client'
 
-import { useEffect, useRef, useState } from "react";
-import Box from "@mui/material/Box";
-import Container from "@mui/material/Container";
-import CircularProgress from "@mui/material/CircularProgress";
-import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
-import InputAdornment from "@mui/material/InputAdornment";
-import SearchIcon from "@mui/icons-material/Search";
-import { gqlFetch } from "@/lib/graphql/client";
+import { useEffect, useRef, useState } from 'react'
+import Box from '@mui/material/Box'
+import Container from '@mui/material/Container'
+import CircularProgress from '@mui/material/CircularProgress'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
+import InputAdornment from '@mui/material/InputAdornment'
+import SearchIcon from '@mui/icons-material/Search'
+import { gqlFetch } from '@/lib/graphql/client'
 import {
   AdminUser,
   SlimTeam,
@@ -19,101 +19,101 @@ import {
   DELETE_USER_MUTATION,
   ADD_USER_TO_TEAM_MUTATION,
   REMOVE_USER_FROM_TEAM_MUTATION,
-} from "./graphql";
-import { UserRow } from "./UserRow";
-import { AddUserToTeamDialog } from "./AddUserToTeamDialog";
-import { DeleteUserDialog } from "./DeleteUserDialog";
+} from './graphql'
+import { UserRow } from './UserRow'
+import { AddUserToTeamDialog } from './AddUserToTeamDialog'
+import { DeleteUserDialog } from './DeleteUserDialog'
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function UserManagementList() {
-  const [authorized, setAuthorized] = useState<boolean | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [allTeams, setAllTeams] = useState<SlimTeam[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [authorized, setAuthorized] = useState<boolean | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [users, setUsers] = useState<AdminUser[]>([])
+  const [allTeams, setAllTeams] = useState<SlimTeam[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
 
   // Dialog states
-  const [addTeamUserId, setAddTeamUserId] = useState<string | null>(null);
-  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [addTeamUserId, setAddTeamUserId] = useState<string | null>(null)
+  const [deleteUserId, setDeleteUserId] = useState<string | null>(null)
 
   // Per-item loading states
-  const [busyUserIds, setBusyUserIds] = useState<Set<string>>(new Set());
-  const [busyMemberships, setBusyMemberships] = useState<Set<string>>(new Set());
+  const [busyUserIds, setBusyUserIds] = useState<Set<string>>(new Set())
+  const [busyMemberships, setBusyMemberships] = useState<Set<string>>(new Set())
 
-  const fetchedRef = useRef(false);
+  const fetchedRef = useRef(false)
 
   useEffect(() => {
-    if (fetchedRef.current) return;
-    fetchedRef.current = true;
+    if (fetchedRef.current) return
+    fetchedRef.current = true
 
     gqlFetch<{ me: { id: string; isAdmin: boolean } | null }>(ME_QUERY)
       .then(({ me }) => {
         if (!me?.isAdmin) {
-          setAuthorized(false);
-          setLoading(false);
-          return;
+          setAuthorized(false)
+          setLoading(false)
+          return
         }
-        setAuthorized(true);
-        setCurrentUserId(me.id);
+        setAuthorized(true)
+        setCurrentUserId(me.id)
         return Promise.all([
           gqlFetch<{ adminUserList: AdminUser[] }>(ADMIN_USER_LIST_QUERY),
           gqlFetch<{ adminAllTeams: SlimTeam[] }>(ADMIN_ALL_TEAMS_QUERY),
         ]).then(([{ adminUserList }, { adminAllTeams }]) => {
-          setUsers(adminUserList);
-          setAllTeams(adminAllTeams);
-          setLoading(false);
-        });
+          setUsers(adminUserList)
+          setAllTeams(adminAllTeams)
+          setLoading(false)
+        })
       })
       .catch(() => {
-        setAuthorized(false);
-        setLoading(false);
-      });
-  }, []);
+        setAuthorized(false)
+        setLoading(false)
+      })
+  }, [])
 
   // ── Actions ───────────────────────────────────────────────────────────────
 
   async function handleToggleAdmin(user: AdminUser) {
-    setBusyUserIds((prev) => new Set(prev).add(user.id));
+    setBusyUserIds((prev) => new Set(prev).add(user.id))
     try {
       const { adminSetUserRole } = await gqlFetch<{
-        adminSetUserRole: { id: string; isAdmin: boolean };
-      }>(SET_USER_ROLE_MUTATION, { userId: user.id, isAdmin: !user.isAdmin });
+        adminSetUserRole: { id: string; isAdmin: boolean }
+      }>(SET_USER_ROLE_MUTATION, { userId: user.id, isAdmin: !user.isAdmin })
       setUsers((prev) =>
         prev.map((u) =>
           u.id === user.id ? { ...u, isAdmin: adminSetUserRole.isAdmin } : u,
         ),
-      );
+      )
     } catch {
       // silently ignore — state remains accurate from server
     } finally {
       setBusyUserIds((prev) => {
-        const s = new Set(prev);
-        s.delete(user.id);
-        return s;
-      });
+        const s = new Set(prev)
+        s.delete(user.id)
+        return s
+      })
     }
   }
 
   async function handleAddToTeam(userId: string, teamId: string, role: string) {
-    if (!userId || !teamId) return;
-    setBusyUserIds((prev) => new Set(prev).add(userId));
+    if (!userId || !teamId) return
+    setBusyUserIds((prev) => new Set(prev).add(userId))
     try {
-      await gqlFetch(ADD_USER_TO_TEAM_MUTATION, { userId, teamId, role });
-      const team = allTeams.find((t) => t.id === teamId);
+      await gqlFetch(ADD_USER_TO_TEAM_MUTATION, { userId, teamId, role })
+      const team = allTeams.find((t) => t.id === teamId)
       if (team) {
         setUsers((prev) =>
           prev.map((u) => {
-            if (u.id !== userId) return u;
-            const existing = u.teamMemberships.find((m) => m.teamId === teamId);
+            if (u.id !== userId) return u
+            const existing = u.teamMemberships.find((m) => m.teamId === teamId)
             if (existing) {
               return {
                 ...u,
                 teamMemberships: u.teamMemberships.map((m) =>
                   m.teamId === teamId ? { ...m, role: role } : m,
                 ),
-              };
+              }
             }
             return {
               ...u,
@@ -121,27 +121,27 @@ export default function UserManagementList() {
                 ...u.teamMemberships,
                 { teamId: team.id, teamName: team.name, role },
               ],
-            };
+            }
           }),
-        );
+        )
       }
-      setAddTeamUserId(null);
+      setAddTeamUserId(null)
     } catch {
       // silently ignore
     } finally {
       setBusyUserIds((prev) => {
-        const s = new Set(prev);
-        s.delete(userId);
-        return s;
-      });
+        const s = new Set(prev)
+        s.delete(userId)
+        return s
+      })
     }
   }
 
   async function handleRemoveFromTeam(userId: string, teamId: string) {
-    const key = `${userId}:${teamId}`;
-    setBusyMemberships((prev) => new Set(prev).add(key));
+    const key = `${userId}:${teamId}`
+    setBusyMemberships((prev) => new Set(prev).add(key))
     try {
-      await gqlFetch(REMOVE_USER_FROM_TEAM_MUTATION, { userId, teamId });
+      await gqlFetch(REMOVE_USER_FROM_TEAM_MUTATION, { userId, teamId })
       setUsers((prev) =>
         prev.map((u) =>
           u.id === userId
@@ -151,34 +151,34 @@ export default function UserManagementList() {
               }
             : u,
         ),
-      );
+      )
     } catch {
       // silently ignore
     } finally {
       setBusyMemberships((prev) => {
-        const s = new Set(prev);
-        s.delete(key);
-        return s;
-      });
+        const s = new Set(prev)
+        s.delete(key)
+        return s
+      })
     }
   }
 
   async function handleDeleteUser() {
-    if (!deleteUserId) return;
-    const userId = deleteUserId;
-    setBusyUserIds((prev) => new Set(prev).add(userId));
+    if (!deleteUserId) return
+    const userId = deleteUserId
+    setBusyUserIds((prev) => new Set(prev).add(userId))
     try {
-      await gqlFetch(DELETE_USER_MUTATION, { userId });
-      setUsers((prev) => prev.filter((u) => u.id !== userId));
-      setDeleteUserId(null);
+      await gqlFetch(DELETE_USER_MUTATION, { userId })
+      setUsers((prev) => prev.filter((u) => u.id !== userId))
+      setDeleteUserId(null)
     } catch {
       // silently ignore
     } finally {
       setBusyUserIds((prev) => {
-        const s = new Set(prev);
-        s.delete(userId);
-        return s;
-      });
+        const s = new Set(prev)
+        s.delete(userId)
+        return s
+      })
     }
   }
 
@@ -188,11 +188,11 @@ export default function UserManagementList() {
     return (
       <Container
         maxWidth="md"
-        sx={{ py: 4, display: "flex", justifyContent: "center" }}
+        sx={{ py: 4, display: 'flex', justifyContent: 'center' }}
       >
         <CircularProgress />
       </Container>
-    );
+    )
   }
 
   if (!authorized) {
@@ -202,19 +202,19 @@ export default function UserManagementList() {
           You don&apos;t have permission to view this page.
         </Typography>
       </Container>
-    );
+    )
   }
 
   // ── Filtered list ─────────────────────────────────────────────────────────
 
   const filtered = users.filter((u) => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q);
-  });
+    if (!search) return true
+    const q = search.toLowerCase()
+    return u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q)
+  })
 
-  const deleteUser = users.find((u) => u.id === deleteUserId);
-  const addUserToTeamUser = users.find((u) => u.id === addTeamUserId);
+  const deleteUser = users.find((u) => u.id === deleteUserId)
+  const addUserToTeamUser = users.find((u) => u.id === addTeamUserId)
 
   // ── Main UI ───────────────────────────────────────────────────────────────
 
@@ -223,9 +223,9 @@ export default function UserManagementList() {
       {/* Header */}
       <Box
         sx={{
-          display: "flex",
-          alignItems: "baseline",
-          justifyContent: "space-between",
+          display: 'flex',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
           mb: 2.5,
         }}
       >
@@ -261,9 +261,9 @@ export default function UserManagementList() {
         <Typography
           variant="body2"
           color="text.secondary"
-          sx={{ textAlign: "center", py: 4 }}
+          sx={{ textAlign: 'center', py: 4 }}
         >
-          {search ? "No users match your search." : "No users found."}
+          {search ? 'No users match your search.' : 'No users found.'}
         </Typography>
       )}
 
@@ -302,5 +302,5 @@ export default function UserManagementList() {
         />
       )}
     </Container>
-  );
+  )
 }

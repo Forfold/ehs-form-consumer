@@ -1,8 +1,8 @@
-import "@testing-library/jest-dom";
+import '@testing-library/jest-dom'
 
 // MUI requires matchMedia — jsdom doesn't provide it (guard for Node-env route tests)
-if (typeof window !== "undefined")
-  Object.defineProperty(window, "matchMedia", {
+if (typeof window !== 'undefined')
+  Object.defineProperty(window, 'matchMedia', {
     writable: true,
     value: jest.fn().mockImplementation((query: string) => ({
       matches: false,
@@ -14,4 +14,4 @@ if (typeof window !== "undefined")
       removeEventListener: jest.fn(),
       dispatchEvent: jest.fn(),
     })),
-  });
+  })

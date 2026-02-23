@@ -1,5 +1,5 @@
-import UserManagementList from "./components/UserManagementList";
+import UserManagementList from './components/UserManagementList'
 
 export default function UsersSettingsPage() {
-  return <UserManagementList />;
+  return <UserManagementList />
 }

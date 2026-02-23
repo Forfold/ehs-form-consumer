@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { redirect } from 'next/navigation'
 
 export default function SettingsPage() {
-  redirect("/settings/teams");
+  redirect('/settings/teams')
 }

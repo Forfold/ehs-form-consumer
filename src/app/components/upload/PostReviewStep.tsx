@@ -1,114 +1,113 @@
-"use client";
+'use client'
 
-import { Fragment, useState } from "react";
-import Box from "@mui/material/Box";
-import Checkbox from "@mui/material/Checkbox";
-import Chip from "@mui/material/Chip";
-import Divider from "@mui/material/Divider";
-import FormControl from "@mui/material/FormControl";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import IconButton from "@mui/material/IconButton";
-import InputAdornment from "@mui/material/InputAdornment";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
-import TextField from "@mui/material/TextField";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import AddIcon from "@mui/icons-material/Add";
-import CheckIcon from "@mui/icons-material/Check";
-import CloseIcon from "@mui/icons-material/Close";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import RemoveIcon from "@mui/icons-material/Remove";
+import { Fragment, useState } from 'react'
+import Box from '@mui/material/Box'
+import Checkbox from '@mui/material/Checkbox'
+import Chip from '@mui/material/Chip'
+import Divider from '@mui/material/Divider'
+import FormControl from '@mui/material/FormControl'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import IconButton from '@mui/material/IconButton'
+import InputAdornment from '@mui/material/InputAdornment'
+import InputLabel from '@mui/material/InputLabel'
+import MenuItem from '@mui/material/MenuItem'
+import Select from '@mui/material/Select'
+import TextField from '@mui/material/TextField'
+import ToggleButton from '@mui/material/ToggleButton'
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
+import Typography from '@mui/material/Typography'
+import Button from '@mui/material/Button'
+import AddIcon from '@mui/icons-material/Add'
+import CheckIcon from '@mui/icons-material/Check'
+import CloseIcon from '@mui/icons-material/Close'
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
+import RemoveIcon from '@mui/icons-material/Remove'
 import type {
   ChecklistItem,
   CorrectiveAction,
   InspectionData,
   OverallStatus,
-} from "@/lib/types/inspection";
+} from '@/lib/types/inspection'
 
 interface Props {
-  data: InspectionData;
-  onChange: (data: InspectionData) => void;
+  data: InspectionData
+  onChange: (data: InspectionData) => void
 }
 
 function deriveOverallStatus(items: ChecklistItem[]): OverallStatus {
-  if (items.some((i) => i.status === "fail")) return "non-compliant";
-  if (items.every((i) => i.status === "pass" || i.status === "na"))
-    return "compliant";
-  return "needs-attention";
+  if (items.some((i) => i.status === 'fail')) return 'non-compliant'
+  if (items.every((i) => i.status === 'pass' || i.status === 'na')) return 'compliant'
+  return 'needs-attention'
 }
 
 function uniqueSections(items: ChecklistItem[]): string[] {
-  const seen = new Set<string>();
-  const result: string[] = [];
+  const seen = new Set<string>()
+  const result: string[] = []
   for (const item of items) {
-    const s = item.section?.trim();
+    const s = item.section?.trim()
     if (s && !seen.has(s)) {
-      seen.add(s);
-      result.push(s);
+      seen.add(s)
+      result.push(s)
     }
   }
-  return result;
+  return result
 }
 
 export default function PostReviewStep({ data, onChange }: Props) {
   const [sections, setSections] = useState<string[]>(() =>
     uniqueSections(data.checklistItems),
-  );
-  const [newSection, setNewSection] = useState("");
+  )
+  const [newSection, setNewSection] = useState('')
 
   function setField<K extends keyof InspectionData>(
     key: K,
     value: InspectionData[K],
   ) {
-    onChange({ ...data, [key]: value });
+    onChange({ ...data, [key]: value })
   }
 
   // Section management
   function commitNewSection() {
-    const trimmed = newSection.trim();
+    const trimmed = newSection.trim()
     if (trimmed && !sections.includes(trimmed))
-      setSections((prev) => [...prev, trimmed]);
-    setNewSection("");
+      setSections((prev) => [...prev, trimmed])
+    setNewSection('')
   }
 
   // Checklist items
   function setChecklistItem(index: number, patch: Partial<ChecklistItem>) {
     const updated = data.checklistItems.map((item, i) =>
       i === index ? { ...item, ...patch } : item,
-    );
+    )
     onChange({
       ...data,
       checklistItems: updated,
       overallStatus: deriveOverallStatus(updated),
-    });
+    })
   }
   function addChecklistItem() {
     const updated = [
       ...data.checklistItems,
       {
-        section: sections[0] ?? "",
-        description: "",
-        status: "na" as const,
-        notes: "",
+        section: sections[0] ?? '',
+        description: '',
+        status: 'na' as const,
+        notes: '',
       },
-    ];
+    ]
     onChange({
       ...data,
       checklistItems: updated,
       overallStatus: deriveOverallStatus(updated),
-    });
+    })
   }
   function removeChecklistItem(index: number) {
-    const updated = data.checklistItems.filter((_, i) => i !== index);
+    const updated = data.checklistItems.filter((_, i) => i !== index)
     onChange({
       ...data,
       checklistItems: updated,
       overallStatus: deriveOverallStatus(updated),
-    });
+    })
   }
 
   // Corrective actions
@@ -118,39 +117,39 @@ export default function PostReviewStep({ data, onChange }: Props) {
       correctiveActions: data.correctiveActions.map((a, i) =>
         i === index ? { ...a, ...patch } : a,
       ),
-    });
+    })
   }
   function addAction() {
     onChange({
       ...data,
       correctiveActions: [
         ...data.correctiveActions,
-        { description: "", dueDate: "", completed: false },
+        { description: '', dueDate: '', completed: false },
       ],
-    });
+    })
   }
   function removeAction(index: number) {
     onChange({
       ...data,
       correctiveActions: data.correctiveActions.filter((_, i) => i !== index),
-    });
+    })
   }
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {/* Facility info */}
       <Box>
         <Typography
           variant="overline"
           color="text.secondary"
-          sx={{ fontWeight: 600, letterSpacing: "0.08em" }}
+          sx={{ fontWeight: 600, letterSpacing: '0.08em' }}
         >
           Facility Information
         </Typography>
         <Box
           sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
             gap: 2,
             mt: 1,
           }}
@@ -158,26 +157,26 @@ export default function PostReviewStep({ data, onChange }: Props) {
           <TextField
             label="Facility Name"
             size="small"
-            value={data.facilityName ?? ""}
-            onChange={(e) => setField("facilityName", e.target.value)}
+            value={data.facilityName ?? ''}
+            onChange={(e) => setField('facilityName', e.target.value)}
           />
           <TextField
             label="Permit Number"
             size="small"
-            value={data.permitNumber ?? ""}
-            onChange={(e) => setField("permitNumber", e.target.value)}
+            value={data.permitNumber ?? ''}
+            onChange={(e) => setField('permitNumber', e.target.value)}
           />
           <TextField
             label="Inspection Date"
             size="small"
-            value={data.inspectionDate ?? ""}
-            onChange={(e) => setField("inspectionDate", e.target.value)}
+            value={data.inspectionDate ?? ''}
+            onChange={(e) => setField('inspectionDate', e.target.value)}
           />
           <TextField
             label="Inspector"
             size="small"
-            value={data.inspectorName ?? ""}
-            onChange={(e) => setField("inspectorName", e.target.value)}
+            value={data.inspectorName ?? ''}
+            onChange={(e) => setField('inspectorName', e.target.value)}
           />
         </Box>
       </Box>
@@ -185,14 +184,14 @@ export default function PostReviewStep({ data, onChange }: Props) {
       <Divider />
 
       {/* Overall status + summary */}
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <FormControl size="small" sx={{ maxWidth: 260 }}>
           <InputLabel>Overall Status</InputLabel>
           <Select
             label="Overall Status"
             value={data.overallStatus}
             onChange={(e) =>
-              setField("overallStatus", e.target.value as OverallStatus)
+              setField('overallStatus', e.target.value as OverallStatus)
             }
           >
             <MenuItem value="compliant">Compliant</MenuItem>
@@ -205,8 +204,8 @@ export default function PostReviewStep({ data, onChange }: Props) {
           multiline
           minRows={2}
           size="small"
-          value={data.summary ?? ""}
-          onChange={(e) => setField("summary", e.target.value)}
+          value={data.summary ?? ''}
+          onChange={(e) => setField('summary', e.target.value)}
         />
       </Box>
 
@@ -217,7 +216,7 @@ export default function PostReviewStep({ data, onChange }: Props) {
         <Typography
           variant="overline"
           color="text.secondary"
-          sx={{ fontWeight: 600, letterSpacing: "0.08em" }}
+          sx={{ fontWeight: 600, letterSpacing: '0.08em' }}
         >
           Inspection Items
         </Typography>
@@ -225,12 +224,12 @@ export default function PostReviewStep({ data, onChange }: Props) {
         {/* Section master list */}
         <Box
           sx={{
-            display: "flex",
-            flexWrap: "wrap",
+            display: 'flex',
+            flexWrap: 'wrap',
             gap: 1,
             mt: 1,
             mb: 2,
-            alignItems: "center",
+            alignItems: 'center',
           }}
         >
           {sections.map((s) => (
@@ -247,9 +246,9 @@ export default function PostReviewStep({ data, onChange }: Props) {
             value={newSection}
             onChange={(e) => setNewSection(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                commitNewSection();
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                commitNewSection()
               }
             }}
             sx={{ width: 180 }}
@@ -273,31 +272,31 @@ export default function PostReviewStep({ data, onChange }: Props) {
         </Box>
 
         {/* Items */}
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           {data.checklistItems.map((item, i) => {
             // Include item's current section even if removed from master list
-            const currentSection = item.section?.trim() ?? "";
+            const currentSection = item.section?.trim() ?? ''
             const sectionOptions =
               currentSection && !sections.includes(currentSection)
                 ? [...sections, currentSection]
-                : sections;
+                : sections
 
             return (
               <Box
                 key={i}
                 sx={{
-                  border: "2px solid",
-                  borderColor: "divider",
+                  border: '2px solid',
+                  borderColor: 'divider',
                   borderRadius: 2,
                   p: 1.5,
-                  bgcolor: "action.hover",
-                  display: "flex",
-                  flexDirection: "column",
+                  bgcolor: 'action.hover',
+                  display: 'flex',
+                  flexDirection: 'column',
                   gap: 1.5,
                 }}
               >
                 {/* Section dropdown + delete */}
-                <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                   <FormControl size="small" sx={{ flex: 1 }}>
                     <InputLabel>Section</InputLabel>
                     <Select
@@ -317,7 +316,7 @@ export default function PostReviewStep({ data, onChange }: Props) {
                   <IconButton
                     size="small"
                     onClick={() => removeChecklistItem(i)}
-                    sx={{ flexShrink: 0, color: "text.secondary" }}
+                    sx={{ flexShrink: 0, color: 'text.secondary' }}
                   >
                     <DeleteOutlineIcon fontSize="small" />
                   </IconButton>
@@ -339,7 +338,7 @@ export default function PostReviewStep({ data, onChange }: Props) {
                   exclusive
                   onChange={(_, val) => {
                     if (val !== null)
-                      setChecklistItem(i, { status: val as ChecklistItem["status"] });
+                      setChecklistItem(i, { status: val as ChecklistItem['status'] })
                   }}
                   size="small"
                   fullWidth
@@ -348,10 +347,10 @@ export default function PostReviewStep({ data, onChange }: Props) {
                     value="pass"
                     sx={{
                       flex: 1,
-                      "&.Mui-selected": {
-                        bgcolor: "success.main",
-                        color: "success.contrastText",
-                        "&:hover": { bgcolor: "success.dark" },
+                      '&.Mui-selected': {
+                        bgcolor: 'success.main',
+                        color: 'success.contrastText',
+                        '&:hover': { bgcolor: 'success.dark' },
                       },
                     }}
                   >
@@ -362,10 +361,10 @@ export default function PostReviewStep({ data, onChange }: Props) {
                     value="fail"
                     sx={{
                       flex: 1,
-                      "&.Mui-selected": {
-                        bgcolor: "error.main",
-                        color: "error.contrastText",
-                        "&:hover": { bgcolor: "error.dark" },
+                      '&.Mui-selected': {
+                        bgcolor: 'error.main',
+                        color: 'error.contrastText',
+                        '&:hover': { bgcolor: 'error.dark' },
                       },
                     }}
                   >
@@ -386,7 +385,7 @@ export default function PostReviewStep({ data, onChange }: Props) {
                   onChange={(e) => setChecklistItem(i, { notes: e.target.value })}
                 />
               </Box>
-            );
+            )
           })}
         </Box>
         <Button
@@ -406,20 +405,20 @@ export default function PostReviewStep({ data, onChange }: Props) {
         <Typography
           variant="overline"
           color="text.secondary"
-          sx={{ fontWeight: 600, letterSpacing: "0.08em" }}
+          sx={{ fontWeight: 600, letterSpacing: '0.08em' }}
         >
           Corrective Actions
         </Typography>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, mt: 1 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 1 }}>
           {data.correctiveActions.map((action, i) => (
             <Fragment key={i}>
               {i > 0 && <Divider />}
               <Box
                 sx={{
-                  display: "flex",
-                  flexWrap: "wrap",
+                  display: 'flex',
+                  flexWrap: 'wrap',
                   gap: 1,
-                  alignItems: "center",
+                  alignItems: 'center',
                 }}
               >
                 <TextField
@@ -427,7 +426,7 @@ export default function PostReviewStep({ data, onChange }: Props) {
                   size="small"
                   value={action.description}
                   onChange={(e) => setAction(i, { description: e.target.value })}
-                  sx={{ flex: "1 1 180px", minWidth: 0 }}
+                  sx={{ flex: '1 1 180px', minWidth: 0 }}
                 />
                 <TextField
                   label="Due Date"
@@ -450,7 +449,7 @@ export default function PostReviewStep({ data, onChange }: Props) {
                 <IconButton
                   size="small"
                   onClick={() => removeAction(i)}
-                  sx={{ color: "text.secondary" }}
+                  sx={{ color: 'text.secondary' }}
                 >
                   <DeleteOutlineIcon fontSize="small" />
                 </IconButton>
@@ -468,5 +467,5 @@ export default function PostReviewStep({ data, onChange }: Props) {
         </Button>
       </Box>
     </Box>
-  );
+  )
 }

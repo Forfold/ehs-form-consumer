@@ -1,28 +1,28 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import Divider from "@mui/material/Divider";
-import FormControl from "@mui/material/FormControl";
-import InputAdornment from "@mui/material/InputAdornment";
-import InputLabel from "@mui/material/InputLabel";
-import List from "@mui/material/List";
-import ListItemAvatar from "@mui/material/ListItemAvatar";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemText from "@mui/material/ListItemText";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
-import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
-import SearchIcon from "@mui/icons-material/Search";
-import { gqlFetch } from "@/lib/graphql/client";
-import { GqlTeamMember, GqlUser, UserAvatar } from "./TeamCard";
+import { useEffect, useState } from 'react'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import CircularProgress from '@mui/material/CircularProgress'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
+import Divider from '@mui/material/Divider'
+import FormControl from '@mui/material/FormControl'
+import InputAdornment from '@mui/material/InputAdornment'
+import InputLabel from '@mui/material/InputLabel'
+import List from '@mui/material/List'
+import ListItemAvatar from '@mui/material/ListItemAvatar'
+import ListItemButton from '@mui/material/ListItemButton'
+import ListItemText from '@mui/material/ListItemText'
+import MenuItem from '@mui/material/MenuItem'
+import Select from '@mui/material/Select'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
+import SearchIcon from '@mui/icons-material/Search'
+import { gqlFetch } from '@/lib/graphql/client'
+import { GqlTeamMember, GqlUser, UserAvatar } from './TeamCard'
 
 // ── GraphQL fragments ─────────────────────────────────────────────────────────
 
@@ -32,7 +32,7 @@ const SEARCH_USERS_QUERY = `
       id name email image
     }
   }
-`;
+`
 
 const ADD_MEMBER_MUTATION = `
   mutation AddTeamMember($teamId: ID!, $userId: ID!, $role: String) {
@@ -40,15 +40,15 @@ const ADD_MEMBER_MUTATION = `
       userId role joinedAt user { id name email image }
     }
   }
-`;
+`
 
 // ── Add member dialog ─────────────────────────────────────────────────────────
 
 interface AddMemberDialogProps {
-  teamId: string;
-  open: boolean;
-  onClose: () => void;
-  onAdded: (member: GqlTeamMember) => void;
+  teamId: string
+  open: boolean
+  onClose: () => void
+  onAdded: (member: GqlTeamMember) => void
 }
 
 export function AddMemberDialog({
@@ -57,45 +57,45 @@ export function AddMemberDialog({
   onClose,
   onAdded,
 }: AddMemberDialogProps) {
-  const [allUsers, setAllUsers] = useState<GqlUser[]>([]);
-  const [filter, setFilter] = useState("");
-  const [selectedUser, setSelectedUser] = useState<GqlUser | null>(null);
-  const [role, setRole] = useState("member");
-  const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(false);
+  const [allUsers, setAllUsers] = useState<GqlUser[]>([])
+  const [filter, setFilter] = useState('')
+  const [selectedUser, setSelectedUser] = useState<GqlUser | null>(null)
+  const [role, setRole] = useState('member')
+  const [loading, setLoading] = useState(false)
+  const [fetching, setFetching] = useState(false)
 
   useEffect(() => {
     if (!open) {
-      setFilter("");
-      setSelectedUser(null);
-      setRole("member");
-      return;
+      setFilter('')
+      setSelectedUser(null)
+      setRole('member')
+      return
     }
-    setFetching(true);
-    gqlFetch<{ searchUsers: GqlUser[] }>(SEARCH_USERS_QUERY, { query: "" })
+    setFetching(true)
+    gqlFetch<{ searchUsers: GqlUser[] }>(SEARCH_USERS_QUERY, { query: '' })
       .then(({ searchUsers }) => setAllUsers(searchUsers))
       .catch(() => {})
-      .finally(() => setFetching(false));
-  }, [open]);
+      .finally(() => setFetching(false))
+  }, [open])
 
   const filtered = allUsers.filter((u) => {
-    if (!filter) return true;
-    const q = filter.toLowerCase();
-    return u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q);
-  });
+    if (!filter) return true
+    const q = filter.toLowerCase()
+    return u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q)
+  })
 
   async function handleAdd() {
-    if (!selectedUser) return;
-    setLoading(true);
+    if (!selectedUser) return
+    setLoading(true)
     try {
       const { addTeamMember } = await gqlFetch<{ addTeamMember: GqlTeamMember }>(
         ADD_MEMBER_MUTATION,
         { teamId, userId: selectedUser.id, role },
-      );
-      onAdded(addTeamMember);
-      onClose();
+      )
+      onAdded(addTeamMember)
+      onClose()
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
@@ -104,10 +104,10 @@ export function AddMemberDialog({
       <DialogTitle>Add team member</DialogTitle>
       <DialogContent
         sx={{
-          display: "flex",
-          flexDirection: "column",
+          display: 'flex',
+          flexDirection: 'column',
           gap: 1.5,
-          pt: "12px !important",
+          pt: '12px !important',
         }}
       >
         {/* Filter input */}
@@ -131,24 +131,24 @@ export function AddMemberDialog({
         {/* Scrollable user list */}
         <Box
           sx={{
-            border: "1px solid",
-            borderColor: "divider",
+            border: '1px solid',
+            borderColor: 'divider',
             borderRadius: 1,
             maxHeight: 400,
-            overflowY: "auto",
+            overflowY: 'auto',
           }}
         >
           {fetching ? (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
               <CircularProgress size={24} />
             </Box>
           ) : filtered.length === 0 ? (
             <Typography
               variant="caption"
               color="text.secondary"
-              sx={{ display: "block", textAlign: "center", py: 3 }}
+              sx={{ display: 'block', textAlign: 'center', py: 3 }}
             >
-              {filter ? "No users match your filter." : "No users found."}
+              {filter ? 'No users match your filter.' : 'No users found.'}
             </Typography>
           ) : (
             <List disablePadding dense>
@@ -203,9 +203,9 @@ export function AddMemberDialog({
           disabled={!selectedUser || loading}
           onClick={handleAdd}
         >
-          {loading ? <CircularProgress size={18} /> : "Add"}
+          {loading ? <CircularProgress size={18} /> : 'Add'}
         </Button>
       </DialogActions>
     </Dialog>
-  );
+  )
 }

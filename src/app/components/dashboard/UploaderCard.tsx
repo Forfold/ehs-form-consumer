@@ -1,9 +1,9 @@
-import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
-import PdfUploader from "../pdf/PdfUploader";
+import Paper from '@mui/material/Paper'
+import Typography from '@mui/material/Typography'
+import PdfUploader from '../pdf/PdfUploader'
 
 interface Props {
-  onFile: (file: File) => void;
+  onFile: (file: File) => void
 }
 
 export default function UploaderCard({ onFile }: Props) {
@@ -11,10 +11,10 @@ export default function UploaderCard({ onFile }: Props) {
     <Paper
       variant="outlined"
       sx={{
-        width: { xs: "100%", lg: 400 },
+        width: { xs: '100%', lg: 400 },
         flexShrink: 0,
         p: { xs: 3, sm: 4 },
-        alignSelf: "flex-start",
+        alignSelf: 'flex-start',
       }}
     >
       <Typography variant="h6" gutterBottom>
@@ -27,5 +27,5 @@ export default function UploaderCard({ onFile }: Props) {
 
       <PdfUploader onFile={onFile} />
     </Paper>
-  );
+  )
 }

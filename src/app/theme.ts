@@ -1,15 +1,15 @@
-import { createTheme } from "@mui/material/styles";
+import { createTheme } from '@mui/material/styles'
 
-export type ThemeMode = "light" | "dark" | "system";
+export type ThemeMode = 'light' | 'dark' | 'system'
 
 export function makeTheme(mode: ThemeMode) {
   // 'system' is resolved to 'light'/'dark' by Providers before calling makeTheme
-  const resolved: "light" | "dark" = mode === "system" ? "light" : mode;
-  const dark = resolved === "dark";
+  const resolved: 'light' | 'dark' = mode === 'system' ? 'light' : mode
+  const dark = resolved === 'dark'
   return createTheme({
     typography: {
-      fontFamily: "var(--font-geist-sans), system-ui, -apple-system, sans-serif",
-      h6: { fontWeight: 700, letterSpacing: "-0.01em" },
+      fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
+      h6: { fontWeight: 700, letterSpacing: '-0.01em' },
       subtitle1: { fontWeight: 600 },
     },
     shape: {
@@ -18,23 +18,23 @@ export function makeTheme(mode: ThemeMode) {
     palette: {
       mode: resolved,
       primary: {
-        main: dark ? "#6B9FFF" : "#1B4FD8",
+        main: dark ? '#6B9FFF' : '#1B4FD8',
       },
       background: dark
-        ? { default: "#0F1117", paper: "#1A1F2E" }
-        : { default: "#F0F2F5", paper: "#FFFFFF" },
+        ? { default: '#0F1117', paper: '#1A1F2E' }
+        : { default: '#F0F2F5', paper: '#FFFFFF' },
     },
     components: {
       MuiButton: {
         styleOverrides: {
           root: {
-            textTransform: "none",
+            textTransform: 'none',
             fontWeight: 600,
-            letterSpacing: "0.01em",
+            letterSpacing: '0.01em',
           },
           containedPrimary: {
-            boxShadow: "none",
-            "&:hover": { boxShadow: "none" },
+            boxShadow: 'none',
+            '&:hover': { boxShadow: 'none' },
           },
         },
       },
@@ -42,9 +42,9 @@ export function makeTheme(mode: ThemeMode) {
         defaultProps: { elevation: 0 },
         styleOverrides: {
           root: {
-            backgroundColor: dark ? "#1E2430" : "#FFFFFF",
-            borderBottom: `1px solid ${dark ? "#2D3548" : "#E5E8EC"}`,
-            color: "inherit",
+            backgroundColor: dark ? '#1E2430' : '#FFFFFF',
+            borderBottom: `1px solid ${dark ? '#2D3548' : '#E5E8EC'}`,
+            color: 'inherit',
           },
         },
       },
@@ -58,23 +58,23 @@ export function makeTheme(mode: ThemeMode) {
           root: {
             borderRadius: 18,
           },
-          outlined: { borderColor: dark ? "#2D3548" : "#E5E8EC" },
+          outlined: { borderColor: dark ? '#2D3548' : '#E5E8EC' },
         },
       },
       MuiTableCell: {
         styleOverrides: {
           head: {
             fontWeight: 600,
-            backgroundColor: dark ? "#1A2035" : "#F8F9FB",
-            color: dark ? "#8B95A9" : "#5A6374",
-            fontSize: "0.75rem",
-            letterSpacing: "0.04em",
-            textTransform: "uppercase",
+            backgroundColor: dark ? '#1A2035' : '#F8F9FB',
+            color: dark ? '#8B95A9' : '#5A6374',
+            fontSize: '0.75rem',
+            letterSpacing: '0.04em',
+            textTransform: 'uppercase',
           },
         },
       },
     },
-  });
+  })
 }
 
-export default makeTheme("light");
+export default makeTheme('light')

@@ -1,57 +1,57 @@
-"use client";
+'use client'
 
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-import Typography from "@mui/material/Typography";
-import HistoryIcon from "@mui/icons-material/History";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import HistorySidebar, { type HistoryItem } from "../history/HistorySidebar";
-import Tooltip from "@mui/material/Tooltip";
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import IconButton from '@mui/material/IconButton'
+import MenuItem from '@mui/material/MenuItem'
+import Select from '@mui/material/Select'
+import ToggleButton from '@mui/material/ToggleButton'
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
+import Typography from '@mui/material/Typography'
+import HistoryIcon from '@mui/icons-material/History'
+import OpenInNewIcon from '@mui/icons-material/OpenInNew'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import HistorySidebar, { type HistoryItem } from '../history/HistorySidebar'
+import Tooltip from '@mui/material/Tooltip'
 
-export type TimeRange = "30d" | "90d" | "6mo" | "1yr" | "all" | "single";
+export type TimeRange = '30d' | '90d' | '6mo' | '1yr' | 'all' | 'single'
 
 export interface FilterTeam {
-  id: string;
-  name: string;
+  id: string
+  name: string
 }
 
 export interface SubmissionOption {
-  id: string;
-  label: string;
+  id: string
+  label: string
 }
 
 interface Props {
-  timeRange: TimeRange;
-  onTimeRangeChange: (range: TimeRange) => void;
-  teams: FilterTeam[];
-  teamId: string;
-  onTeamChange: (teamId: string) => void;
-  filterBySubmissionOptions: SubmissionOption[];
-  selectedSubmissionId: string;
-  onSubmissionChange: (id: string) => void;
-  history: HistoryItem[];
-  historyLoading?: boolean;
+  timeRange: TimeRange
+  onTimeRangeChange: (range: TimeRange) => void
+  teams: FilterTeam[]
+  teamId: string
+  onTeamChange: (teamId: string) => void
+  filterBySubmissionOptions: SubmissionOption[]
+  selectedSubmissionId: string
+  onSubmissionChange: (id: string) => void
+  history: HistoryItem[]
+  historyLoading?: boolean
   onItemTeamsChanged?: (
     itemId: string,
     teams: Array<{ id: string; name: string }>,
-  ) => void;
+  ) => void
 }
 
 const TIME_OPTIONS: Array<{ value: TimeRange; label: string }> = [
-  { value: "30d", label: "30d" },
-  { value: "90d", label: "90d" },
-  { value: "6mo", label: "6mo" },
-  { value: "1yr", label: "1yr" },
-  { value: "all", label: "All" },
-  { value: "single", label: "Form" },
-];
+  { value: '30d', label: '30d' },
+  { value: '90d', label: '90d' },
+  { value: '6mo', label: '6mo' },
+  { value: '1yr', label: '1yr' },
+  { value: 'all', label: 'All' },
+  { value: 'single', label: 'Form' },
+]
 
 export default function DashboardFilterBar({
   timeRange,
@@ -65,16 +65,16 @@ export default function DashboardFilterBar({
   history,
   onItemTeamsChanged,
 }: Props) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const router = useRouter();
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const router = useRouter()
 
   return (
     <Box
       sx={{
-        display: "flex",
-        alignItems: "center",
+        display: 'flex',
+        alignItems: 'center',
         gap: 1.5,
-        flexWrap: "wrap",
+        flexWrap: 'wrap',
         mb: 1.5,
       }}
     >
@@ -83,8 +83,8 @@ export default function DashboardFilterBar({
         color="text.disabled"
         sx={{
           fontWeight: 600,
-          letterSpacing: "0.06em",
-          textTransform: "uppercase",
+          letterSpacing: '0.06em',
+          textTransform: 'uppercase',
           mr: 0.5,
         }}
       >
@@ -96,16 +96,16 @@ export default function DashboardFilterBar({
         exclusive
         size="small"
         onChange={(_, v) => {
-          if (v) onTimeRangeChange(v as TimeRange);
+          if (v) onTimeRangeChange(v as TimeRange)
         }}
         sx={{
-          "& .MuiToggleButton-root": {
+          '& .MuiToggleButton-root': {
             py: 0.25,
             px: 1.25,
-            fontSize: "0.72rem",
+            fontSize: '0.72rem',
             lineHeight: 1.6,
-            border: "1px solid",
-            borderColor: "divider",
+            border: '1px solid',
+            borderColor: 'divider',
           },
         }}
       >
@@ -116,7 +116,7 @@ export default function DashboardFilterBar({
         ))}
       </ToggleButtonGroup>
 
-      {timeRange === "single" ? (
+      {timeRange === 'single' ? (
         <>
           <Select
             value={selectedSubmissionId}
@@ -124,10 +124,10 @@ export default function DashboardFilterBar({
             size="small"
             displayEmpty
             sx={{
-              fontSize: "0.75rem",
+              fontSize: '0.75rem',
               minWidth: 200,
               maxWidth: 300,
-              "& .MuiSelect-select": { py: "3px" },
+              '& .MuiSelect-select': { py: '3px' },
             }}
           >
             {filterBySubmissionOptions.length === 0 ? (
@@ -149,11 +149,11 @@ export default function DashboardFilterBar({
               endIcon={<OpenInNewIcon fontSize="inherit" />}
               onClick={() => router.push(`/forms/${selectedSubmissionId}`)}
               sx={{
-                fontSize: "0.72rem",
+                fontSize: '0.72rem',
                 py: 0.25,
                 px: 1.25,
-                textTransform: "none",
-                whiteSpace: "nowrap",
+                textTransform: 'none',
+                whiteSpace: 'nowrap',
               }}
             >
               See all details
@@ -167,9 +167,9 @@ export default function DashboardFilterBar({
             onChange={(e) => onTeamChange(e.target.value)}
             size="small"
             sx={{
-              fontSize: "0.75rem",
+              fontSize: '0.75rem',
               minWidth: 130,
-              "& .MuiSelect-select": { py: "3px" },
+              '& .MuiSelect-select': { py: '3px' },
             }}
           >
             <MenuItem value="all">All teams</MenuItem>
@@ -187,7 +187,7 @@ export default function DashboardFilterBar({
         <IconButton
           size="small"
           onClick={() => setSidebarOpen(true)}
-          sx={{ color: "text.secondary", mr: 0.5 }}
+          sx={{ color: 'text.secondary', mr: 0.5 }}
           aria-label="open history"
         >
           <HistoryIcon fontSize="small" />
@@ -201,5 +201,5 @@ export default function DashboardFilterBar({
         onItemTeamsChanged={onItemTeamsChanged}
       />
     </Box>
-  );
+  )
 }

@@ -1,7 +1,7 @@
-import { useMemo } from "react";
-import type { HistoryItem } from "../history/HistorySidebar";
-import { type TimeRange } from "./DashboardFilterBar";
-import { cutoffDate } from "./helpers";
+import { useMemo } from 'react'
+import type { HistoryItem } from '../history/HistorySidebar'
+import { type TimeRange } from './DashboardFilterBar'
+import { cutoffDate } from './helpers'
 
 export function useFilteredHistory(
   history: HistoryItem[],
@@ -10,25 +10,25 @@ export function useFilteredHistory(
   resolvedSubmissionId: string,
 ) {
   const filteredHistory = useMemo(() => {
-    if (timeRange === "single") {
-      return history.filter((h) => h.id === resolvedSubmissionId);
+    if (timeRange === 'single') {
+      return history.filter((h) => h.id === resolvedSubmissionId)
     }
-    const cutoff = cutoffDate(timeRange);
+    const cutoff = cutoffDate(timeRange)
     const byTeam =
-      teamId === "all"
+      teamId === 'all'
         ? history
-        : teamId === "personal"
+        : teamId === 'personal'
           ? history.filter((h) => !h.teams?.length)
-          : history.filter((h) => h.teams?.some((t) => t.id === teamId));
+          : history.filter((h) => h.teams?.some((t) => t.id === teamId))
     // Prefer inspectionDate from extracted data; fall back to processedAt
     return cutoff
       ? byTeam.filter((h) => {
-          const dateStr = (h.data as { inspectionDate?: string }).inspectionDate;
-          const date = dateStr ? new Date(dateStr) : new Date(h.processedAt);
-          return date >= cutoff;
+          const dateStr = (h.data as { inspectionDate?: string }).inspectionDate
+          const date = dateStr ? new Date(dateStr) : new Date(h.processedAt)
+          return date >= cutoff
         })
-      : byTeam;
-  }, [history, timeRange, teamId, resolvedSubmissionId]);
+      : byTeam
+  }, [history, timeRange, teamId, resolvedSubmissionId])
 
-  return filteredHistory;
+  return filteredHistory
 }
