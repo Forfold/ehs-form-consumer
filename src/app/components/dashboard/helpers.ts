@@ -1,5 +1,5 @@
 
-import type { HistoryItem } from '../HistorySidebar'
+import type { HistoryItem } from '../history/HistorySidebar'
 import { type TimeRange } from './DashboardFilterBar'
 
 export const WINDOW_LABELS: Record<Exclude<TimeRange, 'single'>, string> = {

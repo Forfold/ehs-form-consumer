@@ -1,6 +1,6 @@
 
 import { useMemo } from 'react'
-import type { HistoryItem } from '../HistorySidebar'
+import type { HistoryItem } from '../history/HistorySidebar'
 import { type TimeRange } from './DashboardFilterBar'
 import { cutoffDate } from './helpers'
 

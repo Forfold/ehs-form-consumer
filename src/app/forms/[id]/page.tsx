@@ -16,7 +16,7 @@ import MenuIcon from '@mui/icons-material/Menu'
 import Link from 'next/link'
 import { gqlFetch } from '@/lib/graphql/client'
 import InspectionResults from '@/app/components/InspectionResults'
-import HistorySidebar from '@/app/components/HistorySidebar'
+import HistorySidebar from '@/app/components/history/HistorySidebar'
 import PdfSection from '@/app/components/pdf/PdfSection'
 import UserMenu from '@/app/components/UserMenu'
 

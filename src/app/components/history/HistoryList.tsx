@@ -11,8 +11,8 @@ import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 import GroupsIcon from '@mui/icons-material/Groups'
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined'
-import { ShareMenu } from './ShareMenu'
-import type { HistoryItem } from './HistorySidebar'
+import { ShareMenu } from '../ShareMenu'
+import { HistoryItem } from './HistorySidebar'
 
 interface HistoryListProps {
   items: HistoryItem[]

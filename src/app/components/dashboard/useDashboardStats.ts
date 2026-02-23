@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { HistoryItem } from '../HistorySidebar'
+import type { HistoryItem } from '../history/HistorySidebar'
 import type { DashboardStats, FlaggedForm, InspectionDataSummary, MonthBucket } from './types'
 
 function monthKey(d: Date) {

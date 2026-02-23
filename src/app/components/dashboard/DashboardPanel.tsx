@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Box from '@mui/material/Box'
-import type { HistoryItem } from '../HistorySidebar'
+import type { HistoryItem } from '../history/HistorySidebar'
 import { useDashboardStats } from './useDashboardStats'
 import DashboardFilterBar, { type TimeRange } from './DashboardFilterBar'
 import { useFilteredHistory } from './useFilteredHistory'

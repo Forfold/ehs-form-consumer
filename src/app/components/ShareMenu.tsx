@@ -9,7 +9,7 @@ import MenuItem from '@mui/material/MenuItem'
 import Tooltip from '@mui/material/Tooltip'
 import GroupAddIcon from '@mui/icons-material/GroupAdd'
 import { gqlFetch } from '@/lib/graphql/client'
-import type { HistoryItem } from './HistorySidebar'
+import type { HistoryItem } from './history/HistorySidebar'
 
 const TEAMS_QUERY = `
   query {
