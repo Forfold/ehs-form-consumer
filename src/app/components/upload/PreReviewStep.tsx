@@ -20,27 +20,31 @@ interface Props {
   onChange: (hints: Partial<InspectionFieldHints>) => void
 }
 
+// Storing `file` inside state lets us derive the stale/loading condition at render
+// time instead of resetting state synchronously inside an effect.
+type PdfState = { file: File | null; pages: string[]; loading: boolean; currentPage: number }
+
 export default function PreReviewStep({ file, hints, onChange }: Props) {
-  const [pages, setPages] = useState<string[]>([])
-  const [loading, setLoading] = useState(true)
-  const [currentPage, setCurrentPage] = useState(0)
+  const [pdfState, setPdfState] = useState<PdfState>({ file: null, pages: [], loading: true, currentPage: 0 })
   const [zoomOpen, setZoomOpen] = useState(false)
+
+  // While the effect hasn't resolved for the current file, treat as loading/empty
+  const isStale = pdfState.file !== file
+  const pages = isStale ? [] : pdfState.pages
+  const loading = isStale || pdfState.loading
+  const currentPage = isStale ? 0 : pdfState.currentPage
 
   useEffect(() => {
     let cancelled = false
-    setPages([])
-    setCurrentPage(0)
-    setLoading(true)
 
     pdfToImages(file, 1.5)
       .then((images) => {
         if (cancelled) return
-        setPages(images.map(img => `data:image/jpeg;base64,${img}`))
-        setLoading(false)
+        setPdfState({ file, pages: images.map(img => `data:image/jpeg;base64,${img}`), loading: false, currentPage: 0 })
       })
       .catch(err => {
         console.warn('[PreReviewStep] PDF render failed:', err)
-        setLoading(false)
+        setPdfState(prev => ({ ...prev, file, loading: false }))
       })
 
     // Auto-extract AcroForm fields silently for AI hints
@@ -58,14 +62,14 @@ export default function PreReviewStep({ file, hints, onChange }: Props) {
   const pageCount = pages.length
   const currentSrc = pages[currentPage]
 
-  function goPrev() { setCurrentPage(p => Math.max(0, p - 1)) }
-  function goNext() { setCurrentPage(p => Math.min(pageCount - 1, p + 1)) }
+  function goPrev() { setPdfState(prev => ({ ...prev, currentPage: Math.max(0, prev.currentPage - 1) })) }
+  function goNext() { setPdfState(prev => ({ ...prev, currentPage: Math.min(prev.pages.length - 1, prev.currentPage + 1) })) }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
 
       {/* PDF page preview */}
-      <Box sx={{ position: 'relative', width: '100%' }}>
+      <Box sx={{ position: 'relative', width: '100%', maxWidth: 600, mx: 'auto' }}>
         {loading ? (
           <Box sx={{
             width: '100%', aspectRatio: '8.5 / 11',
