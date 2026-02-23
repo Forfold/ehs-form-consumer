@@ -11,6 +11,9 @@ export async function extractInspection(file: File) {
     body: JSON.stringify({ images }),
   })
 
-  if (!res.ok) throw new Error('Extraction failed')
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.error ?? 'Extraction failed')
+  }
   return res.json()
 }

@@ -1,10 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { NextRequest, NextResponse } from 'next/server'
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY // never reaches the client
-})
-
 const PROMPT = `This is an ISWGP (Industrial Stormwater General Permit) Monthly Inspection / Visual Evaluation Report. The pages are fully-rendered PDF images with ALL layers composited: base content, AcroForm field values, ink/e-drawing annotations, shape annotations, stamps, and free-text overlays. Every visible mark is present.
 
 CHECKBOX READING INSTRUCTIONS — forms may be filled in any of these ways:
@@ -65,6 +61,13 @@ Extract ALL checklist rows from every section of the form — list every BMP ite
 Return only valid JSON, no markdown, no explanation.`
 
 export async function POST(request: NextRequest) {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.error('[extract] ANTHROPIC_API_KEY is not set')
+    return NextResponse.json({ error: 'Extraction service is not configured. Please contact support.' }, { status: 503 })
+  }
+
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+
   try {
     const { images } = await request.json() as { images: string[] }
 
