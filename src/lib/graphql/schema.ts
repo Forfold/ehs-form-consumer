@@ -756,6 +756,25 @@ builder.mutationType({
       },
     }),
 
+    // Update the extracted data for a submission the user owns
+    updateSubmissionData: t.field({
+      type:     FormSubmissionRef,
+      args: {
+        id:   t.arg.id({ required: true }),
+        data: t.arg({ type: 'JSON', required: true }),
+      },
+      resolve: async (_, { id, data }, ctx) => {
+        if (!ctx.userId) throw new Error('Not authenticated')
+        const rows = await ctx.db
+          .update(formSubmissions)
+          .set({ data: data as Record<string, unknown> })
+          .where(and(eq(formSubmissions.id, String(id)), eq(formSubmissions.userId, ctx.userId)))
+          .returning()
+        if (!rows[0]) throw new Error('Submission not found or access denied')
+        return rows[0]
+      },
+    }),
+
     // Attach (or replace) a PDF storage URL on an existing submission the user owns
     attachPdfToSubmission: t.field({
       type:     FormSubmissionRef,
