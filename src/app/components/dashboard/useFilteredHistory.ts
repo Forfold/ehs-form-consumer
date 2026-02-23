@@ -1,6 +1,6 @@
 
 import { useMemo } from 'react'
-import type { HistoryItem } from '../HistorySidebar'
+import type { HistoryItem } from '../history/HistorySidebar'
 import { type TimeRange } from './DashboardFilterBar'
 import { cutoffDate } from './helpers'
 
@@ -20,8 +20,13 @@ export function useFilteredHistory(
       : teamId === 'personal'
         ? history.filter(h => !h.teams?.length)
         : history.filter(h => h.teams?.some(t => t.id === teamId))
+    // Prefer inspectionDate from extracted data; fall back to processedAt
     return cutoff
-      ? byTeam.filter(h => new Date(h.processedAt) >= cutoff)
+      ? byTeam.filter(h => {
+          const dateStr = (h.data as { inspectionDate?: string }).inspectionDate
+          const date = dateStr ? new Date(dateStr) : new Date(h.processedAt)
+          return date >= cutoff
+        })
       : byTeam
   }, [history, timeRange, teamId, resolvedSubmissionId])
 

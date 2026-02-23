@@ -12,7 +12,7 @@ import HistoryIcon from '@mui/icons-material/History'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import HistorySidebar, { type HistoryItem } from '../HistorySidebar'
+import HistorySidebar, { type HistoryItem } from '../history/HistorySidebar'
 import Tooltip from '@mui/material/Tooltip'
 
 export type TimeRange = '30d' | '90d' | '6mo' | '1yr' | 'all' | 'single'

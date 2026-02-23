@@ -1,7 +1,7 @@
 import Alert from '@mui/material/Alert'
 import Paper from '@mui/material/Paper'
 import Typography from '@mui/material/Typography'
-import PdfUploader from '../PdfUploader'
+import PdfUploader from '../pdf/PdfUploader'
 
 interface Props {
   onFile: (file: File) => void

@@ -3,7 +3,10 @@
 import { useEffect, useRef, useState } from 'react'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
+import Dialog from '@mui/material/Dialog'
+import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
+import CloseIcon from '@mui/icons-material/Close'
 
 interface Props {
   url: string
@@ -13,6 +16,7 @@ export default function PdfViewer({ url }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -48,6 +52,9 @@ export default function PdfViewer({ url }: Props) {
           canvas.style.width = '100%'
           canvas.style.marginBottom = '8px'
           canvas.style.borderRadius = '4px'
+          canvas.style.cursor = 'zoom-in'
+          canvas.title = 'Click to zoom'
+          canvas.addEventListener('click', () => setZoomedImage(canvas.toDataURL()))
 
           containerRef.current?.appendChild(canvas)
 
@@ -74,16 +81,44 @@ export default function PdfViewer({ url }: Props) {
   }, [url])
 
   return (
-    <Box>
-      {loading && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-          <CircularProgress size={28} />
+    <>
+      <Box>
+        {loading && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <CircularProgress size={28} />
+          </Box>
+        )}
+        {error && (
+          <Typography color="error" variant="body2">{error}</Typography>
+        )}
+        <Box ref={containerRef} />
+      </Box>
+
+      {/* Zoom dialog */}
+      <Dialog
+        open={!!zoomedImage}
+        onClose={() => setZoomedImage(null)}
+        maxWidth={false}
+        slotProps={{ paper: { sx: { m: 1, maxWidth: '95vw', maxHeight: '95vh', bgcolor: 'background.paper' } } }}
+      >
+        <Box sx={{ position: 'relative' }}>
+          <IconButton
+            onClick={() => setZoomedImage(null)}
+            size="small"
+            sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1, bgcolor: 'background.paper', '&:hover': { bgcolor: 'action.hover' } }}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+          {zoomedImage && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={zoomedImage}
+              alt="PDF page zoom"
+              style={{ display: 'block', maxWidth: '95vw', maxHeight: '95vh', objectFit: 'contain' }}
+            />
+          )}
         </Box>
-      )}
-      {error && (
-        <Typography color="error" variant="body2">{error}</Typography>
-      )}
-      <Box ref={containerRef} />
-    </Box>
+      </Dialog>
+    </>
   )
 }

@@ -12,7 +12,7 @@ import Typography from '@mui/material/Typography'
 import GroupsIcon from '@mui/icons-material/Groups'
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined'
 import { ShareMenu } from './ShareMenu'
-import type { HistoryItem } from './HistorySidebar'
+import { HistoryItem } from './HistorySidebar'
 
 interface HistoryListProps {
   items: HistoryItem[]
@@ -40,7 +40,7 @@ export function HistoryList({ items, onItemClick, onItemTeamsChanged }: HistoryL
             secondaryAction={
               <ShareMenu
                 item={item}
-                onTeamsChanged={(teams) => onItemTeamsChanged?.(item.id, teams)}
+                onTeamsChangedAction={(teams) => onItemTeamsChanged?.(item.id, teams)}
               />
             }
           >
