@@ -1,0 +1,37 @@
+name: Build
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    name: Next.js build
+    runs-on: ubuntu-latest
+
+    env:
+      # Stub values — next build only validates routes/types, it doesn't
+      # connect to external services for dynamic (auth-gated) pages.
+      POSTGRES_URL: postgresql://postgres:postgres@localhost/stub
+      AUTH_SECRET: ci-stub-secret-at-least-32-characters-long
+      AUTH_URL: http://localhost:3000
+      AUTH_GOOGLE_ID: stub-google-client-id
+      AUTH_GOOGLE_SECRET: stub-google-client-secret
+      BLOB_READ_WRITE_TOKEN: stub-blob-token
+      ANTHROPIC_API_KEY: stub-anthropic-key
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
