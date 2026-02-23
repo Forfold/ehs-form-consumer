@@ -23,7 +23,7 @@ import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
-import MenuIcon from '@mui/icons-material/Menu'
+import HistoryIcon from '@mui/icons-material/History'
 import Link from 'next/link'
 import { gqlFetch } from '@/lib/graphql/client'
 import InspectionResults from '@/app/components/form_submission/InspectionResults'
@@ -171,15 +171,6 @@ export default function FormDetailPage() {
 
       <AppBar position="static">
         <Toolbar sx={{ gap: 1 }}>
-          <IconButton
-            size="small" edge="start"
-            onClick={() => setSidebarOpen(true)}
-            sx={{ color: 'text.secondary', mr: 0.5 }}
-            aria-label="open history"
-          >
-            <MenuIcon fontSize="small" />
-          </IconButton>
-
           <Breadcrumbs
             sx={{ flexGrow: 1, '& .MuiBreadcrumbs-separator': { color: 'text.disabled' } }}
           >
@@ -201,6 +192,14 @@ export default function FormDetailPage() {
             </Typography>
           </Breadcrumbs>
 
+          <IconButton
+            size="small" edge="start"
+            onClick={() => setSidebarOpen(true)}
+            sx={{ color: 'text.secondary', mr: 0.5 }}
+            aria-label="open history"
+          >
+            <HistoryIcon fontSize="small" />
+          </IconButton>
           <Chip label="Beta" size="small" variant="outlined" color="primary" sx={{ borderRadius: 1, fontSize: '0.7rem', height: 22 }} />
           <UserMenu />
         </Toolbar>
