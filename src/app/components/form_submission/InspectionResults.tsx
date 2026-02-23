@@ -1,7 +1,13 @@
+'use client'
+
+import { useRef, useState } from 'react'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
+import Dialog from '@mui/material/Dialog'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
 import Divider from '@mui/material/Divider'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
@@ -16,6 +22,7 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 
 type BmpStatus = 'pass' | 'fail' | 'na'
@@ -47,7 +54,6 @@ interface InspectionData {
 
 interface Props {
   data: InspectionData
-  onReset: () => void
 }
 
 const overallStatusMap: Record<OverallStatus, { label: string; severity: 'success' | 'error' | 'warning' }> = {
@@ -62,23 +68,28 @@ const bmpChipProps: Record<BmpStatus, { label: string; color: 'success' | 'error
   na:   { label: 'N/A',  color: 'default' },
 }
 
-function SectionHeading({ children }: { children: React.ReactNode }) {
+function SectionHeading({ children, large }: { children: React.ReactNode; large?: boolean }) {
   return (
     <Typography
       variant="overline"
-      sx={{ color: 'text.secondary', fontWeight: 600, letterSpacing: '0.08em', display: 'block', mb: 1.5 }}
+      sx={{
+        color: 'text.secondary',
+        fontWeight: 600,
+        letterSpacing: '0.08em',
+        display: 'block',
+        mb: 1.5,
+        fontSize: large ? '0.8rem' : undefined,
+      }}
     >
       {children}
     </Typography>
   )
 }
 
-export default function InspectionResults({ data, onReset }: Props) {
+export default function InspectionResults({ data }: Props) {
   const status = overallStatusMap[data.overallStatus] ?? { label: data.overallStatus, severity: 'info' as const }
   const bmpItems = data.bmpItems ?? []
   const correctiveActions = data.correctiveActions ?? []
-  // A form is considered blank when all header identifiers are null AND every
-  // BMP item is "na" (or the array is empty) — meaning nothing was filled in.
   const isBlankForm =
     !data.facilityName &&
     !data.permitNumber &&
@@ -87,6 +98,13 @@ export default function InspectionResults({ data, onReset }: Props) {
   const pendingCount = correctiveActions.filter(a => !a.completed).length
   const passCount = bmpItems.filter(i => i.status === 'pass').length
   const failCount = bmpItems.filter(i => i.status === 'fail').length
+  const failedItems = bmpItems.filter(i => i.status === 'fail')
+  const deadletterCount = data.deadletter ? Object.keys(data.deadletter).length : 0
+
+  const [ncModalOpen, setNcModalOpen] = useState(false)
+  const deadletterRef = useRef<HTMLDivElement>(null)
+
+  const isNonCompliantClickable = data.overallStatus === 'non-compliant' && failedItems.length > 0
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -98,24 +116,90 @@ export default function InspectionResults({ data, onReset }: Props) {
         </Alert>
       )}
 
-      {/* Overall status */}
-      <Alert
-        severity={status.severity}
-        sx={{ alignItems: 'center' }}
-        action={
-          bmpItems.length > 0 ? (
-            <Typography variant="body2" sx={{ whiteSpace: 'nowrap', opacity: 0.85, pr: 1 }}>
-              {passCount} pass &middot; {failCount} fail &middot; {bmpItems.length} items
-            </Typography>
-          ) : undefined
-        }
+      {/* Overall status — clickable when non-compliant */}
+      <Box
+        onClick={isNonCompliantClickable ? () => setNcModalOpen(true) : undefined}
+        sx={isNonCompliantClickable ? { cursor: 'pointer' } : undefined}
       >
-        <Typography fontWeight={700}>{status.label}</Typography>
-      </Alert>
+        <Alert
+          severity={status.severity}
+          sx={{ alignItems: 'center', pointerEvents: 'none' }}
+          action={
+            bmpItems.length > 0 ? (
+              <Typography variant="body2" sx={{ whiteSpace: 'nowrap', opacity: 0.85, pr: 1 }}>
+                {passCount} pass &middot; {failCount} fail &middot; {bmpItems.length} items
+                {isNonCompliantClickable && (
+                  <Box component="span" sx={{ ml: 1, opacity: 0.7, fontSize: '0.75rem' }}>· tap to view</Box>
+                )}
+              </Typography>
+            ) : undefined
+          }
+        >
+          <Typography fontWeight={700}>{status.label}</Typography>
+        </Alert>
+      </Box>
+
+      {/* Unprocessable fields banner */}
+      {deadletterCount > 0 && (
+        <Alert
+          severity="warning"
+          action={
+            <Button
+              size="small"
+              color="inherit"
+              onClick={() => deadletterRef.current?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              View
+            </Button>
+          }
+        >
+          {deadletterCount} field{deadletterCount !== 1 ? 's' : ''} could not be processed — review below.
+        </Alert>
+      )}
+
+      {/* Corrective actions */}
+      {correctiveActions.length > 0 && (
+        <Paper variant="outlined" sx={{ p: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+            <SectionHeading>Corrective Actions</SectionHeading>
+            {pendingCount > 0 && (
+              <Chip
+                label={`${pendingCount} pending`}
+                color="warning"
+                size="small"
+                sx={{ mb: 1.5 }}
+              />
+            )}
+          </Box>
+          <List disablePadding>
+            {correctiveActions.map((action, i) => (
+              <Box key={i}>
+                {i > 0 && <Divider component="li" />}
+                <ListItem alignItems="flex-start" disableGutters sx={{ py: 1.5 }}>
+                  <ListItemIcon sx={{ minWidth: 36, mt: 0.5 }}>
+                    {action.completed
+                      ? <CheckCircleIcon color="success" />
+                      : <WarningAmberIcon color="warning" />
+                    }
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={action.description}
+                    secondary={`Due: ${action.dueDate || 'N/A'} · ${action.completed ? 'Completed' : 'Pending'}`}
+                    slotProps={{
+                      primary: { variant: 'body2', fontWeight: 500 } as object,
+                      secondary: { variant: 'caption' } as object,
+                    }}
+                  />
+                </ListItem>
+              </Box>
+            ))}
+          </List>
+        </Paper>
+      )}
 
       {/* Facility info */}
       <Paper variant="outlined" sx={{ p: 2 }}>
-        <SectionHeading>Facility Information</SectionHeading>
+        <SectionHeading large>Facility Information</SectionHeading>
         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
           {[
             ['Facility Name',    data.facilityName],
@@ -178,49 +262,9 @@ export default function InspectionResults({ data, onReset }: Props) {
         </Paper>
       )}
 
-      {/* Corrective actions */}
-      {correctiveActions.length > 0 && (
-        <Paper variant="outlined" sx={{ p: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-            <SectionHeading>Corrective Actions</SectionHeading>
-            {pendingCount > 0 && (
-              <Chip
-                label={`${pendingCount} pending`}
-                color="warning"
-                size="small"
-                sx={{ mb: 1.5 }}
-              />
-            )}
-          </Box>
-          <List disablePadding>
-            {correctiveActions.map((action, i) => (
-              <Box key={i}>
-                {i > 0 && <Divider component="li" />}
-                <ListItem alignItems="flex-start" disableGutters sx={{ py: 1.5 }}>
-                  <ListItemIcon sx={{ minWidth: 36, mt: 0.5 }}>
-                    {action.completed
-                      ? <CheckCircleIcon color="success" />
-                      : <WarningAmberIcon color="warning" />
-                    }
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={action.description}
-                    secondary={`Due: ${action.dueDate || 'N/A'} · ${action.completed ? 'Completed' : 'Pending'}`}
-                    slotProps={{
-                      primary: { variant: 'body2', fontWeight: 500 } as object,
-                      secondary: { variant: 'caption' } as object,
-                    }}
-                  />
-                </ListItem>
-              </Box>
-            ))}
-          </List>
-        </Paper>
-      )}
-
       {/* Deadletter */}
-      {data.deadletter && Object.keys(data.deadletter).length > 0 && (
-        <Paper variant="outlined" sx={{ p: 2 }}>
+      {deadletterCount > 0 && (
+        <Paper ref={deadletterRef} variant="outlined" sx={{ p: 2 }}>
           <SectionHeading>Unprocessable Fields</SectionHeading>
           <Box
             component="pre"
@@ -240,9 +284,33 @@ export default function InspectionResults({ data, onReset }: Props) {
         </Paper>
       )}
 
-      <Button variant="outlined" onClick={onReset} sx={{ alignSelf: 'flex-start' }}>
-        Process another form
-      </Button>
+      {/* Non-compliant items modal */}
+      <Dialog open={ncModalOpen} onClose={() => setNcModalOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Non-Compliant Items</DialogTitle>
+        <DialogContent>
+          <List disablePadding>
+            {failedItems.map((item, i) => (
+              <Box key={i}>
+                {i > 0 && <Divider component="li" />}
+                <ListItem disableGutters sx={{ py: 1 }}>
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    <ErrorOutlineIcon color="error" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item.description}
+                    secondary={item.notes || undefined}
+                    slotProps={{
+                      primary: { variant: 'body2', fontWeight: 500 } as object,
+                      secondary: { variant: 'caption' } as object,
+                    }}
+                  />
+                </ListItem>
+              </Box>
+            ))}
+          </List>
+        </DialogContent>
+      </Dialog>
+
     </Box>
   )
 }
