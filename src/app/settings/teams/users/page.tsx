@@ -7,7 +7,7 @@ import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined'
 import Link from 'next/link'
-import UserMenu from '@/app/components/UserMenu'
+import UserMenu from '@/app/components/main/UserMenu'
 import UserManagementList from '@/app/settings/users/components/UserManagementList'
 
 export default function TeamsUsersPage() {

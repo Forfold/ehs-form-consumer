@@ -12,7 +12,7 @@ import { extractInspection } from '@/lib/extractInspection'
 import { uploadPdf } from '@/lib/uploadPdf'
 import { gqlFetch } from '@/lib/graphql/client'
 import { type HistoryItem } from './components/history/HistorySidebar'
-import UserMenu from './components/UserMenu'
+import UserMenu from './components/main/UserMenu'
 import UploaderCard from './components/dashboard/UploaderCard'
 import DashboardPanel from './components/dashboard/DashboardPanel'
 

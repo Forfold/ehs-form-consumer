@@ -15,10 +15,10 @@ import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined'
 import MenuIcon from '@mui/icons-material/Menu'
 import Link from 'next/link'
 import { gqlFetch } from '@/lib/graphql/client'
-import InspectionResults from '@/app/components/InspectionResults'
+import InspectionResults from '@/app/components/form_submission/InspectionResults'
 import HistorySidebar from '@/app/components/history/HistorySidebar'
 import PdfSection from '@/app/components/pdf/PdfSection'
-import UserMenu from '@/app/components/UserMenu'
+import UserMenu from '@/app/components/main/UserMenu'
 
 type OverallStatus = 'compliant' | 'non-compliant' | 'needs-attention'
 

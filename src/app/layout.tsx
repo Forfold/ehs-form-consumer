@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { cookies } from 'next/headers'
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v16-appRouter'
 import Providers from './Providers'
-import AuthGate from './components/AuthGate'
+import AuthGate from './components/main/AuthGate'
 import type { ThemeMode } from './theme'
 import './globals.css'
 
