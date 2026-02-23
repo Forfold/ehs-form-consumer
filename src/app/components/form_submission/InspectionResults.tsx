@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Fragment } from 'react'
 import Box from '@mui/material/Box'
 import Checkbox from '@mui/material/Checkbox'
 import Chip from '@mui/material/Chip'
@@ -539,9 +539,8 @@ export default function InspectionResults({ data, currentUserName, onEdit }: Pro
                   {bmpItems.map((item, i) => {
                     const chip = bmpChipProps[item.status] ?? { label: item.status, color: 'default' as const }
                     return (
-                      <>
+                      <Fragment key={item.description}>
                         <TableRow
-                          key={`row-${i}`}
                           sx={{ bgcolor: item.status === 'fail' ? 'error.50' : undefined }}
                         >
                           <TableCell>
@@ -573,7 +572,7 @@ export default function InspectionResults({ data, currentUserName, onEdit }: Pro
                             </TableCell>
                           </TableRow>
                         )}
-                      </>
+                      </Fragment>
                     )
                   })}
                 </TableBody>
@@ -654,7 +653,8 @@ export default function InspectionResults({ data, currentUserName, onEdit }: Pro
                             disabled={!resolveEditType}
                             onClick={() => {
                               if (!resolveEditType || !onEdit) return
-                              const { [key]: _removed, ...remaining } = data.deadletter ?? {}
+                              const entries = Object.entries(data.deadletter ?? {}).filter(([k]) => k !== key)
+                              const remaining = Object.fromEntries(entries)
                               onEdit({
                                 ...data,
                                 deadletter: Object.keys(remaining).length > 0 ? remaining : undefined,
