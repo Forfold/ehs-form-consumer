@@ -57,7 +57,7 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
         .filter(a => !a.completed)
         .map(a => ({
           submissionId: item.id,
-          facilityName: item.facilityName ?? item.fileName,
+          facilityName: item?.facilityName ?? 'unknown',
           description: a.description,
           dueDate: a.dueDate,
           source: 'documented' as const,
@@ -68,7 +68,7 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
       const gaps = documented.length === 0 && failedBmps.length > 0
         ? failedBmps.map(b => ({
             submissionId: item.id,
-            facilityName: item.facilityName ?? item.fileName,
+            facilityName: item?.facilityName ?? 'unknown',
             description: b.description,
             dueDate: '',
             source: 'gap' as const,
@@ -85,7 +85,7 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
         const d = item.data as Partial<InspectionDataSummary>
         return {
           submissionId: item.id,
-          facilityName: item.facilityName ?? item.fileName,
+          facilityName: item?.facilityName ?? 'unknown',
           inspectionDate: d.inspectionDate ?? null,
           failedChecklistItems: (d.checklistItems ?? [])
             .filter(b => b.status === 'fail')
