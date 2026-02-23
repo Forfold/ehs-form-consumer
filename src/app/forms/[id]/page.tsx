@@ -78,7 +78,6 @@ const UPDATE_DATA_MUTATION = `
 function submissionToHistoryItem(s: GqlSubmission) {
   return {
     id: s.id,
-    fileName: s.fileName,
     processedAt: s.processedAt,
     permitNumber: (s.data?.permitNumber as string | undefined) ?? '',
     facilityName: (s.data?.facilityName as string | undefined) ?? s.displayName ?? null,

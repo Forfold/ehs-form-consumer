@@ -14,7 +14,6 @@ export interface HistoryItem {
   id: string
   facilityName: string | null
   permitNumber: string
-  fileName: string
   processedAt: string
   data: Record<string, unknown>
   teams?: Array<{ id: string; name: string }>

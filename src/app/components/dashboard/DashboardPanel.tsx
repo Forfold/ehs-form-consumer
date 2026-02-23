@@ -46,7 +46,7 @@ export default function DashboardPanel({ history, historyLoading, onItemTeamsCha
   const windowLabel = useMemo(() => {
     if (timeRange === 'single') {
       const item = history.find(h => h.id === resolvedSubmissionId)
-      return item ? (item.facilityName ?? item.fileName) : '1 form'
+      return item ? item.permitNumber : '1 form'
     }
     return WINDOW_LABELS[timeRange]
   }, [timeRange, history, resolvedSubmissionId])

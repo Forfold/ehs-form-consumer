@@ -22,7 +22,9 @@ export function cutoffDate(range: Exclude<TimeRange, 'single'>): Date | null {
 }
 
 export function submissionLabel(item: HistoryItem): string {
-  const name = item.facilityName ?? item.fileName
-  const date = new Date(item.processedAt).toLocaleDateString('default', { month: 'short', day: 'numeric', year: '2-digit' })
-  return `${name} · ${date}`
+  const d = (item.data as { inspectionDate?: string }).inspectionDate
+  const date = d
+    ? new Date(d).toLocaleDateString('default', { month: 'short', day: 'numeric', year: '2-digit' })
+    : new Date(item.processedAt).toLocaleDateString('default', { month: 'short', day: 'numeric', year: '2-digit' })
+  return `${item.permitNumber} · ${date}`
 }

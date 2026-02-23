@@ -18,21 +18,21 @@ import UploadFlowDialog from './components/upload/UploadFlowDialog'
 const SUBMISSIONS_QUERY = `
   query {
     submissions(limit: 50) {
-      id fileName processedAt displayName data
+      id processedAt displayName data
       teams { id name }
     }
   }
 `
 
 interface GqlSubmission {
-  id: string; fileName: string; processedAt: string
+  id: string; processedAt: string
   displayName: string | null; data: Record<string, unknown>
   teams: Array<{ id: string; name: string }>
 }
 
 function submissionToHistoryItem(s: GqlSubmission): HistoryItem {
   return {
-    id: s.id, fileName: s.fileName, processedAt: s.processedAt,
+    id: s.id, processedAt: s.processedAt,
     permitNumber: (s.data?.permitNumber as string | undefined) ?? '',
     facilityName: (s.data?.facilityName as string | undefined) ?? s.displayName ?? null,
     data: s.data, teams: s.teams,
