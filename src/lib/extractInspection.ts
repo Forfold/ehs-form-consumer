@@ -1,6 +1,7 @@
 import { pdfToImages } from './pdfToImages'
+import type { InspectionFieldHints } from './types/inspection'
 
-export async function extractInspection(file: File) {
+export async function extractInspection(file: File, fieldHints?: Partial<InspectionFieldHints>) {
   // Render each PDF page to an image via PDF.js so that annotation layers
   // (hand-marked X's, checked boxes, form-field overlays) are visible to Claude
   const images = await pdfToImages(file)
@@ -8,7 +9,7 @@ export async function extractInspection(file: File) {
   const res = await fetch('/api/extract', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ images }),
+    body: JSON.stringify({ images, fieldHints }),
   })
 
   if (!res.ok) {

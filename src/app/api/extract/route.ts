@@ -60,6 +60,8 @@ Extract ALL checklist rows from every section of the form — list every BMP ite
 
 Return only valid JSON, no markdown, no explanation.`
 
+const HINTS_INTRO = `\nThe user has manually verified the following field values from the form — use them directly instead of re-extracting:\n`
+
 export async function POST(request: NextRequest) {
   if (!process.env.ANTHROPIC_API_KEY) {
     console.error('[extract] ANTHROPIC_API_KEY is not set')
@@ -69,7 +71,7 @@ export async function POST(request: NextRequest) {
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
   try {
-    const { images } = await request.json() as { images: string[] }
+    const { images, fieldHints } = await request.json() as { images: string[]; fieldHints?: Record<string, string> }
 
     if (!images?.length) {
       return NextResponse.json({ error: 'No images provided' }, { status: 400 })
@@ -87,7 +89,15 @@ export async function POST(request: NextRequest) {
             type: 'image' as const,
             source: { type: 'base64' as const, media_type: 'image/jpeg' as const, data: img },
           })),
-          { type: 'text' as const, text: PROMPT },
+          {
+            type: 'text' as const,
+            text: (() => {
+              const filled = Object.entries(fieldHints ?? {}).filter(([, v]) => v?.trim())
+              if (!filled.length) return PROMPT
+              // k = field name (e.g. "facilityName"), v = user-verified value
+              return PROMPT + HINTS_INTRO + filled.map(([k, v]) => `- ${k}: "${v}"`).join('\n')
+            })(),
+          },
         ],
       }],
     })
