@@ -227,7 +227,7 @@ export default function InspectionResults({ data, onReset }: Props) {
             sx={{
               m: 0,
               p: 2,
-              bgcolor: 'grey.50',
+              bgcolor: 'action.hover',
               borderRadius: 1,
               fontSize: 12,
               color: 'text.secondary',
