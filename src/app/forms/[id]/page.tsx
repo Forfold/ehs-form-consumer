@@ -80,6 +80,7 @@ function submissionToHistoryItem(s: GqlSubmission) {
     id: s.id,
     fileName: s.fileName,
     processedAt: s.processedAt,
+    permitNumber: (s.data?.permitNumber as string | undefined) ?? '',
     facilityName: (s.data?.facilityName as string | undefined) ?? s.displayName ?? null,
     data: s.data,
     teams: s.teams,

@@ -53,15 +53,21 @@ export function HistoryList({ items, onItemClick, onItemTeamsChanged }: HistoryL
                   sx={{ fontSize: 20, color: 'text.disabled', mt: 0.3, flexShrink: 0 }}
                 />
                 <ListItemText
-                  primary={item.facilityName ?? item.fileName}
+                  primary={item.permitNumber}
                   secondary={
                     <Box component="span" sx={{ display: 'block' }}>
-                      {item.facilityName && (
+                     {item.facilityName && (
                         <Box component="span" sx={{ display: 'block' }}>
-                          {item.fileName}
+                          {item.facilityName}
                         </Box>
                       )}
-                      {new Date(item.processedAt).toLocaleString()}
+
+                      {(() => {
+                        const d = (item.data as { inspectionDate?: string }).inspectionDate
+                        return d
+                          ? new Date(d).toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' })
+                          : new Date(item.processedAt).toLocaleString()
+                      })()}
                       {(item.teams ?? []).length > 0 && (
                         <Box component="span" sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
                           {item.teams!.map((team) => (
