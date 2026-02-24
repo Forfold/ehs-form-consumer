@@ -716,9 +716,9 @@ export default function InspectionResults({ data, currentUserName, onEdit }: Pro
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 600 }}>Description</TableCell>
-                    <TableCell sx={{ fontWeight: 600, width: 90 }}>Status</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Notes</TableCell>
+                    <TableCell>Description</TableCell>
+                    <TableCell sx={{ width: 90 }}>Status</TableCell>
+                    <TableCell>Notes</TableCell>
                     {canEdit && <TableCell sx={{ width: 40 }} />}
                   </TableRow>
                 </TableHead>
