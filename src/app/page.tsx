@@ -33,7 +33,6 @@ interface GqlSubmission {
   teams: Array<{ id: string; name: string }>
 }
 
-
 export default function Home() {
   const router = useRouter()
   const [dialogFile, setDialogFile] = useState<File | null>(null)

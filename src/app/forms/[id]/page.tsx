@@ -29,7 +29,9 @@ import { gqlFetch } from '@/lib/graphql/client'
 import { submissionToHistoryItem } from '@/app/submissionUtils'
 import InspectionResults from '@/app/components/form_submission/InspectionResults'
 import type { InspectionData } from '@/lib/types/inspection'
-import HistorySidebar, { type HistoryItem } from '@/app/components/history/HistorySidebar'
+import HistorySidebar, {
+  type HistoryItem,
+} from '@/app/components/history/HistorySidebar'
 import PdfSection from '@/app/components/pdf/PdfSection'
 import UserMenu from '@/app/components/main/UserMenu'
 import DeleteFormButton from './DeleteFormButton'
@@ -75,7 +77,6 @@ const UPDATE_DATA_MUTATION = `
     updateSubmissionData(id: $id, data: $data) { id data }
   }
 `
-
 
 function breadcrumbTitle(submission: GqlSubmission | null, loading: boolean): string {
   if (loading) return '…'

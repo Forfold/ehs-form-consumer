@@ -17,8 +17,7 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
 
     // Compliance across the (already-filtered) history
     const compliant = history.filter(
-      (item) =>
-        (item.data as Partial<InspectionData>).overallStatus === 'compliant',
+      (item) => (item.data as Partial<InspectionData>).overallStatus === 'compliant',
     ).length
     const compliancePercent =
       history.length === 0 ? 100 : Math.round((compliant / history.length) * 100)
@@ -26,8 +25,7 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
     // BMP totals across all history
     const checklistTotals = { pass: 0, fail: 0, na: 0 }
     for (const item of history) {
-      for (const bmp of (item.data as Partial<InspectionData>)
-        .checklistItems ?? []) {
+      for (const bmp of (item.data as Partial<InspectionData>).checklistItems ?? []) {
         if (bmp.status === 'pass') checklistTotals.pass++
         else if (bmp.status === 'fail') checklistTotals.fail++
         else checklistTotals.na++
@@ -91,8 +89,7 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
     const flaggedForms: FlaggedForm[] = history
       .filter(
         (item) =>
-          (item.data as Partial<InspectionData>).overallStatus ===
-          'non-compliant',
+          (item.data as Partial<InspectionData>).overallStatus === 'non-compliant',
       )
       .map((item) => {
         const d = item.data as Partial<InspectionData>
