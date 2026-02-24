@@ -1,20 +1,3 @@
-export interface InspectionDataSummary {
-  overallStatus: 'compliant' | 'non-compliant' | 'needs-attention'
-  checklistItems: Array<{
-    section?: string
-    description: string
-    status: 'pass' | 'fail' | 'na'
-    notes: string
-  }>
-  correctiveActions: Array<{
-    description: string
-    dueDate: string
-    completed: boolean
-  }>
-  facilityName: string | null
-  inspectionDate: string | null
-}
-
 export interface ChecklistTotals {
   pass: number
   fail: number

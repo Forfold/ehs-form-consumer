@@ -24,8 +24,6 @@ import SearchIcon from '@mui/icons-material/Search'
 import { gqlFetch } from '@/lib/graphql/client'
 import { GqlTeamMember, GqlUser, UserAvatar } from './TeamCard'
 
-// ── GraphQL fragments ─────────────────────────────────────────────────────────
-
 const SEARCH_USERS_QUERY = `
   query SearchUsers($query: String!) {
     searchUsers(query: $query) {
@@ -41,8 +39,6 @@ const ADD_MEMBER_MUTATION = `
     }
   }
 `
-
-// ── Add member dialog ─────────────────────────────────────────────────────────
 
 interface AddMemberDialogProps {
   teamId: string

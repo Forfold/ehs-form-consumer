@@ -78,7 +78,6 @@ export default function DashboardPanel({
         selectedSubmissionId={resolvedSubmissionId}
         onSubmissionChange={setSelectedSubmissionId}
         history={history}
-        historyLoading={historyLoading}
         onItemTeamsChanged={onItemTeamsChanged}
       />
       <DashboardGrid

@@ -37,7 +37,6 @@ interface Props {
   selectedSubmissionId: string
   onSubmissionChange: (id: string) => void
   history: HistoryItem[]
-  historyLoading?: boolean
   onItemTeamsChanged?: (
     itemId: string,
     teams: Array<{ id: string; name: string }>,
@@ -152,7 +151,6 @@ export default function DashboardFilterBar({
                 fontSize: '0.72rem',
                 py: 0.25,
                 px: 1.25,
-                textTransform: 'none',
                 whiteSpace: 'nowrap',
               }}
             >

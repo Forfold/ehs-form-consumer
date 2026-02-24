@@ -33,8 +33,6 @@ import InputBase from '@mui/material/InputBase'
 import { gqlFetch } from '@/lib/graphql/client'
 import { AddMemberDialog } from './AddMemberDialog'
 
-// ── GraphQL fragments ─────────────────────────────────────────────────────────
-
 const RENAME_TEAM_MUTATION = `
   mutation RenameTeam($id: ID!, $name: String!) {
     renameTeam(id: $id, name: $name) { id name }
@@ -61,8 +59,6 @@ const CHANGE_ROLE_MUTATION = `
   }
 `
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-
 export interface GqlUser {
   id: string
   name: string | null
@@ -82,8 +78,6 @@ export interface GqlTeam {
   name: string
   members: GqlTeamMember[]
 }
-
-// ── Sub-components ────────────────────────────────────────────────────────────
 
 export function UserAvatar({ user, size = 32 }: { user: GqlUser; size?: number }) {
   return (
@@ -109,8 +103,6 @@ function RoleChip({ role }: { role: string }) {
     />
   )
 }
-
-// ── Team card ─────────────────────────────────────────────────────────────────
 
 interface TeamCardProps {
   team: GqlTeam

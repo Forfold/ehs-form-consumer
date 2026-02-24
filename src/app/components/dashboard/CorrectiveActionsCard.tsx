@@ -8,16 +8,13 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import DashboardCard from './DashboardCard'
+import { isOverdue } from '@/lib/dateUtils'
 import type { OpenCorrectiveAction } from './types'
 
 interface Props {
   actions: OpenCorrectiveAction[]
   onSelectSubmission: (submissionId: string) => void
   loading?: boolean
-}
-
-function isOverdue(dueDate: string) {
-  return dueDate && new Date(dueDate) < new Date()
 }
 
 export default function CorrectiveActionsCard({
@@ -49,15 +46,9 @@ export default function CorrectiveActionsCard({
           <Table size="small" stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
-                  Facility
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
-                  Action
-                </TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
-                  Due
-                </TableCell>
+                <TableCell>Facility</TableCell>
+                <TableCell>Action</TableCell>
+                <TableCell>Due</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

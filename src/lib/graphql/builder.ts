@@ -4,9 +4,6 @@ import { auth } from '@/auth'
 import { db, type Db } from '@/lib/db'
 import { users } from '../../../db/schema'
 
-// ── Context ──────────────────────────────────────────────────────────────────
-// Built once per request in the Yoga context factory
-// userId comes from the NextAuth session; null if unauthenticated
 export interface Context {
   db: Db
   userId: string | null
@@ -30,8 +27,6 @@ export async function buildContext(): Promise<Context> {
   return { db, userId, isAdmin }
 }
 
-// ── Builder ───────────────────────────────────────────────────────────────────
-// Single shared instance — all schema files import from here
 export const builder = new SchemaBuilder<{
   Context: Context
   Scalars: {

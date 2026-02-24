@@ -18,7 +18,6 @@ import {
   UserSettingsRef,
 } from './types'
 
-// ── Queries ───────────────────────────────────────────────────────────────────
 builder.queryType({
   fields: (t) => ({
     // Current authenticated user

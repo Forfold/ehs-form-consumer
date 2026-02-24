@@ -12,7 +12,6 @@ import {
 } from '../../../db/schema'
 import { builder } from './builder'
 
-// ── Object types ──────────────────────────────────────────────────────────────
 export interface UserTeamMembership {
   teamId: string
   teamName: string
