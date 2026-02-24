@@ -37,7 +37,6 @@ interface Props {
   selectedSubmissionId: string
   onSubmissionChange: (id: string) => void
   history: HistoryItem[]
-  historyLoading?: boolean
   onItemTeamsChanged?: (
     itemId: string,
     teams: Array<{ id: string; name: string }>,
