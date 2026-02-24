@@ -31,7 +31,7 @@ Extract into this exact JSON shape:
 {
   "facilityName": string or null,
   "permitNumber": string or null,
-  "inspectionDate": string or null,
+  "inspectionDate": string (required — use "unknown" if not determinable from the form),
   "inspectorName": string or null,
   "weatherConditions": string or null,
   "rainEventDuringInspection": boolean or null,
