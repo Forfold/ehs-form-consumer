@@ -1,11 +1,7 @@
 import { useMemo } from 'react'
 import type { HistoryItem } from '../history/HistorySidebar'
-import type {
-  DashboardStats,
-  FlaggedForm,
-  InspectionDataSummary,
-  MonthBucket,
-} from './types'
+import type { InspectionData } from '@/lib/types/inspection'
+import type { DashboardStats, FlaggedForm, MonthBucket } from './types'
 
 function monthKey(d: Date) {
   return `${d.getFullYear()}-${d.getMonth()}`
@@ -22,7 +18,7 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
     // Compliance across the (already-filtered) history
     const compliant = history.filter(
       (item) =>
-        (item.data as Partial<InspectionDataSummary>).overallStatus === 'compliant',
+        (item.data as Partial<InspectionData>).overallStatus === 'compliant',
     ).length
     const compliancePercent =
       history.length === 0 ? 100 : Math.round((compliant / history.length) * 100)
@@ -30,7 +26,7 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
     // BMP totals across all history
     const checklistTotals = { pass: 0, fail: 0, na: 0 }
     for (const item of history) {
-      for (const bmp of (item.data as Partial<InspectionDataSummary>)
+      for (const bmp of (item.data as Partial<InspectionData>)
         .checklistItems ?? []) {
         if (bmp.status === 'pass') checklistTotals.pass++
         else if (bmp.status === 'fail') checklistTotals.fail++
@@ -50,12 +46,12 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
       })
     }
     for (const item of history) {
-      const d = item.data as Partial<InspectionDataSummary>
+      const d = item.data as Partial<InspectionData>
       const dateStr = d.inspectionDate
       const key = monthKey(dateStr ? new Date(dateStr) : new Date(item.processedAt))
       const bucket = bucketMap.get(key)
       if (!bucket) continue
-      const status = (item.data as Partial<InspectionDataSummary>).overallStatus
+      const status = (item.data as Partial<InspectionData>).overallStatus
       if (status === 'compliant') bucket.compliant++
       else if (status === 'non-compliant') bucket.nonCompliant++
       else bucket.needsAttention++
@@ -64,7 +60,7 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
 
     // Open corrective actions (documented) + BMP failures with no documented action (gaps)
     const openActions = history.flatMap((item) => {
-      const d = item.data as Partial<InspectionDataSummary>
+      const d = item.data as Partial<InspectionData>
       const documented = (d.correctiveActions ?? [])
         .filter((a) => !a.completed)
         .map((a) => ({
@@ -95,11 +91,11 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
     const flaggedForms: FlaggedForm[] = history
       .filter(
         (item) =>
-          (item.data as Partial<InspectionDataSummary>).overallStatus ===
+          (item.data as Partial<InspectionData>).overallStatus ===
           'non-compliant',
       )
       .map((item) => {
-        const d = item.data as Partial<InspectionDataSummary>
+        const d = item.data as Partial<InspectionData>
         return {
           submissionId: item.id,
           facilityName: item?.facilityName ?? 'unknown',
