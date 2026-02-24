@@ -54,7 +54,6 @@ const bmpChipProps: Record<
   na: { label: 'N/A', color: 'default' },
 }
 
-// ── Edit type chip selector ────────────────────────────────────────────────────
 function EditTypeSelector({
   value,
   onChange,
@@ -86,7 +85,6 @@ function EditTypeSelector({
   )
 }
 
-// ── Section heading ────────────────────────────────────────────────────────────
 function SectionHeading({
   children,
   large,
@@ -111,7 +109,6 @@ function SectionHeading({
   )
 }
 
-// ── Facility field ─────────────────────────────────────────────────────────────
 function FacilityField({
   label,
   fieldKey,
@@ -217,7 +214,6 @@ function FacilityField({
   )
 }
 
-// ── Main component ─────────────────────────────────────────────────────────────
 export default function InspectionResults({ data, currentUserName, onEdit }: Props) {
   const canEdit = !!onEdit
 
@@ -248,7 +244,6 @@ export default function InspectionResults({ data, currentUserName, onEdit }: Pro
     }
   }
 
-  // ── Facility field save ──────────────────────────────────────────────────────
   function saveFacilityField(fieldKey: string, newValue: string, meta: EditMeta) {
     if (!onEdit) return
     onEdit({
@@ -261,7 +256,6 @@ export default function InspectionResults({ data, currentUserName, onEdit }: Pro
     })
   }
 
-  // ── Checklist item edit ──────────────────────────────────────────────────────
   function ChecklistEditRow({ index }: { index: number }) {
     const item = bmpItems[index]
     const [desc, setDesc] = useState(item.description)
@@ -346,7 +340,6 @@ export default function InspectionResults({ data, currentUserName, onEdit }: Pro
     )
   }
 
-  // ── New checklist item ───────────────────────────────────────────────────────
   function NewChecklistItemForm() {
     const [desc, setDesc] = useState('')
     const [status, setStatus] = useState<ChecklistStatus>('pass')
@@ -432,7 +425,6 @@ export default function InspectionResults({ data, currentUserName, onEdit }: Pro
     )
   }
 
-  // ── New corrective action ────────────────────────────────────────────────────
   function NewActionForm() {
     const [desc, setDesc] = useState('')
     const [dueDate, setDueDate] = useState('')
@@ -512,7 +504,6 @@ export default function InspectionResults({ data, currentUserName, onEdit }: Pro
     )
   }
 
-  // ── Corrective action edit ───────────────────────────────────────────────────
   function ActionEditRow({ index }: { index: number }) {
     const action = correctiveActions[index]
     const [desc, setDesc] = useState(action.description)

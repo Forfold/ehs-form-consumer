@@ -19,7 +19,6 @@ import {
   UserSettingsRef,
 } from './types'
 
-// ── Input types ───────────────────────────────────────────────────────────────
 const CreateSubmissionInput = builder.inputType('CreateSubmissionInput', {
   fields: (t) => ({
     fileName: t.string({ required: true }),
@@ -48,7 +47,6 @@ const UpdateSettingsInput = builder.inputType('UpdateSettingsInput', {
   }),
 })
 
-// ── Mutations ─────────────────────────────────────────────────────────────────
 builder.mutationType({
   fields: (t) => ({
     // Save a processed form submission (called after extraction)

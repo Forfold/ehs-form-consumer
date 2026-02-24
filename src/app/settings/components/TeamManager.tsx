@@ -13,8 +13,6 @@ import Link from 'next/link'
 import { gqlFetch } from '@/lib/graphql/client'
 import { GqlTeam, GqlTeamMember, TeamCard } from './TeamCard'
 
-// ── GraphQL fragments ─────────────────────────────────────────────────────────
-
 const TEAMS_QUERY = `
   query {
     teams {
@@ -38,8 +36,6 @@ const CREATE_TEAM_MUTATION = `
     }
   }
 `
-
-// ── Main component ────────────────────────────────────────────────────────────
 
 export default function TeamManager() {
   const [teams, setTeams] = useState<GqlTeam[]>([])

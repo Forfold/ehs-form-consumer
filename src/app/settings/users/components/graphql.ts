@@ -1,5 +1,3 @@
-// ── GraphQL ───────────────────────────────────────────────────────────────────
-
 export const ME_QUERY = `query { me { id isAdmin } }`
 
 export const ADMIN_USER_LIST_QUERY = `
@@ -41,8 +39,6 @@ export const REMOVE_USER_FROM_TEAM_MUTATION = `
   }
 `
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-
 export interface UserTeamMembership {
   teamId: string
   teamName: string
@@ -63,8 +59,6 @@ export interface SlimTeam {
   id: string
   name: string
 }
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 export function userInitials(user: AdminUser): string {
   if (user.name)

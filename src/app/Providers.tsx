@@ -7,8 +7,6 @@ import CssBaseline from '@mui/material/CssBaseline'
 import { makeTheme, type ThemeMode } from './theme'
 import { gqlFetch } from '@/lib/graphql/client'
 
-// ── ThemeContext ───────────────────────────────────────────────────────────────
-
 interface ThemeContextValue {
   mode: ThemeMode
   setMode: (mode: ThemeMode) => void
@@ -32,8 +30,6 @@ const UPDATE_SETTINGS_MUTATION = `
 const SETTINGS_QUERY = `
   query { settings { preferences } }
 `
-
-// ── Providers ─────────────────────────────────────────────────────────────────
 
 function setCookie(m: ThemeMode) {
   document.cookie = `theme=${m}; path=/; max-age=31536000; SameSite=Lax`

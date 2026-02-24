@@ -24,8 +24,6 @@ import { UserRow } from './UserRow'
 import { AddUserToTeamDialog } from './AddUserToTeamDialog'
 import { DeleteUserDialog } from './DeleteUserDialog'
 
-// ── Component ─────────────────────────────────────────────────────────────────
-
 export default function UserManagementList() {
   const [authorized, setAuthorized] = useState<boolean | null>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
@@ -71,8 +69,6 @@ export default function UserManagementList() {
         setLoading(false)
       })
   }, [])
-
-  // ── Actions ───────────────────────────────────────────────────────────────
 
   async function handleToggleAdmin(user: AdminUser) {
     setBusyUserIds((prev) => new Set(prev).add(user.id))
@@ -182,8 +178,6 @@ export default function UserManagementList() {
     }
   }
 
-  // ── Render guards ─────────────────────────────────────────────────────────
-
   if (loading || authorized === null) {
     return (
       <Container
@@ -205,8 +199,6 @@ export default function UserManagementList() {
     )
   }
 
-  // ── Filtered list ─────────────────────────────────────────────────────────
-
   const filtered = users.filter((u) => {
     if (!search) return true
     const q = search.toLowerCase()
@@ -215,8 +207,6 @@ export default function UserManagementList() {
 
   const deleteUser = users.find((u) => u.id === deleteUserId)
   const addUserToTeamUser = users.find((u) => u.id === addTeamUserId)
-
-  // ── Main UI ───────────────────────────────────────────────────────────────
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
@@ -283,7 +273,6 @@ export default function UserManagementList() {
         />
       ))}
 
-      {/* ── Dialogs ── */}
       {addUserToTeamUser && (
         <AddUserToTeamDialog
           user={addUserToTeamUser}
