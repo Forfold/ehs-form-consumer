@@ -2,22 +2,10 @@ import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
 import Typography from '@mui/material/Typography'
 import type { EditMeta } from '@/lib/types/inspection'
+import { formatTime } from '@/lib/dateUtils'
 
 interface Props {
   meta: EditMeta
-}
-
-function formatTime(iso: string): string {
-  try {
-    return new Intl.DateTimeFormat(undefined, {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    }).format(new Date(iso))
-  } catch {
-    return iso
-  }
 }
 
 export default function EditMetaBadge({ meta }: Props) {

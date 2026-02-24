@@ -26,9 +26,10 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import HistoryIcon from '@mui/icons-material/History'
 import Link from 'next/link'
 import { gqlFetch } from '@/lib/graphql/client'
+import { submissionToHistoryItem } from '@/app/submissionUtils'
 import InspectionResults from '@/app/components/form_submission/InspectionResults'
 import type { InspectionData } from '@/lib/types/inspection'
-import HistorySidebar from '@/app/components/history/HistorySidebar'
+import HistorySidebar, { type HistoryItem } from '@/app/components/history/HistorySidebar'
 import PdfSection from '@/app/components/pdf/PdfSection'
 import UserMenu from '@/app/components/main/UserMenu'
 import DeleteFormButton from './DeleteFormButton'
@@ -75,17 +76,6 @@ const UPDATE_DATA_MUTATION = `
   }
 `
 
-function submissionToHistoryItem(s: GqlSubmission) {
-  return {
-    id: s.id,
-    processedAt: s.processedAt,
-    permitNumber: (s.data?.permitNumber as string | undefined) ?? '',
-    facilityName:
-      (s.data?.facilityName as string | undefined) ?? s.displayName ?? null,
-    data: s.data,
-    teams: s.teams,
-  }
-}
 
 function breadcrumbTitle(submission: GqlSubmission | null, loading: boolean): string {
   if (loading) return '…'
@@ -104,9 +94,7 @@ export default function FormDetailPage() {
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [history, setHistory] = useState<
-    ReturnType<typeof submissionToHistoryItem>[]
-  >([])
+  const [history, setHistory] = useState<HistoryItem[]>([])
   const [ncModalOpen, setNcModalOpen] = useState(false)
   const [currentUserName, setCurrentUserName] = useState<string | undefined>(
     undefined,

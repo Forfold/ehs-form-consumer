@@ -9,6 +9,7 @@ import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined'
 import { gqlFetch } from '@/lib/graphql/client'
+import { submissionToHistoryItem } from './submissionUtils'
 import { type HistoryItem } from './components/history/HistorySidebar'
 import UserMenu from './components/main/UserMenu'
 import UploaderCard from './components/dashboard/UploaderCard'
@@ -32,17 +33,6 @@ interface GqlSubmission {
   teams: Array<{ id: string; name: string }>
 }
 
-function submissionToHistoryItem(s: GqlSubmission): HistoryItem {
-  return {
-    id: s.id,
-    processedAt: s.processedAt,
-    permitNumber: (s.data?.permitNumber as string | undefined) ?? '',
-    facilityName:
-      (s.data?.facilityName as string | undefined) ?? s.displayName ?? null,
-    data: s.data,
-    teams: s.teams,
-  }
-}
 
 export default function Home() {
   const router = useRouter()
