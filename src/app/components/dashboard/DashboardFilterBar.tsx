@@ -151,7 +151,6 @@ export default function DashboardFilterBar({
                 fontSize: '0.72rem',
                 py: 0.25,
                 px: 1.25,
-                textTransform: 'none',
                 whiteSpace: 'nowrap',
               }}
             >

@@ -126,8 +126,6 @@ export default function UserMenu() {
                 '& .MuiToggleButton-root': {
                   px: 1.25,
                   py: 0.25,
-                  fontWeight: 600,
-                  textTransform: 'none',
                   lineHeight: 1.6,
                 },
               }}

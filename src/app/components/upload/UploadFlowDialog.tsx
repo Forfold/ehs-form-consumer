@@ -229,12 +229,6 @@ export default function UploadFlowDialog({ open, file, onClose, onSaved }: Props
               gap: 2,
             }}
           >
-            {/* <Box
-              component="img"
-              src="/visua_mascot.png"
-              alt="FormVis mascot"
-              sx={{ width: 110, height: 110, objectFit: 'contain' }}
-            /> */}
             {processed ? (
               <>
                 <CheckCircleIcon sx={{ color: 'success.main', fontSize: 36 }} />
