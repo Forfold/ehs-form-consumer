@@ -8,6 +8,7 @@ import {
   userSettings,
   users,
 } from '../../../db/schema'
+import { inspectionDataSchema } from '../types/inspection'
 import { builder } from './builder'
 import { assertTeamRole, ROLE_ORDER, type Role } from './helpers'
 import {
@@ -55,6 +56,7 @@ builder.mutationType({
       args: { input: t.arg({ type: CreateSubmissionInput, required: true }) },
       resolve: async (_, { input }, ctx) => {
         if (!ctx.userId) throw new Error('Not authenticated')
+        const parsed = inspectionDataSchema.parse(input.data)
         const rows = await ctx.db
           .insert(formSubmissions)
           .values({
@@ -63,7 +65,12 @@ builder.mutationType({
             formType: input.formType ?? null,
             displayName: input.displayName ?? null,
             pdfStorageKey: input.pdfStorageKey ?? null,
-            data: input.data as Record<string, unknown>,
+            data: parsed,
+            facilityName: parsed.facilityName,
+            facilityAddress: parsed.facilityAddress,
+            permitNumber: parsed.permitNumber,
+            inspectionDate: parsed.inspectionDate,
+            inspectorName: parsed.inspectorName,
           })
           .returning()
         return rows[0]
@@ -449,9 +456,17 @@ builder.mutationType({
       },
       resolve: async (_, { id, data }, ctx) => {
         if (!ctx.userId) throw new Error('Not authenticated')
+        const parsed = inspectionDataSchema.parse(data)
         const rows = await ctx.db
           .update(formSubmissions)
-          .set({ data: data as Record<string, unknown> })
+          .set({
+            data: parsed,
+            facilityName: parsed.facilityName,
+            facilityAddress: parsed.facilityAddress,
+            permitNumber: parsed.permitNumber,
+            inspectionDate: parsed.inspectionDate,
+            inspectorName: parsed.inspectorName,
+          })
           .where(
             and(
               eq(formSubmissions.id, String(id)),

@@ -29,6 +29,11 @@ interface GqlSubmission {
   id: string
   processedAt: string
   displayName: string | null
+  facilityName: string
+  facilityAddress: string
+  permitNumber: string
+  inspectionDate: string
+  inspectorName: string
   data: Record<string, unknown>
   teams: Array<{ id: string; name: string }>
 }

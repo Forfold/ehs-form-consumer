@@ -38,6 +38,7 @@ const INDEX_TO_STEP: FlowStep[] = ['pre-review', 'processing', 'post-review']
 
 const EMPTY_DATA: InspectionData = {
   facilityName: '',
+  facilityAddress: '',
   permitNumber: '',
   inspectionDate: '',
   inspectorName: '',

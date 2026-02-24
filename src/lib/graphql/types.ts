@@ -103,6 +103,11 @@ FormSubmissionRef.implement({
     displayName: t.exposeString('displayName', { nullable: true }),
     pdfStorageKey: t.exposeString('pdfStorageKey', { nullable: true }),
     data: t.expose('data', { type: 'JSON' }),
+    facilityName: t.exposeString('facilityName'),
+    facilityAddress: t.exposeString('facilityAddress'),
+    permitNumber: t.exposeString('permitNumber'),
+    inspectionDate: t.exposeString('inspectionDate'),
+    inspectorName: t.exposeString('inspectorName'),
     // Teams this submission has been shared with (that user is a member of)
     teams: t.field({
       type: [TeamRef],

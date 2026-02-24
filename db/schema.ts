@@ -87,6 +87,12 @@ export const formSubmissions = pgTable(
     displayName: text('display_name'),
     pdfStorageKey: text('pdf_storage_key'),
     data: jsonb('data').notNull(),
+    // Key fields extracted from data — required, stored for querying / indexing
+    facilityName: text('facility_name').notNull(),
+    facilityAddress: text('facility_address').notNull(),
+    permitNumber: text('permit_number').notNull(),
+    inspectionDate: text('inspection_date').notNull(),
+    inspectorName: text('inspector_name').notNull(),
   },
   (t) => [
     index('form_submissions_user_id_processed_at_idx').on(t.userId, t.processedAt),
