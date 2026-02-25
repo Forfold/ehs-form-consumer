@@ -48,6 +48,11 @@ interface GqlSubmission {
   processedAt: string
   displayName: string | null
   pdfStorageKey: string | null
+  facilityName: string
+  facilityAddress: string
+  permitNumber: string
+  inspectionDate: string
+  inspectorName: string
   data: Record<string, unknown>
   teams: Array<{ id: string; name: string }>
 }

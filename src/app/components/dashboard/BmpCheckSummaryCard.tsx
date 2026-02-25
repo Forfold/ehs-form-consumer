@@ -61,7 +61,7 @@ export default function BmpCheckSummaryCard({ checklistTotals }: Props) {
   }
 
   return (
-    <DashboardCard title="Checklist Summary" subtitle="All-time pass / fail / N/A">
+    <DashboardCard title="Checklist Summary">
       <ReactECharts option={option} style={{ height: 140 }} notMerge />
     </DashboardCard>
   )

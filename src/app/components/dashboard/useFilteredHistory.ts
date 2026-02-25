@@ -14,12 +14,12 @@ export function useFilteredHistory(
       return history.filter((h) => h.id === resolvedSubmissionId)
     }
     const cutoff = cutoffDate(timeRange)
-    const byTeam =
-      teamId === 'all'
-        ? history
-        : teamId === 'personal'
-          ? history.filter((h) => !h.teams?.length)
-          : history.filter((h) => h.teams?.some((t) => t.id === teamId))
+
+    let byTeam: HistoryItem[] = []
+    if (teamId === 'all') byTeam = history
+    if (teamId === 'personal') byTeam = history.filter((h) => !h.teams?.length)
+    else history.filter((h) => h.teams?.some((t) => t.id === teamId))
+
     // Prefer inspectionDate from extracted data; fall back to processedAt
     return cutoff
       ? byTeam.filter((h) => {
