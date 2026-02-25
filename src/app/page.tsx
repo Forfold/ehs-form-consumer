@@ -19,8 +19,21 @@ import UploadFlowDialog from './components/upload/UploadFlowDialog'
 const SUBMISSIONS_QUERY = `
   query {
     submissions(limit: 50) {
-      id processedAt displayName data
-      teams { id name }
+      id
+      processedAt
+      displayName
+      data
+      
+      facilityName
+      facilityAddress
+      permitNumber
+      inspectionDate
+      inspectorName
+      
+      teams {
+        id
+        name
+      }
     }
   }
 `
