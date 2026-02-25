@@ -42,6 +42,7 @@ export function makeTheme(mode: ThemeMode) {
         defaultProps: { elevation: 0 },
         styleOverrides: {
           root: {
+            borderRadius: 0,
             backgroundColor: dark ? '#1E2430' : '#FFFFFF',
             borderBottom: `1px solid ${dark ? '#2D3548' : '#E5E8EC'}`,
             color: 'inherit',
