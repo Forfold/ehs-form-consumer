@@ -64,7 +64,7 @@ export default function ChecklistSummaryCard({ checklistTotals }: Props) {
 
   return (
     <DashboardCard title="Checklist Summary" subtitle={`${total} items total`}>
-      <ReactECharts option={option} style={{ height: 140 }} notMerge />
+      <ReactECharts option={option} style={{ height: '65%' }} notMerge />
     </DashboardCard>
   )
 }
