@@ -9,6 +9,7 @@ export function useFilteredHistory(
   teamId: string,
   resolvedSubmissionId: string,
 ) {
+  console.log("history: ", history)
   const filteredHistory = useMemo(() => {
     if (timeRange === 'single') {
       return history.filter((h) => h.id === resolvedSubmissionId)
@@ -23,8 +24,8 @@ export function useFilteredHistory(
     // Prefer inspectionDate from extracted data; fall back to processedAt
     return cutoff
       ? byTeam.filter((h) => {
-          const dateStr = (h.data as { inspectionDate?: string }).inspectionDate
-          const date = dateStr ? new Date(dateStr) : new Date(h.processedAt)
+          const dateStr = h.inspectionDate
+          const date = new Date(dateStr)
           return date >= cutoff
         })
       : byTeam

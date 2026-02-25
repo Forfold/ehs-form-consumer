@@ -17,8 +17,11 @@ export function submissionToHistoryItem(s: SubmissionForHistory): HistoryItem {
   return {
     id: s.id,
     processedAt: s.processedAt,
-    permitNumber: s.permitNumber,
     facilityName: s.facilityName,
+    facilityAddress: s.facilityAddress,
+    permitNumber: s.permitNumber,
+    inspectionDate: s.inspectionDate,
+    inspectorName: s.inspectorName,
     data: s.data,
     teams: s.teams,
   }

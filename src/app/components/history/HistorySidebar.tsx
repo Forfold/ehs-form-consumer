@@ -12,9 +12,12 @@ import { HistoryList } from './HistoryList'
 
 export interface HistoryItem {
   id: string
-  facilityName: string | null
-  permitNumber: string
   processedAt: string
+  facilityName: string
+  facilityAddress: string
+  permitNumber: string
+  inspectionDate: string
+  inspectorName: string
   data: Record<string, unknown>
   teams?: Array<{ id: string; name: string }>
 }
