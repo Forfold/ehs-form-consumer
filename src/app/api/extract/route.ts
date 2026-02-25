@@ -29,10 +29,12 @@ Map answers to BMP status:
 
 Extract into this exact JSON shape:
 {
-  "facilityName": string or null,
-  "permitNumber": string or null,
+  "processedAt": string (required — use "unknown" if not determinable from the form),
+  "facilityName": string (required — use "unknown" if not determinable from the form),
+  "facilityAddress": string (required — use "unknown" if not determinable from the form),
+  "permitNumber": string (required — use "unknown" if not determinable from the form),
   "inspectionDate": string (required — use "unknown" if not determinable from the form),
-  "inspectorName": string or null,
+  "inspectorName": string (required — use "unknown" if not determinable from the form),
   "weatherConditions": string or null,
   "rainEventDuringInspection": boolean or null,
   "overallStatus": "compliant" | "non-compliant" | "needs-attention",
