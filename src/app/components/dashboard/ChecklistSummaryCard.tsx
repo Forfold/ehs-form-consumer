@@ -9,7 +9,7 @@ interface Props {
   checklistTotals: ChecklistTotals
 }
 
-export default function BmpCheckSummaryCard({ checklistTotals }: Props) {
+export default function ChecklistSummaryCard({ checklistTotals }: Props) {
   const theme = useTheme()
 
   const option = {
