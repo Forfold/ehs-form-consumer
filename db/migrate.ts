@@ -13,7 +13,9 @@ try {
     const val = line.slice(idx + 1).trim()
     if (key && !process.env[key]) process.env[key] = val
   }
-} catch { /* no .env.local — rely on actual environment */ }
+} catch {
+  /* no .env.local — rely on actual environment */
+}
 
 const pool = new Pool({
   connectionString: process.env.POSTGRES_URL,

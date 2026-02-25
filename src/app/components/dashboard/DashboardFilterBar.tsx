@@ -75,44 +75,51 @@ export default function DashboardFilterBar({
         mb: 1.5,
       }}
     >
-      <Box sx={{ display: 'flex', flexDirection: 'column',  alignItems: 'baseline', gap: 0.5 }}>
-      <Typography
-        variant="caption"
-        color="text.disabled"
+      <Box
         sx={{
-          fontWeight: 600,
-          letterSpacing: '0.06em',
-          textTransform: 'uppercase',
-          mr: 0.5,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'baseline',
+          gap: 0.5,
         }}
       >
-        Showing
-      </Typography>
+        <Typography
+          variant="caption"
+          color="text.disabled"
+          sx={{
+            fontWeight: 600,
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            mr: 0.5,
+          }}
+        >
+          Showing
+        </Typography>
 
-      <ToggleButtonGroup
-        value={timeRange}
-        exclusive
-        size="small"
-        onChange={(_, v) => {
-          if (v) onTimeRangeChange(v as TimeRange)
-        }}
-        sx={{
-          '& .MuiToggleButton-root': {
-            py: 0.25,
-            px: 1.25,
-            fontSize: '0.72rem',
-            lineHeight: 1.6,
-            border: '1px solid',
-            borderColor: 'divider',
-          },
-        }}
-      >
-        {TIME_OPTIONS.map((opt) => (
-          <ToggleButton key={opt.value} value={opt.value}>
-            {opt.label}
-          </ToggleButton>
-        ))}
-      </ToggleButtonGroup>
+        <ToggleButtonGroup
+          value={timeRange}
+          exclusive
+          size="small"
+          onChange={(_, v) => {
+            if (v) onTimeRangeChange(v as TimeRange)
+          }}
+          sx={{
+            '& .MuiToggleButton-root': {
+              py: 0.25,
+              px: 1.25,
+              fontSize: '0.72rem',
+              lineHeight: 1.6,
+              border: '1px solid',
+              borderColor: 'divider',
+            },
+          }}
+        >
+          {TIME_OPTIONS.map((opt) => (
+            <ToggleButton key={opt.value} value={opt.value}>
+              {opt.label}
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
       </Box>
 
       {timeRange === 'single' ? (
@@ -183,14 +190,14 @@ export default function DashboardFilterBar({
 
       <Box sx={{ flexGrow: 1 }} />
 
-        <Button
-          onClick={() => setSidebarOpen(true)}
-          sx={{ color: 'text.secondary'}}
-          aria-label="open history"
-        >
-          <HistoryIcon fontSize="small" sx={{  mr: 1 }} />
-          Form History
-        </Button>
+      <Button
+        onClick={() => setSidebarOpen(true)}
+        sx={{ color: 'text.secondary' }}
+        aria-label="open history"
+      >
+        <HistoryIcon fontSize="small" sx={{ mr: 1 }} />
+        Form History
+      </Button>
 
       <HistorySidebar
         open={sidebarOpen}

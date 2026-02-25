@@ -9,7 +9,7 @@ export function useFilteredHistory(
   teamId: string,
   resolvedSubmissionId: string,
 ) {
-  console.log("history: ", history)
+  console.log('history: ', history)
   const filteredHistory = useMemo(() => {
     if (timeRange === 'single') {
       return history.filter((h) => h.id === resolvedSubmissionId)

@@ -25,7 +25,8 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
     // Checklist totals across filtered history
     const checklistTotals = { pass: 0, fail: 0, na: 0 }
     for (const item of history) {
-      for (const checkList of (item.data as Partial<InspectionData>).checklistItems ?? []) {
+      for (const checkList of (item.data as Partial<InspectionData>).checklistItems ??
+        []) {
         if (checkList.status === 'pass') checklistTotals.pass++
         else if (checkList.status === 'fail') checklistTotals.fail++
         else checklistTotals.na++
