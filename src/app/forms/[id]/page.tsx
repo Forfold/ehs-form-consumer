@@ -154,14 +154,14 @@ export default function FormDetailPage() {
   const inspectionData = submission?.data as Partial<InspectionData> | undefined
   const overallStatus = inspectionData?.overallStatus
   const statusConfig = overallStatus ? STATUS_CONFIG[overallStatus] : null
-  // Fall back to legacy 'bmpItems' key for submissions saved before the rename
+  // Fall back to legacy 'checkListItems' key for submissions saved before the rename
   type ChecklistItemArr = NonNullable<InspectionData['checklistItems']>
-  const bmpItems: ChecklistItemArr = (inspectionData?.checklistItems ??
-    (inspectionData as unknown as Record<string, unknown>)?.bmpItems ??
+  const checkListItems: ChecklistItemArr = (inspectionData?.checklistItems ??
+    (inspectionData as unknown as Record<string, unknown>)?.checkListItems ??
     []) as ChecklistItemArr
-  const passCount = bmpItems.filter((i) => i.status === 'pass').length
-  const failCount = bmpItems.filter((i) => i.status === 'fail').length
-  const failedItems = bmpItems.filter((i) => i.status === 'fail')
+  const passCount = checkListItems.filter((i) => i.status === 'pass').length
+  const failCount = checkListItems.filter((i) => i.status === 'fail').length
+  const failedItems = checkListItems.filter((i) => i.status === 'fail')
   const deadletterCount = inspectionData?.deadletter
     ? Object.keys(inspectionData.deadletter).length
     : 0
@@ -169,7 +169,7 @@ export default function FormDetailPage() {
     !inspectionData?.facilityName &&
     !inspectionData?.permitNumber &&
     !inspectionData?.inspectionDate &&
-    (bmpItems.length === 0 || bmpItems.every((i) => i.status === 'na'))
+    (checkListItems.length === 0 || checkListItems.every((i) => i.status === 'na'))
   const isNonCompliantClickable =
     overallStatus === 'non-compliant' && failedItems.length > 0
 
@@ -304,13 +304,13 @@ export default function FormDetailPage() {
                   severity={statusConfig.severity}
                   sx={{ alignItems: 'center', pointerEvents: 'none' }}
                   action={
-                    bmpItems.length > 0 ? (
+                    checkListItems.length > 0 ? (
                       <Typography
                         variant="body2"
                         sx={{ whiteSpace: 'nowrap', opacity: 0.85, pr: 1 }}
                       >
                         {passCount} pass &middot; {failCount} fail &middot;{' '}
-                        {bmpItems.length} items
+                        {checkListItems.length} items
                         {isNonCompliantClickable && (
                           <Box
                             component="span"

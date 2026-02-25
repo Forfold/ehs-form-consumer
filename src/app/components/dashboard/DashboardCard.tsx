@@ -21,6 +21,7 @@ export default function DashboardCard({ title, subtitle, action, children }: Pro
         gap: 1.5,
         height: '100%',
         boxSizing: 'border-box',
+        position: 'relative',
       }}
     >
       <Box

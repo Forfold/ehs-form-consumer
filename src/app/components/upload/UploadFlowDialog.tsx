@@ -23,7 +23,10 @@ import PreReviewStep from './PreReviewStep'
 
 const CREATE_SUBMISSION_MUTATION = `
   mutation CreateSubmission($input: CreateSubmissionInput!) {
-    createSubmission(input: $input) { id processedAt }
+    createSubmission(input: $input) {
+      id
+      processedAt
+    }
   }
 `
 
@@ -157,6 +160,12 @@ export default function UploadFlowDialog({ open, file, onClose, onSaved }: Props
           formType: 'iswgp',
           pdfStorageKey,
           data: editedData,
+
+          facilityName: editedData.facilityName,
+          facilityAddress: editedData.facilityAddress,
+          permitNumber: editedData.permitNumber,
+          inspectionDate: editedData.inspectionDate,
+          inspectorName: editedData.inspectorName,
         },
       })
       onSaved(createSubmission.id)

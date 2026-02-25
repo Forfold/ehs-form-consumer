@@ -9,7 +9,7 @@ interface Props {
   checklistTotals: ChecklistTotals
 }
 
-export default function BmpCheckSummaryCard({ checklistTotals }: Props) {
+export default function ChecklistSummaryCard({ checklistTotals }: Props) {
   const theme = useTheme()
 
   const option = {
@@ -60,9 +60,11 @@ export default function BmpCheckSummaryCard({ checklistTotals }: Props) {
     ],
   }
 
+  const total = checklistTotals.pass + checklistTotals.fail + checklistTotals.na
+
   return (
-    <DashboardCard title="Checklist Summary">
-      <ReactECharts option={option} style={{ height: 140 }} notMerge />
+    <DashboardCard title="Checklist Summary" subtitle={`${total} items total`}>
+      <ReactECharts option={option} style={{ height: '65%' }} notMerge />
     </DashboardCard>
   )
 }

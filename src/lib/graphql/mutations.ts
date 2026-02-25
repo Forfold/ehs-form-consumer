@@ -24,9 +24,15 @@ const CreateSubmissionInput = builder.inputType('CreateSubmissionInput', {
   fields: (t) => ({
     fileName: t.string({ required: true }),
     formType: t.string(),
-    displayName: t.string(),
+    displayName: t.string(), // todo: delete this?
     pdfStorageKey: t.string(),
     data: t.field({ type: 'JSON', required: true }),
+
+    facilityName: t.string({ required: true }),
+    facilityAddress: t.string({ required: true }),
+    permitNumber: t.string({ required: true }),
+    inspectionDate: t.string({ required: true }),
+    inspectorName: t.string({ required: true }),
   }),
 })
 

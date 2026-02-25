@@ -45,7 +45,7 @@ interface Props {
   onEdit?: (updated: InspectionData) => void
 }
 
-const bmpChipProps: Record<
+const checkListChipProps: Record<
   ChecklistStatus,
   { label: string; color: 'success' | 'error' | 'default' }
 > = {
@@ -217,9 +217,9 @@ function FacilityField({
 export default function InspectionResults({ data, currentUserName, onEdit }: Props) {
   const canEdit = !!onEdit
 
-  // Fall back to legacy 'bmpItems' key for submissions saved before the rename
-  const bmpItems = (data.checklistItems ??
-    (data as unknown as Record<string, unknown>).bmpItems ??
+  // Fall back to legacy 'checkListItems' key for submissions saved before the rename
+  const checkListItems = (data.checklistItems ??
+    (data as unknown as Record<string, unknown>).checkListItems ??
     []) as InspectionData['checklistItems']
   const correctiveActions = data.correctiveActions ?? []
   const pendingCount = correctiveActions.filter((a) => !a.completed).length
@@ -257,7 +257,7 @@ export default function InspectionResults({ data, currentUserName, onEdit }: Pro
   }
 
   function ChecklistEditRow({ index }: { index: number }) {
-    const item = bmpItems[index]
+    const item = checkListItems[index]
     const [desc, setDesc] = useState(item.description)
     const [status, setStatus] = useState<ChecklistStatus>(item.status)
     const [notes, setNotes] = useState(item.notes)
@@ -265,7 +265,7 @@ export default function InspectionResults({ data, currentUserName, onEdit }: Pro
 
     function save() {
       if (!editType || !onEdit) return
-      const updated = bmpItems.map((it, i) =>
+      const updated = checkListItems.map((it, i) =>
         i === index
           ? { ...it, description: desc, status, notes, editMeta: makeMeta(editType) }
           : it,
@@ -351,7 +351,7 @@ export default function InspectionResults({ data, currentUserName, onEdit }: Pro
       onEdit({
         ...data,
         checklistItems: [
-          ...bmpItems,
+          ...checkListItems,
           { description: desc, status, notes, editMeta: makeMeta(editType) },
         ],
       })
@@ -698,11 +698,11 @@ export default function InspectionResults({ data, currentUserName, onEdit }: Pro
         </Paper>
       )}
 
-      {/* BMP / checklist items */}
-      {(bmpItems.length > 0 || canEdit) && (
+      {/* Checklist items */}
+      {(checkListItems.length > 0 || canEdit) && (
         <Paper variant="outlined" sx={{ p: 2 }}>
           <SectionHeading>Inspection Items</SectionHeading>
-          {bmpItems.length > 0 && (
+          {checkListItems.length > 0 && (
             <TableContainer>
               <Table size="small">
                 <TableHead>
@@ -714,8 +714,8 @@ export default function InspectionResults({ data, currentUserName, onEdit }: Pro
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {bmpItems.map((item, i) => {
-                    const chip = bmpChipProps[item.status] ?? {
+                  {checkListItems.map((item, i) => {
+                    const chip = checkListChipProps[item.status] ?? {
                       label: item.status,
                       color: 'default' as const,
                     }
@@ -780,7 +780,7 @@ export default function InspectionResults({ data, currentUserName, onEdit }: Pro
                   size="small"
                   startIcon={<AddIcon />}
                   onClick={() => setAddingItem(true)}
-                  sx={{ mt: bmpItems.length > 0 ? 1 : 0 }}
+                  sx={{ mt: checkListItems.length > 0 ? 1 : 0 }}
                 >
                   Add inspection item
                 </Button>

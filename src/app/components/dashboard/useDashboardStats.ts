@@ -15,19 +15,20 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
   return useMemo(() => {
     const now = new Date()
 
-    // Compliance across the (already-filtered) history
+    // Compliance across the filtered history
     const compliant = history.filter(
       (item) => (item.data as Partial<InspectionData>).overallStatus === 'compliant',
     ).length
     const compliancePercent =
       history.length === 0 ? 100 : Math.round((compliant / history.length) * 100)
 
-    // BMP totals across all history
+    // Checklist totals across filtered history
     const checklistTotals = { pass: 0, fail: 0, na: 0 }
     for (const item of history) {
-      for (const bmp of (item.data as Partial<InspectionData>).checklistItems ?? []) {
-        if (bmp.status === 'pass') checklistTotals.pass++
-        else if (bmp.status === 'fail') checklistTotals.fail++
+      for (const checkList of (item.data as Partial<InspectionData>).checklistItems ??
+        []) {
+        if (checkList.status === 'pass') checklistTotals.pass++
+        else if (checkList.status === 'fail') checklistTotals.fail++
         else checklistTotals.na++
       }
     }
@@ -56,7 +57,7 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
     }
     const monthlyBuckets = Array.from(bucketMap.values())
 
-    // Open corrective actions (documented) + BMP failures with no documented action (gaps)
+    // Open corrective actions (documented) + checklist item failures with no documented action (gaps)
     const openActions = history.flatMap((item) => {
       const d = item.data as Partial<InspectionData>
       const documented = (d.correctiveActions ?? [])
@@ -69,7 +70,7 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
           source: 'documented' as const,
         }))
 
-      // If no corrective actions were documented, surface each failed BMP item as a gap
+      // If no corrective actions were documented, surface each failed checklist item as a gap
       const failedBmps = (d.checklistItems ?? []).filter((b) => b.status === 'fail')
       const gaps =
         documented.length === 0 && failedBmps.length > 0
@@ -85,7 +86,7 @@ export function useDashboardStats(history: HistoryItem[]): DashboardStats {
       return [...documented, ...gaps]
     })
 
-    // Flagged forms — non-compliant items with their failed BMP checks
+    // Flagged forms — non-compliant items with their failed checks
     const flaggedForms: FlaggedForm[] = history
       .filter(
         (item) =>

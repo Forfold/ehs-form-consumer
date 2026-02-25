@@ -51,32 +51,31 @@ export default function ComplianceStatusCard({
           </Typography>
         </Box>
       ) : (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 0.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 0.5}}>
           <Typography variant="h2" fontWeight={700} sx={{ color, lineHeight: 1 }}>
             {percent}%
           </Typography>
           <Chip
             label={passing ? 'Within Compliance' : 'Non-Compliant'}
             size="small"
-            sx={{
-              bgcolor: passing ? 'success.light' : 'error.light',
-              color: passing ? 'success.dark' : 'error.dark',
-              fontWeight: 600,
-            }}
+            color={passing ? 'success' : 'error'}
           />
-          {flaggedForms.length > 1 && (
-            <Button
-              size="small"
-              variant="outlined"
-              color="error"
-              onClick={() => setModalOpen(true)}
-              sx={{ ml: 'auto', flexShrink: 0 }}
-            >
-              {flaggedForms.length} flagged form{flaggedForms.length !== 1 ? 's' : ''}
-            </Button>
-          )}
         </Box>
       )}
+
+        {flaggedForms.length > 1 && (
+            <Button
+              size="small"
+              variant="contained"
+              color="error"
+              onClick={() => setModalOpen(true)}
+              sx={{ position: 'absolute', right: 18, top: 18, height: '75%', width: '100px', fontSize: '1rem', display: 'flex', flexDirection: 'column', padding: 1 }}
+            >
+              <span style={{ fontSize: '2rem' }}>{flaggedForms.length}</span>
+              <span>flagged</span>
+              <span style={{ paddingBottom: '8px' }}>form{flaggedForms.length !== 1 ? 's' : ''}</span>
+            </Button>
+          )}
 
       <FlaggedItemsModal
         open={modalOpen}
