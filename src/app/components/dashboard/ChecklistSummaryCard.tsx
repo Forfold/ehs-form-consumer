@@ -60,8 +60,10 @@ export default function ChecklistSummaryCard({ checklistTotals }: Props) {
     ],
   }
 
+  const total = checklistTotals.pass + checklistTotals.fail + checklistTotals.na
+
   return (
-    <DashboardCard title="Checklist Summary">
+    <DashboardCard title="Checklist Summary" subtitle={`${total} items total`}>
       <ReactECharts option={option} style={{ height: 140 }} notMerge />
     </DashboardCard>
   )
