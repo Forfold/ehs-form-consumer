@@ -2,7 +2,6 @@
 
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import IconButton from '@mui/material/IconButton'
 import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
 import ToggleButton from '@mui/material/ToggleButton'
@@ -13,7 +12,6 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import HistorySidebar, { type HistoryItem } from '../history/HistorySidebar'
-import Tooltip from '@mui/material/Tooltip'
 
 export type TimeRange = '30d' | '90d' | '6mo' | '1yr' | 'all' | 'single'
 
@@ -71,12 +69,13 @@ export default function DashboardFilterBar({
     <Box
       sx={{
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'end',
         gap: 1.5,
         flexWrap: 'wrap',
         mb: 1.5,
       }}
     >
+      <Box sx={{ display: 'flex', flexDirection: 'column',  alignItems: 'baseline', gap: 0.5 }}>
       <Typography
         variant="caption"
         color="text.disabled"
@@ -114,6 +113,7 @@ export default function DashboardFilterBar({
           </ToggleButton>
         ))}
       </ToggleButtonGroup>
+      </Box>
 
       {timeRange === 'single' ? (
         <>
@@ -181,16 +181,16 @@ export default function DashboardFilterBar({
         )
       )}
 
-      <Tooltip title="Show processed forms history">
-        <IconButton
-          size="small"
+      <Box sx={{ flexGrow: 1 }} />
+
+        <Button
           onClick={() => setSidebarOpen(true)}
-          sx={{ color: 'text.secondary', mr: 0.5 }}
+          sx={{ color: 'text.secondary'}}
           aria-label="open history"
         >
-          <HistoryIcon fontSize="small" />
-        </IconButton>
-      </Tooltip>
+          <HistoryIcon fontSize="small" sx={{  mr: 1 }} />
+          Form History
+        </Button>
 
       <HistorySidebar
         open={sidebarOpen}
