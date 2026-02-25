@@ -42,7 +42,7 @@ export default function CorrectiveActionsCard({
           </Typography>
         </Box>
       ) : (
-        <TableContainer sx={{ maxHeight: 220, overflowX: 'auto' }}>
+        <TableContainer>
           <Table size="small" stickyHeader>
             <TableHead>
               <TableRow>
