@@ -21,7 +21,7 @@ export default function MonthlyActivityCard({ buckets }: Props) {
       bottom: 0,
       itemHeight: 10,
     },
-    grid: { left: 28, right: 12, top: 8, bottom: 36 },
+    grid: { left: 28, right: 12, top: 8, bottom: 50 },
     xAxis: {
       type: 'category',
       data: months,
