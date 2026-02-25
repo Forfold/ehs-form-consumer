@@ -48,7 +48,7 @@ export default function CorrectiveActionsCard({
               <TableRow>
                 <TableCell>Facility</TableCell>
                 <TableCell>Action</TableCell>
-                <TableCell>Due</TableCell>
+                <TableCell>Notes</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -99,7 +99,7 @@ export default function CorrectiveActionsCard({
                             : 'text.primary',
                     }}
                   >
-                    {a.source === 'gap' ? 'Undocumented' : a.dueDate || '—'}
+                    {a.source === 'gap' ? 'Checklist Failure' : a.dueDate || '—'}
                   </TableCell>
                 </TableRow>
               ))}
